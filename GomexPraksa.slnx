@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="GomexPraksa/GomexPraksa.csproj" />
+  <Project Path="Models/Models.csproj" />
+</Solution>
