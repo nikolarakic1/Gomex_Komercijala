@@ -1,37 +1,69 @@
 ﻿using GomexPraksa.RepositoryComerc;
 using Models.DtosComerc;
 
-namespace GomexPraksa.ServicesComerc
+namespace GomexPraksa.ServicesComerc;
+
+public class DashboardService : IDashboardService
 {
-    public class DashboardService : IDashboardService
+    private readonly IDashboardRepo _repo;
+
+    public DashboardService(IDashboardRepo repo)
     {
-        private readonly IDashboardRepo _repo;
-        public DashboardService(IDashboardRepo repo)
+        _repo = repo;
+    }
+
+    public async Task<DashboardSummaryDTO> FillCardsAsync(
+        DashboardFilterDTO filterDTO)
+    {
+        if (filterDTO is null)
         {
-            _repo = repo;
+            throw new ArgumentNullException(nameof(filterDTO));
         }
-        public async Task<DashboardSummaryDTO> FillCardsAsync(DashboardFilterDTO filterDTO)
+
+        bool imaDatumOd = filterDTO.DatumOd.HasValue;
+        bool imaDatumDo = filterDTO.DatumDo.HasValue;
+
+        if (imaDatumOd != imaDatumDo)
         {
-            {
-                if (filterDTO.NedeljaOd > filterDTO.NedeljaDo)
-                {
-                    throw new ArgumentException(
-                        "Početna nedelja ne može biti veća od završne.");
-                }
-
-                int brojNedelja =
-                    filterDTO.NedeljaDo - filterDTO.NedeljaOd + 1;
-
-                int prethodnaNedeljaDo =
-                    filterDTO.NedeljaOd - 1;
-
-                int prethodnaNedeljaOd =
-                    prethodnaNedeljaDo - brojNedelja + 1;
-
-                return await _repo.FillCardsAsync(
-                    filterDTO);
-            }
-
+            throw new ArgumentException(
+                "Moraju biti uneti i DatumOd i DatumDo, ili nijedan.");
         }
+
+        if (imaDatumOd &&
+            filterDTO.DatumOd!.Value > filterDTO.DatumDo!.Value)
+        {
+            throw new ArgumentException(
+                "DatumOd ne može biti posle DatumDo.");
+        }
+
+        if (filterDTO.OdeljenjeId.HasValue &&
+            filterDTO.OdeljenjeId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "OdeljenjeId mora biti veći od nule.");
+        }
+
+        if (filterDTO.KategorijaId.HasValue &&
+            filterDTO.KategorijaId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "KategorijaId mora biti veći od nule.");
+        }
+
+        if (filterDTO.DobavljacId.HasValue &&
+            filterDTO.DobavljacId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "DobavljacId mora biti veći od nule.");
+        }
+
+        if (filterDTO.TipProdajeId.HasValue &&
+            filterDTO.TipProdajeId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "TipProdajeId mora biti veći od nule.");
+        }
+
+        return await _repo.FillCardsAsync(filterDTO);
     }
 }

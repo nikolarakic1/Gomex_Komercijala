@@ -2,11 +2,9 @@
 
 public class DashboardFilterDTO
 {
-    public int Godina { get; set; }
+    public DateOnly? DatumOd { get; set; }
 
-    public int NedeljaOd { get; set; }
-
-    public int NedeljaDo { get; set; }
+    public DateOnly? DatumDo { get; set; }
 
     public int? OdeljenjeId { get; set; }
 
