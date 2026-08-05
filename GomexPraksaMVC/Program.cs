@@ -1,5 +1,8 @@
 var builder = WebApplication.CreateBuilder(args);
 
+// Force the app to bind to the same URLs defined in launchSettings so the MVC app always listens on 7067/5261
+builder.WebHost.UseUrls("https://localhost:7067", "http://localhost:5261");
+
 builder.Services.AddControllersWithViews();
 
 // HttpClient to call GomexPraksa API
@@ -22,6 +25,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+// Ensure root (/) redirects to Dashboard index so browsing to the site root works
+app.MapGet("/", () => Results.Redirect("/Dashboard/Index"));
 
 app.MapControllerRoute(
     name: "default",
