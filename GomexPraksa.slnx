@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="GomexPraksa/GomexPraksa.csproj" />
+  <Project Path="GomexPraksaMVC/GomexPraksaMVC.csproj" Id="dbf96d3a-2cf3-4c74-bb55-1ee836e71bc4" />
   <Project Path="Models/Models.csproj" />
 </Solution>
