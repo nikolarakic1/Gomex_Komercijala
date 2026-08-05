@@ -76,8 +76,8 @@ public class DashboardRepo : IDashboardRepo
                 LEFT JOIN dbo.Kategorija k
                     ON k.KategorijaId = rg.KategorijaId
 
-                WHERE kr.DatumRezultata >= @DatumOd
-                  AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+                WHERE kr.DatumUnosa >= @DatumOd
+                  AND kr.DatumUnosa < DATEADD(DAY, 1, @DatumDo)
 
                   AND (
                       @OdeljenjeId IS NULL
@@ -120,8 +120,8 @@ public class DashboardRepo : IDashboardRepo
                 LEFT JOIN dbo.Kategorija k
                     ON k.KategorijaId = rg.KategorijaId
 
-                WHERE kr.DatumRezultata >= @PrethodniDatumOd
-                  AND kr.DatumRezultata < DATEADD(DAY, 1, @PrethodniDatumDo)
+                WHERE kr.DatumUnosa >= @PrethodniDatumOd
+                  AND kr.DatumUnosa < DATEADD(DAY, 1, @PrethodniDatumDo)
 
                   AND (
                       @OdeljenjeId IS NULL

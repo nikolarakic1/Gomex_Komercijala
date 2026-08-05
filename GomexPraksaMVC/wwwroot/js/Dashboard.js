@@ -29,10 +29,8 @@ function initPeriodPicker() {
 
 // Fetch dashboard summary from API and populate metric cards
 function fetchSummary() {
-    // API is hosted in GomexPraksa project (different origin in development).
-    // Update this base URL if your API runs on a different port or host.
     var apiBase = 'https://localhost:7212';
-    var url = apiBase + '/api/dashboard/summary';
+    var url = apiBase + '/api/Dashboard/summary';
 
     fetch(url)
         .then(function (resp) { if (!resp.ok) throw resp; return resp.json(); })
@@ -66,7 +64,6 @@ function fetchSummary() {
             if (najveciYoY) najveciYoY.textContent = (data.nedostatakMarzePromenaProcenat >= 0 ? '+' : '') + formatPercent(data.nedostatakMarzePromenaProcenat ?? 0) + ' vs prethodni period';
         })
         .catch(function (err) {
-            // Don't throw noisy console errors in production; show minimal log for debugging
             console.debug('Failed to load dashboard summary', err);
         });
 }

@@ -3,14 +3,6 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<script>
-    // Signal to client JS that server rendered initial values and provide Promet value
-    window.__dashboardInitial = {
-        rendered: true,
-        promet: @((Model?.PrometBezPdv ?? 0m).ToString(System.Globalization.CultureInfo.InvariantCulture))
-    };
-</script>
-
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h4 class="mb-0">Dashboard</h4>
 </div>
