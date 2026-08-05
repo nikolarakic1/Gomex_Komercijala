@@ -2,61 +2,83 @@
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
 
-namespace GomexPraksa.Controllers
+namespace GomexPraksa.Controllers;
+
+[ApiController]
+[Route("api/akcije")]
+public class AkcijeController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AkcijaController : Controller
+    private readonly IAkcijaService _akcijaService;
+
+    public AkcijeController(IAkcijaService akcijaService)
     {
-        private readonly IAkcijaService _akcijaService;
-        public AkcijaController(IAkcijaService akcijaService)
-        {
-            _akcijaService = akcijaService;
-        }
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<AkcijaDTO>>> GetAllAsync()
-        {
-            var getAll = await _akcijaService.GetAllAsync();
-            if(getAll is null)
-            {
-                return BadRequest();
-            }
-            return Ok(getAll);
-            
-        }
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<AkcijaDTO>>> GetBuduceAsync()
-        {
-            var getBuduce = await _akcijaService.GetBuduceAsync();
-            if(getBuduce is null)
-            {
-                return BadRequest();
-            }
-            return Ok(getBuduce);
-        }
-        [HttpGet]
-        public async Task<ActionResult<AkcijaDTO>> GetTrenutneAsync()
-        {
-            var getTrenutne = await _akcijaService.GetTrenutneAsync();
-            if(getTrenutne is null)
-            {
-                return BadRequest();
-            }
-            return Ok(getTrenutne);
-        }
-        [HttpGet]
-        public async Task<IActionResult> GetByArtikalIdAsync(int id)
-        {
-            var getArtikalPoIdu = await _akcijaService.GetByArtikalIdAsync(id);
-            if(getArtikalPoIdu is null)
-            {
-                return BadRequest();
-            }
-            return Ok(getArtikalPoIdu);
-        }
-        
+        _akcijaService = akcijaService;
+    }
 
+    // GET: api/akcije
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<AkcijaDTO>>> GetAllAsync()
+    {
+        var akcije = await _akcijaService.GetAllAsync();
 
+        return Ok(akcije);
+    }
 
+    // GET: api/akcije/buduce
+    [HttpGet("buduce")]
+    public async Task<ActionResult<IEnumerable<AkcijaDTO>>> GetBuduceAsync()
+    {
+        var akcije = await _akcijaService.GetBuduceAsync();
+
+        return Ok(akcije);
+    }
+
+    // GET: api/akcije/trenutne
+    [HttpGet("trenutne")]
+    public async Task<ActionResult<IEnumerable<AkcijaDTO>>> GetTrenutneAsync()
+    {
+        var akcije = await _akcijaService.GetTrenutneAsync();
+
+        return Ok(akcije);
+    }
+
+    // GET: api/akcije/artikal/15
+    [HttpGet("artikal/{artikalId:int}")]
+    public async Task<ActionResult<IEnumerable<AkcijaDTO>>> GetByArtikalIdAsync(
+        int artikalId)
+    {
+        if (artikalId <= 0)
+        {
+            return BadRequest(
+                "ID artikla mora biti veći od nule.");
+        }
+
+        var akcije =
+            await _akcijaService.GetByArtikalIdAsync(artikalId);
+
+        return Ok(akcije);
+    }
+
+    // GET: api/akcije/artikal/15/poslednja
+    [HttpGet("artikal/{artikalId:int}/poslednja")]
+    public async Task<ActionResult<AkcijaDTO>> GetPoslednjuZaArtikalAsync(
+        int artikalId)
+    {
+        if (artikalId <= 0)
+        {
+            return BadRequest(
+                "ID artikla mora biti veći od nule.");
+        }
+
+        var poslednjaAkcija =
+            await _akcijaService.GetPoslednjuZaArtikalAsync(artikalId);
+
+        if (poslednjaAkcija is null)
+        {
+            return NotFound(
+                $"Nije pronađena akcija za artikal sa ID-em {artikalId}.");
+        }
+
+        return Ok(poslednjaAkcija);
     }
 }

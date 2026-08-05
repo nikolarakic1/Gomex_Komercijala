@@ -1,10 +1,12 @@
 using GomexPraksa.ConnectionFactory;
 using GomexPraksa.Repository;
+using GomexPraksa.RepositoryComerc;
 using GomexPraksa.Services;
+using GomexPraksa.ServicesComerc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(); 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -15,6 +17,10 @@ builder.Services.AddScoped<IArtikalRepo, ArtikalRepo>();
 builder.Services.AddScoped<IArtikalService, ArtikalService>();
 builder.Services.AddScoped<IAkcijaService, AkcijaService>();
 builder.Services.AddScoped<IAkcijaRepo, AkcijaRepo>();
+builder.Services.AddScoped<IDobavljacRepo, DobavljacRepo>();
+builder.Services.AddScoped<IDobavljacServis, DobavljacServis>();
+builder.Services.AddScoped<IDashboardRepo, DashboardRepo>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 
