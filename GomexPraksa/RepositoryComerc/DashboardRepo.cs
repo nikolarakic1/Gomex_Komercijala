@@ -16,10 +16,7 @@ public class DashboardRepo : IDashboardRepo
     public async Task<DashboardSummaryDTO> FillCardsAsync(
         DashboardFilterDTO filterDTO)
     {
-        if (filterDTO is null)
-        {
-            throw new ArgumentNullException(nameof(filterDTO));
-        }
+        ArgumentNullException.ThrowIfNull(filterDTO);
 
         bool imaDatumOd = filterDTO.DatumOd.HasValue;
         bool imaDatumDo = filterDTO.DatumDo.HasValue;
@@ -69,14 +66,18 @@ public class DashboardRepo : IDashboardRepo
                     kr.NedostatakMargine,
                     kr.DatumUnosa
                 FROM dbo.KomercijalniRezultat kr
+
                 INNER JOIN dbo.Artikal a
                     ON a.ArtikalId = kr.ArtikalId
+
                 LEFT JOIN dbo.RobnaGrupa rg
                     ON rg.RobnaGrupaId = a.RobnaGrupaId
+
                 LEFT JOIN dbo.Kategorija k
                     ON k.KategorijaId = rg.KategorijaId
-                WHERE kr.DatumUnosa >= @DatumOd
-                  AND kr.DatumUnosa < DATEADD(DAY, 1, @DatumDo)
+
+                WHERE kr.DatumRezultata >= @DatumOd
+                  AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
 
                   AND (
                       @OdeljenjeId IS NULL
@@ -109,14 +110,18 @@ public class DashboardRepo : IDashboardRepo
                     kr.RUC12,
                     kr.NedostatakMargine
                 FROM dbo.KomercijalniRezultat kr
+
                 INNER JOIN dbo.Artikal a
                     ON a.ArtikalId = kr.ArtikalId
+
                 LEFT JOIN dbo.RobnaGrupa rg
                     ON rg.RobnaGrupaId = a.RobnaGrupaId
+
                 LEFT JOIN dbo.Kategorija k
                     ON k.KategorijaId = rg.KategorijaId
-                WHERE kr.DatumUnosa >= @PrethodniDatumOd
-                  AND kr.DatumUnosa < DATEADD(DAY, 1, @PrethodniDatumDo)
+
+                WHERE kr.DatumRezultata >= @PrethodniDatumOd
+                  AND kr.DatumRezultata < DATEADD(DAY, 1, @PrethodniDatumDo)
 
                   AND (
                       @OdeljenjeId IS NULL
