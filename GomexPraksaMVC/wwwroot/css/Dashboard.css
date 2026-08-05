@@ -1,0 +1,163 @@
+﻿:root {
+    --color-primary: #1F4E5C;
+    --color-bg: #F6F7F6;
+    --color-card: #FFFFFF;
+    --color-border: #E3E3DE;
+    --color-success: #2E7D5B;
+    --color-danger: #C1443B;
+    --color-text-secondary: #6B6B65;
+    --color-row-hover: #F2F4F3;
+}
+
+body {
+    background: var(--color-bg);
+}
+
+/* === Sidebar === */
+.app-sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background: #7A1B1B;
+    color: #F2E6E6;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+    .app-sidebar .brand {
+        padding: 0 8px 20px 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        margin-bottom: 16px;
+    }
+
+    .app-sidebar .brand-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #FFFFFF;
+        letter-spacing: 0.5px;
+    }
+
+    .app-sidebar .brand-sub {
+        font-size: 11px;
+        color: rgba(255,255,255,0.6);
+        letter-spacing: 1px;
+    }
+
+    .app-sidebar .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 6px;
+        color: rgba(255,255,255,0.85);
+        font-size: 13.5px;
+        text-decoration: none;
+        margin-bottom: 2px;
+    }
+
+        .app-sidebar .nav-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: #FFFFFF;
+        }
+
+        .app-sidebar .nav-item.active {
+            background: #FFFFFF;
+            color: #7A1B1B;
+            font-weight: 500;
+        }
+
+/* === Header filter bar === */
+.filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .filter-bar .form-select,
+    .filter-bar .form-control {
+        font-size: 12.5px;
+        padding: 6px 10px;
+        width: auto;
+        min-width: 130px;
+    }
+
+/* === Metric card === */
+.metric-card {
+    background: var(--color-card);
+    border-radius: 8px;
+    padding: 16px;
+    border: none;
+    transition: box-shadow .15s ease;
+}
+
+    .metric-card:hover {
+        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+
+.metric-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.metric-yoy {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+}
+
+    .metric-yoy.positive {
+        color: var(--color-success);
+    }
+
+    .metric-yoy.negative {
+        color: var(--color-danger);
+    }
+
+/* === Redovi odeljenja u tabeli === */
+.dept-row {
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+    .dept-row:hover {
+        background-color: var(--color-row-hover);
+    }
+
+    .dept-row .bi-chevron-down {
+        display: inline-block;
+        transition: transform .2s ease;
+        color: var(--color-text-secondary);
+    }
+
+    .dept-row[aria-expanded="true"] .bi-chevron-down {
+        transform: rotate(180deg);
+    }
+
+/* === Tabela "Najveći padovi" === */
+.decline-table th {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    border-bottom: 1px solid var(--color-border);
+    padding: 8px 6px;
+}
+
+.decline-table td {
+    font-size: 13px;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.decline-table .rank {
+    color: var(--color-text-secondary);
+    width: 24px;
+}

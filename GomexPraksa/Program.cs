@@ -6,6 +6,11 @@ using GomexPraksa.ServicesComerc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.UseWebRoot("wwwroot"); // creates expectation; to point elsewhere, replace with existing folder path (e.g., "StaticFiles")
+
+
+
+
 builder.Services.AddControllers(); 
 
 builder.Services.AddEndpointsApiExplorer();

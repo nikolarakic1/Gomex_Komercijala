@@ -1,0 +1,260 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h4 class="mb-0">Dashboard</h4>
+</div>
+
+<div class="filter-bar">
+    <input type="text" id="periodPicker" class="form-control" placeholder="Period">
+    <select class="form-select" id="compareSelect">
+        <option value="prethodni">Poredi sa: prethodni period</option>
+        <option value="godina">Poredi sa: isti period prošle godine</option>
+    </select>
+    <select class="form-select" id="deptFilter">
+        <option value="sva">Odeljenje: sva</option>
+        <option value="voce">Voće</option>
+        <option value="smrznuto">Smrznuto</option>
+        <option value="sirevi">Sirevi</option>
+    </select>
+    <select class="form-select">
+        <option>Kategorija: sve</option>
+    </select>
+    <select class="form-select">
+        <option>Dobavljač: svi</option>
+    </select>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-label">Promet (bez PDV)</div>
+            <div class="metric-value">1.102.918.345 RSD</div>
+            <div class="metric-yoy positive">+6,3% vs prethodni period</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-label">Apsolutna zarada</div>
+            <div class="metric-value">218.546.983 RSD</div>
+            <div class="metric-yoy negative">-1,8% vs prethodni period</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-label">Marža (RUC12%)</div>
+            <div class="metric-value text-danger">19,8%</div>
+            <div class="metric-yoy negative">Plan 22,0% · -0,9 p.p.</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-label">Artikli u padu</div>
+            <div class="metric-value">512</div>
+            <div class="metric-yoy negative">+38 vs prethodni period</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-label">Najveći rast (RSD)</div>
+            <div class="metric-value">1.017.779</div>
+            <div class="metric-yoy positive">+15,8% vs prethodni period</div>
+        </div>
+    </div>
+</div>
+
+<div class="metric-card mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="metric-label mb-0" id="prometChartTitle">Promet po nedeljama</div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary" id="prometBtnPrev">&laquo;</button>
+                <button type="button" class="btn btn-outline-secondary" id="prometBtnNext">&raquo;</button>
+            </div>
+            <div class="btn-group btn-group-sm" role="group" id="prometGranularityToggle">
+                <button type="button" class="btn btn-outline-secondary active" data-granularity="nedelja">Nedelja</button>
+                <button type="button" class="btn btn-outline-secondary" data-granularity="mesec">Mesec</button>
+                <button type="button" class="btn btn-outline-secondary" data-granularity="godina">Godina</button>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex justify-content-end mb-2" id="prometChartLegend" style="font-size:12px;">
+        <span style="color:#1F4E5C;">&#9679;</span>&nbsp;2026&nbsp;&nbsp;
+        <span style="color:#B4B2A9;">&#9679;</span>&nbsp;Prethodni period
+    </div>
+    <canvas id="prometChart" height="70"></canvas>
+</div>
+
+<div style="background:rgba(193,68,59,0.06); border:1px solid rgba(193,68,59,0.35); border-radius:8px; padding:16px;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div style="font-size:14px; font-weight:500; color:#C1443B;">
+            <i class="bi bi-exclamation-triangle"></i> Najveći padovi
+        </div>
+        <a href="#" style="font-size:13px;">Pogledaj sve &rarr;</a>
+    </div>
+    <table class="decline-table" style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr>
+                <th class="rank">#</th>
+                <th>Artikal</th>
+                <th>Dobavljač</th>
+                <th class="text-end">Trenutni period</th>
+                <th class="text-end">Prethodni period</th>
+                <th class="text-end">Promena</th>
+                <th class="text-end">Uticaj na RUC (RSD)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="rank">1</td>
+                <td>Nektarina 1</td>
+                <td>Carska bašta doo</td>
+                <td class="text-end">1.852.341</td>
+                <td class="text-end">2.985.612</td>
+                <td class="text-end text-danger">-37,96%</td>
+                <td class="text-end text-danger">-1.285.431</td>
+            </tr>
+            <tr>
+                <td class="rank">2</td>
+                <td>Smrznuto testo rolnice</td>
+                <td>Frikom</td>
+                <td class="text-end">1.096.543</td>
+                <td class="text-end">1.820.119</td>
+                <td class="text-end text-danger">-39,76%</td>
+                <td class="text-end text-danger">-742.331</td>
+            </tr>
+            <tr>
+                <td class="rank">3</td>
+                <td>Breskva rana</td>
+                <td>Moja Konzica</td>
+                <td class="text-end">892.118</td>
+                <td class="text-end">1.456.789</td>
+                <td class="text-end text-danger">-38,78%</td>
+                <td class="text-end text-danger">-524.221</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h6 class="mt-4 mb-3">Pregled po odeljenjima</h6>
+<p class="text-secondary small mb-2">Klikni na odeljenje, ili izaberi iz filtera iznad, da vidiš artikle</p>
+
+<table class="table align-middle">
+    <thead>
+        <tr class="text-secondary small">
+            <th style="width:40px"></th>
+            <th>Odeljenje</th>
+            <th class="text-end">RUC% ACT</th>
+            <th class="text-end">RUC% PLAN</th>
+            <th class="text-end">Total gap</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        <!-- VOĆE -->
+        <tr role="button" data-bs-toggle="collapse" data-bs-target="#dept-voce" class="dept-row" data-dept="voce">
+            <td><i class="bi bi-chevron-down"></i></td>
+            <td>Voće</td>
+            <td class="text-end">19,4%</td>
+            <td class="text-end">21,4%</td>
+            <td class="text-end text-danger">-2.096.680</td>
+        </tr>
+        <tr class="collapse" id="dept-voce">
+            <td colspan="5" class="p-0">
+                <table class="table table-sm mb-0" style="background:#FAFAF8;">
+                    <thead>
+                        <tr class="text-secondary small">
+                            <th class="ps-4">Artikal</th>
+                            <th>Šifra</th>
+                            <th class="text-end">Zarada/kom ACT</th>
+                            <th class="text-end">Zarada/kom PLAN</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-4">Sveže voće nektarina 1</td>
+                            <td>28873</td>
+                            <td class="text-end text-danger">25,6</td>
+                            <td class="text-end">62,1</td>
+                            <td class="text-end">
+                                <a asp-controller="Artikal" asp-action="Detalji" asp-route-sifra="28873" class="btn btn-sm btn-outline-secondary">Detalji</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">Breskva</td>
+                            <td>28901</td>
+                            <td class="text-end text-danger">18,2</td>
+                            <td class="text-end">45,0</td>
+                            <td class="text-end">
+                                <a asp-controller="Artikal" asp-action="Detalji" asp-route-sifra="28901" class="btn btn-sm btn-outline-secondary">Detalji</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+
+        <!-- SMRZNUTO -->
+        <tr role="button" data-bs-toggle="collapse" data-bs-target="#dept-smrznuto" class="dept-row" data-dept="smrznuto">
+            <td><i class="bi bi-chevron-down"></i></td>
+            <td>Smrznuto</td>
+            <td class="text-end">19,3%</td>
+            <td class="text-end">20,7%</td>
+            <td class="text-end text-danger">-2.239.205</td>
+        </tr>
+        <tr class="collapse" id="dept-smrznuto">
+            <td colspan="5" class="p-0">
+                <table class="table table-sm mb-0" style="background:#FAFAF8;">
+                    <thead>
+                        <tr class="text-secondary small">
+                            <th class="ps-4">Artikal</th>
+                            <th>Šifra</th>
+                            <th class="text-end">Zarada/kom ACT</th>
+                            <th class="text-end">Zarada/kom PLAN</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-4">Smrznuto testo Frikom rolnice jabuka</td>
+                            <td>81392</td>
+                            <td class="text-end">70,9</td>
+                            <td class="text-end">64,3</td>
+                            <td class="text-end">
+                                <a asp-controller="Artikal" asp-action="Detalji" asp-route-sifra="81392" class="btn btn-sm btn-outline-secondary">Detalji</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+
+        <!-- SIREVI -->
+        <tr role="button" data-bs-toggle="collapse" data-bs-target="#dept-sirevi" class="dept-row" data-dept="sirevi">
+            <td><i class="bi bi-chevron-down"></i></td>
+            <td>Sirevi</td>
+            <td class="text-end">18,9%</td>
+            <td class="text-end">19,2%</td>
+            <td class="text-end text-success">98.249</td>
+        </tr>
+        <tr class="collapse" id="dept-sirevi">
+            <td colspan="5" class="p-0">
+                <table class="table table-sm mb-0" style="background:#FAFAF8;">
+                    <tbody>
+                        <tr>
+                            <td class="ps-4 text-secondary">Nema artikala sa značajnim odstupanjem u ovom periodu.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="~/js/dashboard.js"></script>
+}
