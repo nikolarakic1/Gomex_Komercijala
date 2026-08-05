@@ -1,6 +1,15 @@
-﻿@{
+﻿@model GomexPraksaMVC.Models.DashboardViewModel
+@{
     ViewData["Title"] = "Dashboard";
 }
+
+<script>
+    // Signal to client JS that server rendered initial values and provide Promet value
+    window.__dashboardInitial = {
+        rendered: true,
+        promet: @((Model?.PrometBezPdv ?? 0m).ToString(System.Globalization.CultureInfo.InvariantCulture))
+    };
+</script>
 
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h4 class="mb-0">Dashboard</h4>
@@ -30,36 +39,36 @@
     <div class="col-md-4">
         <div class="metric-card">
             <div class="metric-label">Promet (bez PDV)</div>
-            <div class="metric-value">1.102.918.345 RSD</div>
-            <div class="metric-yoy positive">+6,3% vs prethodni period</div>
+            <div id="prometValue" class="metric-value">@((Model?.PrometBezPdv ?? 0m).ToString("N0")) RSD</div>
+            <div id="prometYoY" class="metric-yoy @(Model != null && Model.PrometPromenaProcenat >= 0 ? "positive" : "negative")">@(((Model?.PrometPromenaProcenat ?? 0m) * 100m).ToString("0.0"))% vs prethodni period</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="metric-card">
             <div class="metric-label">Apsolutna zarada</div>
-            <div class="metric-value">218.546.983 RSD</div>
-            <div class="metric-yoy negative">-1,8% vs prethodni period</div>
+            <div id="zaradaValue" class="metric-value">@((Model?.Ruc12 ?? 0m).ToString("N0")) RSD</div>
+            <div id="zaradaYoY" class="metric-yoy @(Model != null && Model.Ruc12PromenaProcenat >= 0 ? "positive" : "negative")">@(((Model?.Ruc12PromenaProcenat ?? 0m) * 100m).ToString("0.0"))% vs prethodni period</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="metric-card">
             <div class="metric-label">Marža (RUC12%)</div>
-            <div class="metric-value text-danger">19,8%</div>
-            <div class="metric-yoy negative">Plan 22,0% · -0,9 p.p.</div>
+            <div id="marzaValue" class="metric-value text-danger">@((Model?.Ruc12Procenat ?? 0m * 100m).ToString("0.0"))%</div>
+            <div id="marzaYoY" class="metric-yoy @(Model != null && Model.Ruc12PromenaProcentniPoeni >= 0 ? "positive" : "negative")">Plan 22,0% · @((Model?.Ruc12PromenaProcentniPoeni ?? 0m).ToString("0.0")) p.p.</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="metric-card">
             <div class="metric-label">Artikli u padu</div>
-            <div class="metric-value">512</div>
-            <div class="metric-yoy negative">+38 vs prethodni period</div>
+            <div id="artikliValue" class="metric-value">@((Model?.KriticniArtikli ?? 0))</div>
+            <div id="artikliYoY" class="metric-yoy @(Model != null && Model.KriticniArtikliPromena >= 0 ? "positive" : "negative")">@((Model?.KriticniArtikliPromena >= 0 ? "+" : "") + (Model?.KriticniArtikliPromena ?? 0).ToString()) vs prethodni period</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="metric-card">
             <div class="metric-label">Najveći rast (RSD)</div>
-            <div class="metric-value">1.017.779</div>
-            <div class="metric-yoy positive">+15,8% vs prethodni period</div>
+            <div id="najveciRastValue" class="metric-value">@((Model?.NedostatakMarze ?? 0m).ToString("N0"))</div>
+            <div id="najveciRastYoY" class="metric-yoy @(Model != null && Model.NedostatakMarzePromenaProcenat >= 0 ? "positive" : "negative")">@(((Model?.NedostatakMarzePromenaProcenat ?? 0m) * 100m).ToString("0.0"))% vs prethodni period</div>
         </div>
     </div>
 </div>

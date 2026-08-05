@@ -2,6 +2,17 @@
     initPeriodPicker();
     initDeptFilter();
     initPrometChart();
+    try {
+        // If server-side rendered initial data exists and has non-zero promet, skip client fetch
+        if (window.__dashboardInitial && window.__dashboardInitial.rendered && Number(window.__dashboardInitial.promet) !== 0) {
+            // server render already populated values
+        } else {
+            fetchSummary();
+        }
+    } catch (e) {
+        // fallback to fetch
+        fetchSummary();
+    }
 });
 
 function initPeriodPicker() {
@@ -14,6 +25,60 @@ function initPeriodPicker() {
         locale: "sr",
         maxDate: "today"
     });
+}
+
+// Fetch dashboard summary from API and populate metric cards
+function fetchSummary() {
+    // API is hosted in GomexPraksa project (different origin in development).
+    // Update this base URL if your API runs on a different port or host.
+    var apiBase = 'https://localhost:7212';
+    var url = apiBase + '/api/dashboard/summary';
+
+    fetch(url)
+        .then(function (resp) { if (!resp.ok) throw resp; return resp.json(); })
+        .then(function (data) {
+            if (!data) return;
+
+            var promet = document.getElementById('prometValue');
+            var prometYoY = document.getElementById('prometYoY');
+            var zarada = document.getElementById('zaradaValue');
+            var zaradaYoY = document.getElementById('zaradaYoY');
+            var marza = document.getElementById('marzaValue');
+            var marzaYoY = document.getElementById('marzaYoY');
+            var artikli = document.getElementById('artikliValue');
+            var artikliYoY = document.getElementById('artikliYoY');
+            var najveci = document.getElementById('najveciRastValue');
+            var najveciYoY = document.getElementById('najveciRastYoY');
+
+            if (promet) promet.textContent = formatCurrency(data.prometBezPdv);
+            if (prometYoY) prometYoY.textContent = formatPercent(data.prometPromenaProcenat) + ' vs prethodni period';
+
+            if (zarada) zarada.textContent = formatCurrency(data.ruc12); // using RUC12 as proxy for zarada
+            if (zaradaYoY) zaradaYoY.textContent = formatPercent(data.ruc12PromenaProcenat) + ' vs prethodni period';
+
+            if (marza) marza.textContent = formatPercent(data.ruc12Procenat); // RUC12% value
+            if (marzaYoY) marzaYoY.textContent = (data.ruc12PromenaProcentniPoeni || 0) + ' p.p.';
+
+            if (artikli) artikli.textContent = (data.kriticniArtikli ?? 0).toString();
+            if (artikliYoY) artikliYoY.textContent = (data.kriticniArtikliPromena >= 0 ? '+' : '') + (data.kriticniArtikliPromena ?? 0) + ' vs prethodni period';
+
+            if (najveci) najveci.textContent = formatCurrency(data.nedostatakMarze ?? 0);
+            if (najveciYoY) najveciYoY.textContent = (data.nedostatakMarzePromenaProcenat >= 0 ? '+' : '') + formatPercent(data.nedostatakMarzePromenaProcenat ?? 0) + ' vs prethodni period';
+        })
+        .catch(function (err) {
+            // Don't throw noisy console errors in production; show minimal log for debugging
+            console.debug('Failed to load dashboard summary', err);
+        });
+}
+
+function formatCurrency(v) {
+    if (v === null || v === undefined) return '-';
+    return new Intl.NumberFormat('sr-RS', { style: 'currency', currency: 'RSD', maximumFractionDigits: 0 }).format(v);
+}
+
+function formatPercent(v) {
+    if (v === null || v === undefined) return '-';
+    return (Number(v) * 100).toFixed(1) + '%';
 }
 
 function initDeptFilter() {

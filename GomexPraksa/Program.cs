@@ -13,6 +13,17 @@ builder.WebHost.UseWebRoot("wwwroot"); // creates expectation; to point elsewher
 
 builder.Services.AddControllers(); 
 
+// CORS for frontend (development): allow GomexPraksaMVC dev origins
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocal", policy =>
+    {
+        policy.WithOrigins("https://localhost:7067", "http://localhost:5261")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -36,6 +47,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowLocal");
 
 app.UseAuthorization();
 
