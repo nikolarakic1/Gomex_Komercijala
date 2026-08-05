@@ -18,7 +18,7 @@ namespace GomexPraksa.Repository;
             SELECT
             DobavljacId,
             Naziv,
-            Aktivan FROM dbo_Dobavljac;
+            Aktivan FROM dbo.Dobavljac;
             
             """;
         using var connection = _connFactory.CreateConnection();
