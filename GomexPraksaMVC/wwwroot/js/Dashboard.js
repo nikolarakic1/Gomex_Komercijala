@@ -21,6 +21,15 @@ function initDeptFilter() {
     var deptSelect = document.getElementById('deptFilter');
     if (!deptSelect) return;
 
+    // If a previous Choices.js wrapper exists around this select (from earlier loads), unwrap it
+    try {
+        var wrapper = deptSelect.closest('.choices');
+        if (wrapper && wrapper.parentNode) {
+            wrapper.parentNode.insertBefore(deptSelect, wrapper);
+            wrapper.parentNode.removeChild(wrapper);
+        }
+    } catch (e) { }
+
     var deptRows = document.querySelectorAll('.dept-row');
     // Keep select value in sync with query string
     var currentDept = '';
@@ -30,19 +39,8 @@ function initDeptFilter() {
         if (deptSelect.value !== currentDept) deptSelect.value = currentDept;
     } catch (ex) { }
 
-    // Try to initialize Choices.js so behavior matches dobavljaci
+    // Do NOT initialize Choices.js for deptFilter — keep native select styling
     var deptChoices = null;
-    try {
-        deptChoices = new Choices(deptSelect, {
-            searchEnabled: true,
-            itemSelectText: '',
-            placeholder: true,
-            placeholderValue: 'Izaberi odeljenje...',
-            shouldSort: false
-        });
-    } catch (err) {
-        console.error('Choices.js nije učitan za deptFilter:', err);
-    }
 
     function applyDeptVisibility(selected) {
         deptRows.forEach(function (row) {
@@ -63,51 +61,20 @@ function initDeptFilter() {
         });
     }
 
-    // If Choices is present, listen to its 'choice' event (same as dobavljac)
-    if (deptChoices) {
-        deptSelect.addEventListener('choice', function (event) {
-            var selectedValue = event.detail.choice.value;
-            if (selectedValue === currentDept) return;
+    // Native select behavior: update visibility immediately and redirect preserving other params
+    deptSelect.addEventListener('change', function () {
+        var selected = this.value;
+        applyDeptVisibility(selected);
 
-            // update query string and navigate (preserve other params)
-            try {
-                var params = new URLSearchParams(window.location.search);
-                if (selectedValue === 'sva' || selectedValue === '') {
-                    params.delete('dept');
-                } else {
-                    params.set('dept', selectedValue);
-                }
-                var qs = params.toString();
-                window.location.href = window.location.pathname + (qs ? ('?' + qs) : '');
-            } catch (err) {
-                if (selectedValue === 'sva' || selectedValue === '') {
-                    window.location.href = '/Dashboard';
-                } else {
-                    window.location.href = '/Dashboard?dept=' + encodeURIComponent(selectedValue);
-                }
-            }
-        });
-
-        // Also update visible rows immediately when selection changes in the UI
-        deptSelect.addEventListener('change', function () {
-            applyDeptVisibility(this.value || currentDept);
-        });
-    } else {
-        // Fallback: plain select behavior as before
-        deptSelect.addEventListener('change', function () {
-            var selected = this.value;
-            applyDeptVisibility(selected);
-
-            try {
-                var params = new URLSearchParams(window.location.search);
-                if (selected === 'sva') params.delete('dept'); else params.set('dept', selected);
-                var qs = params.toString();
-                window.location.href = window.location.pathname + (qs ? ('?' + qs) : '');
-            } catch (err) {
-                if (selected === 'sva') window.location.href = '/Dashboard'; else window.location.href = '/Dashboard?dept=' + encodeURIComponent(selected);
-            }
-        });
-    }
+        try {
+            var params = new URLSearchParams(window.location.search);
+            if (selected === 'sva' || selected === '') params.delete('dept'); else params.set('dept', selected);
+            var qs = params.toString();
+            window.location.href = window.location.pathname + (qs ? ('?' + qs) : '');
+        } catch (err) {
+            if (selected === 'sva' || selected === '') window.location.href = '/Dashboard'; else window.location.href = '/Dashboard?dept=' + encodeURIComponent(selected);
+        }
+    });
 
     // Apply initial visibility based on currentDept
     applyDeptVisibility(currentDept);
@@ -239,13 +206,19 @@ function initPrometChart() {
 function initDobavljacSearch() {
     var el = document.getElementById('dobavljacFilter');
     if (!el) return;
+    // If a previous Choices.js wrapper exists around this select (from earlier loads), unwrap it
+    try {
+        var wrapper = el.closest('.choices');
+        if (wrapper && wrapper.parentNode) {
+            wrapper.parentNode.insertBefore(el, wrapper);
+            wrapper.parentNode.removeChild(wrapper);
+        }
+    } catch (e) { }
 
-    // Simpler behavior: use native select so it visually matches other dropdowns.
-    // Preserve other query params when redirecting.
+    // Native select redirect preserving other params
     try {
         var params = new URLSearchParams(window.location.search);
         var currentValue = params.get('dobavljacId') || '';
-        // If server-side rendered selected value differs, set element value
         if (!el.value && currentValue) el.value = currentValue;
     } catch (ex) { var currentValue = ''; }
 
