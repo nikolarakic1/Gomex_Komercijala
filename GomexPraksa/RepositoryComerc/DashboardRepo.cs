@@ -342,4 +342,7 @@ public class DashboardRepo : IDashboardRepo
                     filterDTO.TipProdajeId
                 });
     }
+
+
+
 }
