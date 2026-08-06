@@ -22,10 +22,29 @@ function initDeptFilter() {
     if (!deptSelect) return;
 
     var deptRows = document.querySelectorAll('.dept-row');
+    // Keep select value in sync with query string
+    var currentDept = '';
+    try {
+        var params = new URLSearchParams(window.location.search);
+        currentDept = params.get('dept') || 'sva';
+        if (deptSelect.value !== currentDept) deptSelect.value = currentDept;
+    } catch (ex) { }
 
-    deptSelect.addEventListener('change', function () {
-        var selected = this.value;
+    // Try to initialize Choices.js so behavior matches dobavljaci
+    var deptChoices = null;
+    try {
+        deptChoices = new Choices(deptSelect, {
+            searchEnabled: true,
+            itemSelectText: '',
+            placeholder: true,
+            placeholderValue: 'Izaberi odeljenje...',
+            shouldSort: false
+        });
+    } catch (err) {
+        console.error('Choices.js nije učitan za deptFilter:', err);
+    }
 
+    function applyDeptVisibility(selected) {
         deptRows.forEach(function (row) {
             var deptKey = row.getAttribute('data-dept');
             var collapseEl = document.querySelector(row.getAttribute('data-bs-target'));
@@ -42,7 +61,56 @@ function initDeptFilter() {
                 collapseInstance.hide();
             }
         });
-    });
+    }
+
+    // If Choices is present, listen to its 'choice' event (same as dobavljac)
+    if (deptChoices) {
+        deptSelect.addEventListener('choice', function (event) {
+            var selectedValue = event.detail.choice.value;
+            if (selectedValue === currentDept) return;
+
+            // update query string and navigate (preserve other params)
+            try {
+                var params = new URLSearchParams(window.location.search);
+                if (selectedValue === 'sva' || selectedValue === '') {
+                    params.delete('dept');
+                } else {
+                    params.set('dept', selectedValue);
+                }
+                var qs = params.toString();
+                window.location.href = window.location.pathname + (qs ? ('?' + qs) : '');
+            } catch (err) {
+                if (selectedValue === 'sva' || selectedValue === '') {
+                    window.location.href = '/Dashboard';
+                } else {
+                    window.location.href = '/Dashboard?dept=' + encodeURIComponent(selectedValue);
+                }
+            }
+        });
+
+        // Also update visible rows immediately when selection changes in the UI
+        deptSelect.addEventListener('change', function () {
+            applyDeptVisibility(this.value || currentDept);
+        });
+    } else {
+        // Fallback: plain select behavior as before
+        deptSelect.addEventListener('change', function () {
+            var selected = this.value;
+            applyDeptVisibility(selected);
+
+            try {
+                var params = new URLSearchParams(window.location.search);
+                if (selected === 'sva') params.delete('dept'); else params.set('dept', selected);
+                var qs = params.toString();
+                window.location.href = window.location.pathname + (qs ? ('?' + qs) : '');
+            } catch (err) {
+                if (selected === 'sva') window.location.href = '/Dashboard'; else window.location.href = '/Dashboard?dept=' + encodeURIComponent(selected);
+            }
+        });
+    }
+
+    // Apply initial visibility based on currentDept
+    applyDeptVisibility(currentDept);
 }
 
 function initPrometChart() {
@@ -172,23 +240,25 @@ function initDobavljacSearch() {
     var el = document.getElementById('dobavljacFilter');
     if (!el) return;
 
+    // Simpler behavior: use native select so it visually matches other dropdowns.
+    // Preserve other query params when redirecting.
     try {
-        new Choices(el, {
-            searchEnabled: true,
-            itemSelectText: '',
-            placeholder: true,
-            placeholderValue: 'Pretraži dobavljača...',
-            shouldSort: false
-        });
-    } catch (err) {
-        console.error('Choices.js nije učitan:', err);
-    }
-
-    var currentParams = new URLSearchParams(window.location.search);
-    var currentValue = currentParams.get('dobavljacId') || '';
+        var params = new URLSearchParams(window.location.search);
+        var currentValue = params.get('dobavljacId') || '';
+        // If server-side rendered selected value differs, set element value
+        if (!el.value && currentValue) el.value = currentValue;
+    } catch (ex) { var currentValue = ''; }
 
     el.addEventListener('change', function () {
-        if (el.value === currentValue) return;
-        window.location.href = '/Dashboard?dobavljacId=' + el.value;
+        var selected = el.value || '';
+        if (selected === currentValue) return;
+        try {
+            var params2 = new URLSearchParams(window.location.search);
+            if (selected === '') params2.delete('dobavljacId'); else params2.set('dobavljacId', selected);
+            var qs = params2.toString();
+            window.location.href = window.location.pathname + (qs ? ('?' + qs) : '');
+        } catch (err) {
+            if (selected === '') window.location.href = '/Dashboard'; else window.location.href = '/Dashboard?dobavljacId=' + encodeURIComponent(selected);
+        }
     });
 }

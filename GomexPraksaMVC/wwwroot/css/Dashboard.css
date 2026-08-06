@@ -67,59 +67,42 @@ body {
         }
 
 /* === Header filter bar === */
-.filter-bar {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-    .filter-bar select.form-select,
-    .filter-bar .form-control {{
-        font-size: 12.5px;
-        padding: 6px 10px;
-        width: auto;
-        min-width: 130px;
-    }
 
 /* === Metric card === */
-.metric-card {
-    background: var(--color-card);
-    border-radius: 8px;
-    padding: 16px;
-    border: none;
-    transition: box-shadow .15s ease;
+.metric-card{
+    background:#fff;
+    border:1px solid var(--color-border);
+    border-radius:12px;
+    padding:22px;
+    min-height:130px;
+    transition:.2s;
+    box-shadow:0 2px 6px rgba(0,0,0,.04);
 }
 
-    .metric-card:hover {
-        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-    }
-
-.metric-label {
-    font-size: 13px;
-    color: var(--color-text-secondary);
-    text-transform: uppercase;
+.metric-card:hover{
+    box-shadow:0 6px 16px rgba(0,0,0,.08);
 }
 
-.metric-value {
-    font-size: 24px;
-    font-weight: 500;
+.metric-label{
+    font-size:13px;
+    color:var(--color-text-secondary);
+    text-transform:uppercase;
 }
 
-.metric-yoy {
-    font-size: 12px;
-    color: var(--color-text-secondary);
-    margin-top: 4px;
+.metric-value{
+    font-size:32px;
+    font-weight:700;
+    margin:8px 0;
 }
 
-    .metric-yoy.positive {
-        color: var(--color-success);
-    }
+.metric-yoy{
+    font-size:12px;
+    color:var(--color-text-secondary);
+    margin-top:4px;
+}
 
-    .metric-yoy.negative {
-        color: var(--color-danger);
-    }
+.metric-yoy.positive{color:var(--color-success);} 
+.metric-yoy.negative{color:var(--color-danger);} 
 
 /* === Redovi odeljenja u tabeli === */
 .dept-row {
@@ -166,21 +149,84 @@ body {
     font-size: 12.5px;
 }
 
-    .filter-bar .choices .choices__inner {
-        padding: 4px 8px;
-        background: #FFFFFF;
-        border: 1px solid var(--color-border);
-        border-radius: 6px;
-        min-height: unset;
-    }
+
+.filter-bar .choices__inner {
+    display: flex;
+    align-items: center;
+    height: 42px;
+    min-height: 42px;
+    padding: 0 12px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.filter-bar .choices__list--single {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0;
+}
+
+.filter-bar .choices__item {
+    white-space: nowrap;
+    color: #212529;
+}
+
+.filter-bar .choices__placeholder,
+.filter-bar .choices__item--placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+.filter-bar .choices__list--dropdown {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.filter-bar .choices__input {
+    background: transparent;
+    font-size: 14px;
+}
+
+.dashboard-header h2{
+    font-weight:700;
+}
+
+.filter-card{
+    background:#fff;
+    border:1px solid var(--color-border);
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 2px 6px rgba(0,0,0,.04);
+}
+
+.filter-bar{
+    display:flex;
+    gap:16px;
+    align-items:flex-end;
+    flex-wrap:nowrap;
+}
+
+.filter-group{
+    flex:1;
+}
+
+.filter-group label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--color-text-secondary);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+}
 
 .choices__list--dropdown {
     background: #FFFFFF;
     border: 1px solid var(--color-border);
     z-index: 1000;
 }
-
-.choices__input {
-    background: #FFFFFF;
-    font-size: 12.5px;
-}   

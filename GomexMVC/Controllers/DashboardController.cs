@@ -18,13 +18,13 @@ namespace GomexPraksaMVC.Controllers
             var client = _httpFactory.CreateClient("GomexApi");
 
             var query = dobavljacId.HasValue
-                ? $"api/dashboard/summary?DobavljacId={dobavljacId}"
-                : "api/dashboard/summary";
+                ? $"?dobavljacId={dobavljacId.Value}"
+                : "";
 
             DashboardViewModel? model = null;
             try
             {
-                model = await client.GetFromJsonAsync<DashboardViewModel>(query);
+                model = await client.GetFromJsonAsync<DashboardViewModel>($"api/dashboard/summary{query}");
             }
             catch
             {
@@ -32,7 +32,6 @@ namespace GomexPraksaMVC.Controllers
             }
 
             model ??= new DashboardViewModel();
-            model.SelectedDobavljacId = dobavljacId;
 
             try
             {
@@ -41,8 +40,10 @@ namespace GomexPraksaMVC.Controllers
             }
             catch
             {
-                // ostaje prazna lista ako poziv ne uspe
+                // ostaje prazna lista ako pozив ne uspe
             }
+
+            ViewData["SelectedDobavljacId"] = dobavljacId;
 
             return View(model);
         }

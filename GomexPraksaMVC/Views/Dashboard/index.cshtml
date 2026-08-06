@@ -3,29 +3,53 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-2">
-    <h4 class="mb-0">Dashboard</h4>
+<div class="dashboard-header mb-4">
+    <h2 class="mb-1">Dashboard</h2>
+    <p class="text-secondary mb-0">
+        Pregled prodaje, marže i odstupanja
+    </p>
 </div>
 
-<div class="filter-bar">
-    <input type="text" id="periodPicker" class="form-control" placeholder="Period">
-    <select class="form-select" id="compareSelect">
-        <option value="prethodni">Poredi sa: prethodni period</option>
-        <option value="godina">Poredi sa: isti period prošle godine</option>
-    </select>
-    <select class="form-select" id="deptFilter">
-        <option value="sva">Odeljenje: sva</option>
-        <option value="voce">Voće</option>
-        <option value="smrznuto">Smrznuto</option>
-        <option value="sirevi">Sirevi</option>
-    </select>
-    <select class="form-select">
-        <option>Kategorija: sve</option>
-    </select>
-    <select class="form-select" id="dobavljacFilter"
-            asp-items="@(Model?.Dobavljaci.Select(d => new SelectListItem(d.Naziv, d.DobavljacId.ToString())))">
-        <option value="">Dobavljač: svi</option>
-    </select>
+<div class="filter-card mb-4">
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>Period</label>
+            <input type="text" id="periodPicker" class="form-control">
+        </div>
+
+        <div class="filter-group">
+            <label>Poređenje</label>
+            <select class="form-select" id="compareSelect">
+                <option value="prethodni">Prethodni period</option>
+                <option value="godina">Isti period prošle godine</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Odeljenje</label>
+            <select class="form-select" id="deptFilter">
+                <option value="sva">Sva odeljenja</option>
+                <option value="voce">Voće</option>
+                <option value="smrznuto">Smrznuto</option>
+                <option value="sirevi">Sirevi</option>
+            </select>
+        </div>  
+
+        <div class="filter-group">
+            <label>Kategorija</label>
+            <select class="form-select">
+                <option>Sve kategorije</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Dobavljač</label>
+            <select class="form-select" id="dobavljacFilter"
+                    asp-items="@(Model?.Dobavljaci.Select(d => new SelectListItem(d.Naziv, d.DobavljacId.ToString())))">
+                <option value="">Svi dobavljači</option>
+            </select>
+        </div>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">
@@ -89,9 +113,7 @@
 
 <div style="background:rgba(193,68,59,0.06); border:1px solid rgba(193,68,59,0.35); border-radius:8px; padding:16px;">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <div style="font-size:14px; font-weight:500; color:#C1443B;">
-            <i class="bi bi-exclamation-triangle"></i> Najveći padovi
-        </div>
+        <div class="metric-label text-danger mb-0">Najveći padovi</div>
         <a href="#" style="font-size:13px;">Pogledaj sve &rarr;</a>
     </div>
     <table class="decline-table" style="width:100%; border-collapse:collapse;">
@@ -138,8 +160,12 @@
     </table>
 </div>
 
-<h6 class="mt-4 mb-3">Pregled po odeljenjima</h6>
-<p class="text-secondary small mb-2">Klikni na odeljenje, ili izaberi iz filtera iznad, da vidiš artikle</p>
+<div class="mt-5 mb-3">
+    <h5 class="mb-1">Pregled po odeljenjima</h5>
+    <small class="text-secondary">
+        Kliknite na odeljenje za prikaz artikala.
+    </small>
+</div>
 
 <table class="table align-middle">
     <thead>
@@ -257,5 +283,5 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <script src="~/js/dashboard.js"></script>
+    <script src="~/js/Dashboard.js" asp-append-version="true"></script>
 }
