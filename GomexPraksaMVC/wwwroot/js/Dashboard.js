@@ -17,57 +17,6 @@ function initPeriodPicker() {
     });
 }
 
-// Fetch dashboard summary from API and populate metric cards
-function fetchSummary() {
-    var apiBase = 'https://localhost:7212';
-    var url = apiBase + '/api/Dashboard/summary';
-
-    fetch(url)
-        .then(function (resp) { if (!resp.ok) throw resp; return resp.json(); })
-        .then(function (data) {
-            if (!data) return;
-
-            var promet = document.getElementById('prometValue');
-            var prometYoY = document.getElementById('prometYoY');
-            var zarada = document.getElementById('zaradaValue');
-            var zaradaYoY = document.getElementById('zaradaYoY');
-            var marza = document.getElementById('marzaValue');
-            var marzaYoY = document.getElementById('marzaYoY');
-            var artikli = document.getElementById('artikliValue');
-            var artikliYoY = document.getElementById('artikliYoY');
-            var najveci = document.getElementById('najveciRastValue');
-            var najveciYoY = document.getElementById('najveciRastYoY');
-
-            if (promet) promet.textContent = formatCurrency(data.prometBezPdv);
-            if (prometYoY) prometYoY.textContent = formatPercent(data.prometPromenaProcenat) + ' vs prethodni period';
-
-            if (zarada) zarada.textContent = formatCurrency(data.ruc12); // using RUC12 as proxy for zarada
-            if (zaradaYoY) zaradaYoY.textContent = formatPercent(data.ruc12PromenaProcenat) + ' vs prethodni period';
-
-            if (marza) marza.textContent = formatPercent(data.ruc12Procenat); // RUC12% value
-            if (marzaYoY) marzaYoY.textContent = (data.ruc12PromenaProcentniPoeni || 0) + ' p.p.';
-
-            if (artikli) artikli.textContent = (data.kriticniArtikli ?? 0).toString();
-            if (artikliYoY) artikliYoY.textContent = (data.kriticniArtikliPromena >= 0 ? '+' : '') + (data.kriticniArtikliPromena ?? 0) + ' vs prethodni period';
-
-            if (najveci) najveci.textContent = formatCurrency(data.nedostatakMarze ?? 0);
-            if (najveciYoY) najveciYoY.textContent = (data.nedostatakMarzePromenaProcenat >= 0 ? '+' : '') + formatPercent(data.nedostatakMarzePromenaProcenat ?? 0) + ' vs prethodni period';
-        })
-        .catch(function (err) {
-            console.debug('Failed to load dashboard summary', err);
-        });
-}
-
-function formatCurrency(v) {
-    if (v === null || v === undefined) return '-';
-    return new Intl.NumberFormat('sr-RS', { style: 'currency', currency: 'RSD', maximumFractionDigits: 0 }).format(v);
-}
-
-function formatPercent(v) {
-    if (v === null || v === undefined) return '-';
-    return (Number(v) * 100).toFixed(1) + '%';
-}
-
 function initDeptFilter() {
     var deptSelect = document.getElementById('deptFilter');
     if (!deptSelect) return;
@@ -100,7 +49,6 @@ function initPrometChart() {
     var canvas = document.getElementById('prometChart');
     if (!canvas) return;
 
-    // Privremeni podaci — kasnije zamenjujemo pozivom ka API-ju za agregatni promet
     var series = {
         nedelja: {
             title: 'Promet po nedeljama',
@@ -219,6 +167,7 @@ function initPrometChart() {
         render();
     });
 }
+
 function initDobavljacSearch() {
     var el = document.getElementById('dobavljacFilter');
     if (!el) return;
@@ -235,12 +184,10 @@ function initDobavljacSearch() {
         console.error('Choices.js nije učitan:', err);
     }
 
-    // Trenutna vrednost iz URL-a, PRE nego što Choices stigne da okine svoj initial change
     var currentParams = new URLSearchParams(window.location.search);
     var currentValue = currentParams.get('dobavljacId') || '';
 
     el.addEventListener('change', function () {
-        // Choices.js okine change i pri inicijalizaciji — ako je vrednost ISTA kao u URL-u, ignoriši
         if (el.value === currentValue) return;
         window.location.href = '/Dashboard?dobavljacId=' + el.value;
     });
