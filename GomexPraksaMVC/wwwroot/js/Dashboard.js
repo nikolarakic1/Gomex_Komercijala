@@ -2,17 +2,7 @@
     initPeriodPicker();
     initDeptFilter();
     initPrometChart();
-    try {
-        // If server-side rendered initial data exists and has non-zero promet, skip client fetch
-        if (window.__dashboardInitial && window.__dashboardInitial.rendered && Number(window.__dashboardInitial.promet) !== 0) {
-            // server render already populated values
-        } else {
-            fetchSummary();
-        }
-    } catch (e) {
-        // fallback to fetch
-        fetchSummary();
-    }
+    initDobavljacSearch();
 });
 
 function initPeriodPicker() {
@@ -227,5 +217,31 @@ function initPrometChart() {
         var maxStart = series[granularity].labels.length - series[granularity].window;
         offset = Math.min(maxStart, offset + 1);
         render();
+    });
+}
+function initDobavljacSearch() {
+    var el = document.getElementById('dobavljacFilter');
+    if (!el) return;
+
+    try {
+        new Choices(el, {
+            searchEnabled: true,
+            itemSelectText: '',
+            placeholder: true,
+            placeholderValue: 'Pretraži dobavljača...',
+            shouldSort: false
+        });
+    } catch (err) {
+        console.error('Choices.js nije učitan:', err);
+    }
+
+    // Trenutna vrednost iz URL-a, PRE nego što Choices stigne da okine svoj initial change
+    var currentParams = new URLSearchParams(window.location.search);
+    var currentValue = currentParams.get('dobavljacId') || '';
+
+    el.addEventListener('change', function () {
+        // Choices.js okine change i pri inicijalizaciji — ako je vrednost ISTA kao u URL-u, ignoriši
+        if (el.value === currentValue) return;
+        window.location.href = '/Dashboard?dobavljacId=' + el.value;
     });
 }

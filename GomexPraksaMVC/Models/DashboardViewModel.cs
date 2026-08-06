@@ -18,5 +18,15 @@ namespace GomexPraksaMVC.Models
         public decimal NedostatakMarzePromenaProcenat { get; set; }
 
         public DateTime? PodaciOsvezeni { get; set; }
+
+        public List<DobavljacViewItem> Dobavljaci { get; set; } = new();
+        public int? SelectedDobavljacId { get; set; }
+    }
+
+    public class DobavljacViewItem
+    {
+        public int DobavljacId { get; set; }
+        public string Naziv { get; set; } = string.Empty;
+        public bool Aktivan { get; set; }
     }
 }

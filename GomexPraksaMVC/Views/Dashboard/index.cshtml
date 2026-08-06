@@ -22,8 +22,9 @@
     <select class="form-select">
         <option>Kategorija: sve</option>
     </select>
-    <select class="form-select">
-        <option>Dobavljač: svi</option>
+    <select class="form-select" id="dobavljacFilter"
+            asp-items="@(Model?.Dobavljaci.Select(d => new SelectListItem(d.Naziv, d.DobavljacId.ToString())))">
+        <option value="">Dobavljač: svi</option>
     </select>
 </div>
 
@@ -45,8 +46,7 @@
     <div class="col-md-4">
         <div class="metric-card">
             <div class="metric-label">Marža (RUC12%)</div>
-            <div id="marzaValue" class="metric-value text-danger">@((Model?.Ruc12Procenat ?? 0m * 100m).ToString("0.0"))%</div>
-            <div id="marzaYoY" class="metric-yoy @(Model != null && Model.Ruc12PromenaProcentniPoeni >= 0 ? "positive" : "negative")">Plan 22,0% · @((Model?.Ruc12PromenaProcentniPoeni ?? 0m).ToString("0.0")) p.p.</div>
+            <div id="marzaValue" class="metric-value text-danger">@(((Model?.Ruc12Procenat ?? 0m) * 100m).ToString("0.0"))%</div>            <div id="marzaYoY" class="metric-yoy @(Model != null && Model.Ruc12PromenaProcentniPoeni >= 0 ? "positive" : "negative")">Plan 22,0% · @((Model?.Ruc12PromenaProcentniPoeni ?? 0m).ToString("0.0")) p.p.</div>
         </div>
     </div>
     <div class="col-md-4">
