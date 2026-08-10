@@ -1,6 +1,13 @@
-﻿namespace GomexPraksa.ServicesComerc
+﻿using Models.DtosComerc;
+
+namespace GomexPraksa.ServicesComerc
 {
-    public class IRucChangeService
+    public interface IRucChangeService
     {
+        public Task<RucChangeDTO> CheckInfoForChangesAsync(
+       DateOnly datumOd,
+       DateOnly? datumDo,
+       DateOnly? prethodniDatumOd,
+       DateOnly? prethodniDatumDo);
     }
 }

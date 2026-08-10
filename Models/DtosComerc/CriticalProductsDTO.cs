@@ -6,8 +6,9 @@
 
         public string NazivArtikla { get; set; } = string.Empty;
 
-        public decimal Ruc12 { get; set; }
+        public string Kategorija { get; set; } = string.Empty;
+        public string Severnost { get; set; } = string.Empty;
+        public decimal ProcenjeniUticaj { get; set; }
 
-        public decimal NedostatakMargine { get; set; }
     }
 }

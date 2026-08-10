@@ -15,9 +15,9 @@ public class RucChangeTrackerRepo : IRucChangeTracker
 
     public async Task<RucChangeDTO> CheckInfoForChangesAsync(
         DateOnly datumOd,
-        DateOnly datumDo,
-        DateOnly prethodniDatumOd,
-        DateOnly prethodniDatumDo)
+        DateOnly? datumDo,
+        DateOnly? prethodniDatumOd,
+        DateOnly? prethodniDatumDo)
     {
         const string sql = """
             WITH PrethodniPeriod AS
@@ -108,11 +108,11 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             new
             {
                 DatumOd = datumOd.ToDateTime(TimeOnly.MinValue),
-                DatumDo = datumDo.ToDateTime(TimeOnly.MinValue),
+                DatumDo = datumDo?.ToDateTime(TimeOnly.MinValue),
                 PrethodniDatumOd =
-                    prethodniDatumOd.ToDateTime(TimeOnly.MinValue),
+                    prethodniDatumOd?.ToDateTime(TimeOnly.MinValue),
                 PrethodniDatumDo =
-                    prethodniDatumDo.ToDateTime(TimeOnly.MinValue)
+                    prethodniDatumDo?.ToDateTime(TimeOnly.MinValue)
             });
     }
 }

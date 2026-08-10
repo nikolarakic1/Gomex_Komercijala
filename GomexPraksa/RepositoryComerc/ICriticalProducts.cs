@@ -5,6 +5,8 @@ namespace GomexPraksa.RepositoryComerc
     public interface ICriticalProducts
     {
         Task<IEnumerable<CriticalProductsDTO>> ShowCriticalProductsAsync();
-        Task<IEnumerable<CriticalProductsDTO>> CriticalProductsPage();
+        public Task<IEnumerable<CriticalProductsDTO>> CriticalProductsTop5(
+     DateOnly datumOd,
+     DateOnly datumDo);
     }
 }
