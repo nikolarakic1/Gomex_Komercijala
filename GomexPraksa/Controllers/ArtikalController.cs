@@ -67,5 +67,13 @@ namespace GomexPraksa.Controllers
             }
             return Ok(proizvodi);
         }
+        [HttpGet("CriticalPage")]
+        public async Task<ActionResult<IEnumerable<CriticalProductsPageDTO>>> CriticalProductsPage(
+        [FromQuery] FilterSharedPages filter)
+        {
+            var proizvodi = await _productsService.CriticalProductsPage(filter);
+
+            return Ok(proizvodi);
+        }
     }
 }

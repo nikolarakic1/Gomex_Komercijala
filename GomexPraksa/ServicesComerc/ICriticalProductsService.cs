@@ -1,10 +1,15 @@
-﻿using Models.DtosComerc;
+﻿using Models.Dtos;
+using Models.DtosComerc;
 
 namespace GomexPraksa.ServicesComerc;
 
     public interface ICriticalProductsService
     {
-        public Task<IEnumerable<CriticalProductsDTO>> CriticalProductsTop(DateOnly datumOd,DateOnly datumDo);
-    public Task<CriticalProductsDTO> CriticalProductsPage();
-    }
+    Task<IEnumerable<CriticalProductsDTO>> CriticalProductsTop(
+    DateOnly datumOd,
+    DateOnly datumDo);
+
+    Task<IEnumerable<CriticalProductsPageDTO>> CriticalProductsPage(
+        FilterSharedPages filter);
+}
 

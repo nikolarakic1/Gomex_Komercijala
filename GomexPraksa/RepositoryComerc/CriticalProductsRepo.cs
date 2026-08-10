@@ -83,7 +83,7 @@ namespace GomexPraksa.RepositoryComerc
             );
         }
 
-        public async Task<IEnumerable<CriticalProductsDTO>> ShowCriticalProductsAsync(FilterSharedPages filter)
+        public async Task<IEnumerable<CriticalProductsPageDTO>> ShowCriticalProductsAsync(FilterSharedPages filter)
         {
             const string sql = """
                                 SELECT
@@ -149,7 +149,7 @@ namespace GomexPraksa.RepositoryComerc
                     SUM(kr.NedostatakMargine) DESC;
                 """;
             using var connection = _connection.CreateConnection();
-            return await connection.QueryAsync<CriticalProductsDTO>(
+            return await connection.QueryAsync<CriticalProductsPageDTO>(
          sql,
          filter
           );
