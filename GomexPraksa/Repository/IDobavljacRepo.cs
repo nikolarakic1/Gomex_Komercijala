@@ -9,5 +9,6 @@ namespace GomexPraksa.Repository
         Task<IEnumerable<Dobavljac>> SearchAsync(
        string? naziv,
        bool? aktivan);
+        
     }
 }

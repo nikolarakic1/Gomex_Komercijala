@@ -11,5 +11,6 @@ namespace GomexPraksa.RepositoryComerc
 
         Task<IEnumerable<CriticalProductsPageDTO>> ShowCriticalProductsAsync(
             FilterSharedPages filter);
+        
     }
 }

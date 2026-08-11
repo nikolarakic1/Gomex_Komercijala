@@ -73,6 +73,8 @@ namespace GomexPraksa.Repository;
 
                 Aktivan = aktivan
             });
+        
     }
+   
 }
 
