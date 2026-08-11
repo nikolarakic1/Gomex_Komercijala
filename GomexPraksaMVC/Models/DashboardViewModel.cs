@@ -21,6 +21,17 @@ namespace GomexPraksaMVC.Models
 
         public List<DobavljacViewItem> Dobavljaci { get; set; } = new();
         public int? SelectedDobavljacId { get; set; }
+        // Filter state - added to support passing filters from MVC to API
+        public DateOnly? DatumOd { get; set; }
+        public DateOnly? DatumDo { get; set; }
+        public int? OdeljenjeId { get; set; }
+        public int? KategorijaId { get; set; }
+        public int? TipProdajeId { get; set; }
+
+        // Local lookup lists (populated in controller). These are temporary until backend exposes lookup endpoints.
+        public List<OdeljenjeViewItem> Odeljenja { get; set; } = new();
+        public List<KategorijaViewItem> Kategorije { get; set; } = new();
+        public List<TipProdajeViewItem> TipoviProdaje { get; set; } = new();
     }
 
     public class DobavljacViewItem
@@ -28,5 +39,24 @@ namespace GomexPraksaMVC.Models
         public int DobavljacId { get; set; }
         public string Naziv { get; set; } = string.Empty;
         public bool Aktivan { get; set; }
+    }
+
+    public class OdeljenjeViewItem
+    {
+        public int OdeljenjeId { get; set; }
+        public string Naziv { get; set; } = string.Empty;
+    }
+
+    public class KategorijaViewItem
+    {
+        public int KategorijaId { get; set; }
+        public string Naziv { get; set; } = string.Empty;
+        public int OdeljenjeId { get; set; }
+    }
+
+    public class TipProdajeViewItem
+    {
+        public int TipProdajeId { get; set; }
+        public string Naziv { get; set; } = string.Empty;
     }
 }

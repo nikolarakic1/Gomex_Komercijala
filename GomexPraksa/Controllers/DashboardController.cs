@@ -19,9 +19,21 @@ namespace GomexPraksa.Controllers
         public async Task<ActionResult<DashboardSummaryDTO>> GetSummary(
             [FromQuery] DashboardFilterDTO filterDTO)
         {
-            var rezultat = await _dashboardService.FillCardsAsync(filterDTO);
+            try
+            {
+                var rezultat = await _dashboardService.FillCardsAsync(filterDTO);
 
-            return Ok(rezultat);
+                return Ok(rezultat);
+            }
+            catch (ArgumentException ae)
+            {
+                return BadRequest(ae.Message);
+            }
+            catch (Exception)
+            {
+                // generic error - avoid exposing internals
+                return StatusCode(500, "Greška prilikom obrade zahteva.");
+            }
         }
     }
 }

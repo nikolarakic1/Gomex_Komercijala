@@ -11,45 +11,55 @@
 </div>
 
 <div class="filter-card mb-4">
-    <div class="filter-bar">
+    <form method="get" class="filter-bar">
         <div class="filter-group">
-            <label>Period</label>
-            <input type="text" id="periodPicker" class="form-control">
+            <label>Datum od</label>
+            <input type="date" name="datumOd" class="form-control" value="@(Model?.DatumOd.HasValue == true ? Model.DatumOd.Value.ToString("yyyy-MM-dd") : string.Empty)" />
         </div>
 
         <div class="filter-group">
-            <label>Poređenje</label>
-            <select class="form-select" id="compareSelect">
-                <option value="prethodni">Prethodni period</option>
-                <option value="godina">Isti period prošle godine</option>
-            </select>
+            <label>Datum do</label>
+            <input type="date" name="datumDo" class="form-control" value="@(Model?.DatumDo.HasValue == true ? Model.DatumDo.Value.ToString("yyyy-MM-dd") : string.Empty)" />
         </div>
 
         <div class="filter-group">
             <label>Odeljenje</label>
-            <select class="form-select" id="deptFilter">
-                <option value="sva">Sva odeljenja</option>
-                <option value="voce">Voće</option>
-                <option value="smrznuto">Smrznuto</option>
-                <option value="sirevi">Sirevi</option>
-            </select>
-        </div>  
+            <div class="d-flex align-items-center">
+                <select class="form-select" name="odeljenjeId">
+                <option value="">Sva odeljenja</option>
+                @foreach (var od in Model.Odeljenja)
+                {
+                    <option value="@od.OdeljenjeId" selected="@(Model?.OdeljenjeId == od.OdeljenjeId ? "selected" : null)">@od.Naziv</option>
+                }
+                </select>
+                <button type="submit" name="updateDobavljaci" value="1" class="btn btn-outline-secondary ms-2">Ažuriraj dobavljače</button>
+            </div>
+        </div>
 
         <div class="filter-group">
             <label>Kategorija</label>
-            <select class="form-select">
-                <option>Sve kategorije</option>
+            <select class="form-select" name="kategorijaId">
+                <option value="">Sve kategorije</option>
+                @* Kategorije trenutno nisu popunjene; mogu se dodati kad backend izloži lookup *@
             </select>
         </div>
 
         <div class="filter-group">
             <label>Dobavljač</label>
-            <select class="form-select" id="dobavljacFilter"
-                    asp-items="@(Model?.Dobavljaci.Select(d => new SelectListItem(d.Naziv, d.DobavljacId.ToString())))">
+            <select class="form-select" name="dobavljacId">
                 <option value="">Svi dobavljači</option>
+                @foreach (var d in Model.Dobavljaci)
+                {
+                    <option value="@d.DobavljacId" selected="@(Model?.SelectedDobavljacId == d.DobavljacId ? "selected" : null)">@d.Naziv</option>
+                }
             </select>
         </div>
-    </div>
+
+        <div class="filter-group align-self-end d-flex">
+            <button type="submit" class="btn btn-primary">Primeni filtere</button>
+            <a href="@Url.Action("Index", "Dashboard")" class="btn btn-secondary ms-2">Ponisti filtere</a>
+        </div>
+    </form>
 </div>
 
 <div class="row g-3 mb-4">
