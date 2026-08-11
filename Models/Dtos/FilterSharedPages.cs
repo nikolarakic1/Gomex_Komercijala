@@ -6,8 +6,8 @@ namespace Models.Dtos
 {
     public class FilterSharedPages
     {
-            public DateTime DatumOd { get; set; }
-            public DateTime DatumDo { get; set; }
+            public DateOnly DatumOd { get; set; }
+            public DateOnly DatumDo { get; set; }
 
             public int? OdeljenjeId { get; set; }
             public int? KategorijaId { get; set; }

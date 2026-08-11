@@ -11,5 +11,6 @@ namespace GomexPraksa.ServicesComerc;
 
     Task<IEnumerable<CriticalProductsPageDTO>> CriticalProductsPage(
         FilterSharedPages filter);
+    
 }
 

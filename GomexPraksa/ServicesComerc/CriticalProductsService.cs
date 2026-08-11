@@ -23,7 +23,7 @@ namespace GomexPraksa.ServicesComerc
                 throw new ArgumentException(
                     "Datum završetka ne može biti pre datuma početka.");
 
-            if (filter.DatumDo > DateTime.Today)
+            if (filter.DatumDo > DateOnly.FromDateTime(DateTime.Now))
                 throw new ArgumentException(
                     "Datum završetka ne može biti u budućnosti.");
 
@@ -42,5 +42,6 @@ namespace GomexPraksa.ServicesComerc
 
             return await _repo.CriticalProductsTop5(datumOd, datumDo);
         }
+      
     }
 }

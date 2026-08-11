@@ -13,7 +13,7 @@ namespace GomexPraksa.Controllers
         private readonly IArtikalService _artikalService;
         private readonly ICriticalProductsService _productsService;
 
-        public ArtikliController(IArtikalService artikalService,ICriticalProductsService productsService)
+        public ArtikliController(IArtikalService artikalService, ICriticalProductsService productsService)
         {
             _artikalService = artikalService;
             _productsService = productsService;
@@ -61,7 +61,7 @@ namespace GomexPraksa.Controllers
             )
         {
             var proizvodi = await _productsService.CriticalProductsTop(datumOd, datumDo);
-            if(proizvodi is null)
+            if (proizvodi is null)
             {
                 return BadRequest();
             }
@@ -76,4 +76,6 @@ namespace GomexPraksa.Controllers
             return Ok(proizvodi);
         }
     }
+
+
 }

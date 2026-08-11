@@ -13,7 +13,6 @@ builder.WebHost.UseWebRoot("wwwroot"); // creates expectation; to point elsewher
 
 builder.Services.AddControllers(); 
 
-// CORS for frontend (development): allow GomexPraksaMVC dev origins
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocal", policy =>
