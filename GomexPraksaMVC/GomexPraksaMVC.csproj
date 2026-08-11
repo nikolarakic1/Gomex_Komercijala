@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\GomexMVC\Controllers\ArtikalController.cs" Link="Controllers\ArtikalController.cs" />
-    <Compile Include="..\GomexMVC\Controllers\DashboardController.cs" Link="Controllers\DashboardController.cs" />
+    <ProjectReference Include="..\GomexPraksa\GomexPraksa.csproj" />
+    <ProjectReference Include="..\Models\Models.csproj" />
   </ItemGroup>
 
 </Project>

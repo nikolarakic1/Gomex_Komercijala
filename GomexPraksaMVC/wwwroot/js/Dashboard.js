@@ -3,6 +3,8 @@
     initDeptFilter();
     initPrometChart();
     initDobavljacSearch();
+    renderCriticalTopFromData();
+    renderRucFromData();
 });
 
 function initPeriodPicker() {
@@ -15,6 +17,77 @@ function initPeriodPicker() {
         locale: "sr",
         maxDate: "today"
     });
+}
+
+function renderCriticalTopFromData() {
+    try {
+        var data = window.__dashboardData && window.__dashboardData.criticalTop ? window.__dashboardData.criticalTop : [];
+        if (!data || data.length === 0) return;
+
+        var labels = data.map(function (d) { return d.NazivArtikla || d.nazivArtikla || d.name; });
+        var values = data.map(function (d) { return d.ProcenjeniUticaj || d.procenjeniUticaj || 0; });
+
+        var canvas = document.getElementById('criticalTopChart');
+        if (!canvas) return;
+
+        var ctx = canvas.getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Procenjeni uticaj (RSD)',
+                    data: values,
+                    backgroundColor: labels.map(function () { return 'rgba(193,68,59,0.85)'; }),
+                    borderColor: labels.map(function () { return 'rgba(193,68,59,1)'; }),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+    } catch (e) { console.error(e); }
+}
+
+function renderRucFromData() {
+    try {
+        var ruc = window.__dashboardData && window.__dashboardData.rucChange ? window.__dashboardData.rucChange : null;
+        if (!ruc) return;
+
+        var labels = ['Početni RUC', 'Margin effect', 'Volume effect', 'Mix effect', 'Konačni RUC'];
+        var values = [ruc.PocetniRuc || ruc.pocetniRuc || 0, ruc.MarginEffect || ruc.marginEffect || 0, ruc.VolumeEffect || ruc.volumeEffect || 0, ruc.MixEffect || ruc.mixEffect || 0, ruc.KonacniRuc || ruc.konacniRuc || 0];
+
+        var canvas = document.getElementById('rucWaterfall');
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+
+        var colors = values.map(function (v, idx) {
+            if (idx === 0 || idx === values.length - 1) return '#4B5563';
+            return v >= 0 ? '#2D9F5D' : '#C1443B';
+        });
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'RUC change',
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: colors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: false } }
+            }
+        });
+    } catch (e) { console.error(e); }
 }
 
 function initDeptFilter() {

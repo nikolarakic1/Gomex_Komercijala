@@ -32,6 +32,12 @@ namespace GomexPraksaMVC.Models
         public List<OdeljenjeViewItem> Odeljenja { get; set; } = new();
         public List<KategorijaViewItem> Kategorije { get; set; } = new();
         public List<TipProdajeViewItem> TipoviProdaje { get; set; } = new();
+        // Critical products for Top5 chart (view models)
+        public List<CriticalProductViewItem> CriticalTop5 { get; set; } = new();
+        // Optional paged critical products
+        public List<CriticalProductPageViewItem> CriticalPage { get; set; } = new();
+        // RUC change breakdown (waterfall)
+        public RucChangeViewItem? RucChange { get; set; }
     }
 
     public class DobavljacViewItem
@@ -39,6 +45,17 @@ namespace GomexPraksaMVC.Models
         public int DobavljacId { get; set; }
         public string Naziv { get; set; } = string.Empty;
         public bool Aktivan { get; set; }
+    }
+
+    public class RucChangeViewItem
+    {
+        public decimal PocetniRuc { get; set; }
+        public decimal MarginEffect { get; set; }
+        public decimal VolumeEffect { get; set; }
+        public decimal MixEffect { get; set; }
+        public decimal UkupnaPromena { get; set; }
+        public decimal UkupnaPromenaProcenat { get; set; }
+        public decimal KonacniRuc { get; set; }
     }
 
     public class OdeljenjeViewItem
@@ -58,5 +75,27 @@ namespace GomexPraksaMVC.Models
     {
         public int TipProdajeId { get; set; }
         public string Naziv { get; set; } = string.Empty;
+    }
+
+    public class CriticalProductViewItem
+    {
+        public int ArtikalId { get; set; }
+        public string NazivArtikla { get; set; } = string.Empty;
+        public string Kategorija { get; set; } = string.Empty;
+        public string Severnost { get; set; } = string.Empty;
+        public decimal ProcenjeniUticaj { get; set; }
+    }
+
+    public class CriticalProductPageViewItem
+    {
+        public int ArtikalId { get; set; }
+        public string Sifra { get; set; } = string.Empty;
+        public string Naziv { get; set; } = string.Empty;
+        public string? Dobavljac { get; set; }
+
+        public decimal Promet { get; set; }
+        public decimal RUC12 { get; set; }
+        public decimal RUC12Procenat { get; set; }
+        public decimal NedostatakMargine { get; set; }
     }
 }
