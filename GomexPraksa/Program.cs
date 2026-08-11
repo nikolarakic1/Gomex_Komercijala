@@ -37,6 +37,10 @@ builder.Services.AddScoped<IDobavljacRepo, DobavljacRepo>();
 builder.Services.AddScoped<IDobavljacServis, DobavljacServis>();
 builder.Services.AddScoped<IDashboardRepo, DashboardRepo>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IRucChangeService, RucChangeService>();
+builder.Services.AddScoped<IRucChangeTracker, RucChangeTrackerRepo>();
+builder.Services.AddScoped<ICriticalProducts, CriticalProductsRepo>();
+builder.Services.AddScoped<ICriticalProductsService, CriticalProductsService>();
 
 var app = builder.Build();
 

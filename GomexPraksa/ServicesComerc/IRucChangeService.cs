@@ -1,9 +1,8 @@
 ﻿using Models.DtosComerc;
-using Models.ModelsDash;
 
-namespace GomexPraksa.RepositoryComerc
+namespace GomexPraksa.ServicesComerc
 {
-    public interface IRucChangeTracker
+    public interface IRucChangeService
     {
         public Task<RucChangeDTO> CheckInfoForChangesAsync(
        DateOnly datumOd,

@@ -1,6 +1,8 @@
 ﻿using GomexPraksa.Services;
+using GomexPraksa.ServicesComerc;
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
+using Models.DtosComerc;
 
 namespace GomexPraksa.Controllers
 {
@@ -9,10 +11,12 @@ namespace GomexPraksa.Controllers
     public class ArtikliController : ControllerBase
     {
         private readonly IArtikalService _artikalService;
+        private readonly ICriticalProductsService _productsService;
 
-        public ArtikliController(IArtikalService artikalService)
+        public ArtikliController(IArtikalService artikalService,ICriticalProductsService productsService)
         {
             _artikalService = artikalService;
+            _productsService = productsService;
         }
 
         [HttpGet]
@@ -49,6 +53,27 @@ namespace GomexPraksa.Controllers
                 await _artikalService.SearchAsync(filter);
 
             return Ok(artikli);
+        }
+        [HttpGet("criticalProductsTop")]
+        public async Task<ActionResult<IEnumerable<CriticalProductsDTO>>> Top5CriticalProducts(
+            DateOnly datumOd,
+            DateOnly datumDo
+            )
+        {
+            var proizvodi = await _productsService.CriticalProductsTop(datumOd, datumDo);
+            if(proizvodi is null)
+            {
+                return BadRequest();
+            }
+            return Ok(proizvodi);
+        }
+        [HttpGet("CriticalPage")]
+        public async Task<ActionResult<IEnumerable<CriticalProductsPageDTO>>> CriticalProductsPage(
+        [FromQuery] FilterSharedPages filter)
+        {
+            var proizvodi = await _productsService.CriticalProductsPage(filter);
+
+            return Ok(proizvodi);
         }
     }
 }
