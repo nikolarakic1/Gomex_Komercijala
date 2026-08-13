@@ -19,6 +19,30 @@ function initPeriodPicker() {
     });
 }
 
+// Initialize searchable selects for kategorija and odeljenje too
+function initOtherSelectSearch() {
+    var selIds = ['kategorijaId', 'odeljenjeId'];
+    selIds.forEach(function (name) {
+        var el = document.querySelector('select[name=' + name + ']');
+        if (!el) return;
+        try {
+            if (el.choicesInstance && typeof el.choicesInstance.destroy === 'function') el.choicesInstance.destroy();
+        } catch (e) { }
+
+        var choices = new Choices(el, {
+            searchEnabled: true,
+            shouldSort: false,
+            placeholder: true,
+            placeholderValue: name === 'kategorijaId' ? 'Sve kategorije' : 'Sva odeljenja',
+            itemSelectText: '',
+            searchResultLimit: 100,
+            renderChoiceLimit: 200,
+            classNames: { containerOuter: 'choices filter-choices' }
+        });
+        el.choicesInstance = choices;
+    });
+}
+
 function renderCriticalTopFromData() {
     try {
         var data = window.__dashboardData && window.__dashboardData.criticalTop ? window.__dashboardData.criticalTop : [];
@@ -157,32 +181,7 @@ function initPrometChart() {
     var canvas = document.getElementById('prometChart');
     if (!canvas) return;
 
-    var series = {
-        nedelja: {
-            title: 'Promet po nedeljama',
-            labels: ['N18', 'N19', 'N20', 'N21', 'N22', 'N23', 'N24', 'N25', 'N26', 'N27', 'N28', 'N29'],
-            actual: [602, 618, 638, 651, 715, 734, 745, 780, 812, 852, 899, 905],
-            compare: [610, 631, 663, 674, 692, 704, 719, 733, 774, 794, 823, 852],
-            type: 'line',
-            window: 8
-        },
-        mesec: {
-            title: 'Promet po mesecima',
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul'],
-            actual: [2450, 2680, 2510, 2890, 2760, 3020, 2950],
-            compare: [2300, 2520, 2480, 2700, 2650, 2880, 2810],
-            type: 'line',
-            window: 6
-        },
-        godina: {
-            title: 'Ukupan promet po godinama',
-            labels: ['2021', '2022', '2023', '2024', '2025', '2026'],
-            actual: [12800, 14200, 15600, 17100, 18900, 11200],
-            compare: null,
-            type: 'bar',
-            window: 5
-        }
-    };
+    var series = null; // will be fetched from API; fallback if necessary
 
     var chart = null;
     var granularity = 'nedelja';
@@ -201,15 +200,19 @@ function initPrometChart() {
     }
 
     function render() {
-        var d = series[granularity];
+        var d = series && series[granularity] ? series[granularity] : null;
         var start = offset;
+        if (!d) {
+            // nothing loaded yet
+            return;
+        }
         var end = Math.min(start + d.window, d.labels.length);
 
         var labels = d.labels.slice(start, end);
         var actual = d.actual.slice(start, end);
         var compare = d.compare ? d.compare.slice(start, end) : null;
 
-        document.getElementById('prometChartTitle').textContent = d.title;
+        document.getElementById('prometChartTitle').textContent = d.title || '';
         document.getElementById('prometChartLegend').style.display = compare ? 'flex' : 'none';
 
         var datasets = [{
@@ -250,8 +253,8 @@ function initPrometChart() {
 
     function switchGranularity(key) {
         granularity = key;
-        offset = defaultOffset(series[key]);
-        render();
+    offset = defaultOffset(series[key]);
+    render();
     }
 
     switchGranularity('nedelja');
@@ -276,24 +279,39 @@ function initPrometChart() {
     });
 }
 
+
+// Articles modal and dynamic article loading removed; navigation moved to /Artikal/Index page
+
 function initDobavljacSearch() {
     var el = document.getElementById('dobavljacFilter');
     if (!el) return;
-    // If a previous Choices.js wrapper exists around this select (from earlier loads), unwrap it
+
+    // initialize Choices.js with search enabled and small dropdown
     try {
-        var wrapper = el.closest('.choices');
-        if (wrapper && wrapper.parentNode) {
-            wrapper.parentNode.insertBefore(el, wrapper);
-            wrapper.parentNode.removeChild(wrapper);
-        }
+        // destroy previous instance if exists
+        if (el.choicesInstance && typeof el.choicesInstance.destroy === 'function') el.choicesInstance.destroy();
     } catch (e) { }
 
-    // Native select redirect preserving other params
-    try {
-        var params = new URLSearchParams(window.location.search);
-        var currentValue = params.get('dobavljacId') || '';
-        if (!el.value && currentValue) el.value = currentValue;
-    } catch (ex) { var currentValue = ''; }
+    var params = new URLSearchParams(window.location.search);
+    var currentValue = params.get('dobavljacId') || '';
+
+    var choices = new Choices(el, {
+        searchEnabled: true,
+        shouldSort: false,
+        placeholder: true,
+        placeholderValue: 'Svi dobavljači',
+        itemSelectText: '',
+        searchResultLimit: 100,
+        renderChoiceLimit: 200,
+        classNames: {
+            containerOuter: 'choices filter-choices',
+        }
+    });
+    el.choicesInstance = choices;
+
+    if (currentValue && !el.value) {
+        try { choices.setChoiceByValue(currentValue.toString()); } catch (e) { }
+    }
 
     el.addEventListener('change', function () {
         var selected = el.value || '';

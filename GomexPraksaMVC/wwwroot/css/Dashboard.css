@@ -145,21 +145,21 @@ body {
     width: 24px;
 }
 .filter-bar .choices {
-    min-width: 180px;
-    font-size: 12.5px;
+    min-width: 160px;
+    font-size: 12px;
 }
 
 
 .filter-bar .choices__inner {
     display: flex;
     align-items: center;
-    height: 42px;
-    min-height: 42px;
-    padding: 0 12px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 10px;
     background: #fff;
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .filter-bar .choices__list--single {

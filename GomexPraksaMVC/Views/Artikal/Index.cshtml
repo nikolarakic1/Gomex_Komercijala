@@ -1,0 +1,90 @@
+@model GomexPraksaMVC.Models.ArtikalIndexViewModel
+@{
+    ViewData["Title"] = "Artikli";
+}
+
+<div class="dashboard-header mb-4">
+    <h2 class="mb-1">Artikli</h2>
+    <p class="text-secondary mb-0">Lista artikala i filteri</p>
+</div>
+
+<div class="filter-card mb-4">
+    <form method="get" class="filter-bar">
+        <div class="filter-group">
+            <label>Naziv</label>
+            <input type="text" name="naziv" class="form-control" value="@Model.Naziv" placeholder="Pretraži po nazivu" />
+        </div>
+
+        <div class="filter-group">
+            <label>Dobavljač</label>
+            <select class="form-select" name="dobavljacId">
+                <option value="">Svi dobavljači</option>
+                @foreach (var d in Model.Dobavljaci)
+                {
+                    <option value="@d.DobavljacId" selected="@(Model.SelectedDobavljacId == d.DobavljacId ? "selected" : null)">@d.Naziv</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Odeljenje</label>
+            <select class="form-select" name="odeljenjeId">
+                <option value="">Sva odeljenja</option>
+                @foreach (var o in Model.Odeljenja)
+                {
+                    <option value="@o.OdeljenjeId" selected="@(Model.SelectedOdeljenjeId == o.OdeljenjeId ? "selected" : null)">@o.Naziv</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Kategorija</label>
+            <select class="form-select" name="kategorijaId">
+                <option value="">Sve kategorije</option>
+                @foreach (var k in Model.Kategorije)
+                {
+                    <option value="@k.KategorijaId" selected="@(Model.SelectedKategorijaId == k.KategorijaId ? "selected" : null)">@k.Naziv</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-group align-self-end d-flex">
+            <button type="submit" class="btn btn-primary">Primeni filtere</button>
+            <a href="@Url.Action("Index", "Artikal")" class="btn btn-secondary ms-2">Ponisti</a>
+        </div>
+    </form>
+</div>
+
+<div class="metric-card">
+    <div class="table-responsive">
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>Šifra</th>
+                    <th>Naziv</th>
+                    <th>Dobavljač</th>
+                    <th>Robna grupa</th>
+                    <th>Aktivan</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.Artikli)
+                {
+                    <tr>
+                        <td>@a.Sifra</td>
+                        <td>@a.Naziv</td>
+                        <td>@(Model.Dobavljaci.FirstOrDefault(d => d.DobavljacId == a.DobavljacId)?.Naziv ?? "")</td>
+                        <td>@(Model.Kategorije.FirstOrDefault(k => k.KategorijaId == a.RobnaGrupaId)?.Naziv ?? "")</td>
+                        <td>@(a.Aktivan ? "Da" : "Ne")</td>
+                        <td class="text-end"><a asp-controller="Artikal" asp-action="Details" asp-route-id="@a.ArtikalId" class="btn btn-sm btn-outline-secondary">Detalji</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+}
