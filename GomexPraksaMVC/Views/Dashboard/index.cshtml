@@ -40,7 +40,10 @@
             <label>Kategorija</label>
             <select class="form-select" name="kategorijaId">
                 <option value="">Sve kategorije</option>
-                @* Kategorije trenutno nisu popunjene; mogu se dodati kad backend izloži lookup *@
+                @foreach (var k in Model.Kategorije)
+                {
+                    <option value="@k.KategorijaId" selected="@(Model?.KategorijaId == k.KategorijaId ? "selected" : null)">@k.Naziv</option>
+                }
             </select>
         </div>
 
@@ -61,6 +64,7 @@
         </div>
     </form>
 </div>
+
 
 <div class="row g-3 mb-4">
     <div class="col-md-4">

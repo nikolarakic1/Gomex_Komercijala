@@ -76,6 +76,26 @@ namespace GomexPraksaMVC.Controllers
                 model.Odeljenja = new List<OdeljenjeViewItem>();
             }
 
+            try
+            {
+                var kategorije = await client.GetFromJsonAsync<List<KategorijaViewItem>>("api/kategorije");
+                model.Kategorije = kategorije ?? new List<KategorijaViewItem>();
+            }
+            catch
+            {
+                model.Kategorije = new List<KategorijaViewItem>();
+            }
+
+            try
+            {
+                var kategorije = await client.GetFromJsonAsync<List<KategorijaViewItem>>("api/kategorije");
+                model.Kategorije = kategorije ?? new List<KategorijaViewItem>();
+            }
+            catch
+            {
+                model.Kategorije = new List<KategorijaViewItem>();
+            }
+
             if (sd.HasValue) model.DatumOd = sd;
             if (ed.HasValue) model.DatumDo = ed;
             model.OdeljenjeId = odeljenjeId;

@@ -13,26 +13,60 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
             _httpFactory = httpFactory;
         }
 
-        public async Task<IActionResult> Index(int? dobavljacId, int? robnaGrupaId)
+        public async Task<IActionResult> Index(int? dobavljacId, int? robnaGrupaId, int? odeljenjeId, int? kategorijaId, string? naziv)
         {
             var client = _httpFactory.CreateClient("GomexApi");
 
-            var queryParts = new List<string>();
-            if (dobavljacId.HasValue) queryParts.Add($"dobavljacId={dobavljacId.Value}");
-            if (robnaGrupaId.HasValue) queryParts.Add($"robnaGrupaId={robnaGrupaId.Value}");
-            var query = queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : string.Empty;
+            var model = new ArtikalIndexViewModel();
 
-            List<ArtikalViewItem> artikli = new();
+            // pass selected filters back to view
+            model.SelectedDobavljacId = dobavljacId;
+            model.SelectedRobnaGrupaId = robnaGrupaId;
+            model.SelectedOdeljenjeId = odeljenjeId;
+            model.SelectedKategorijaId = kategorijaId;
+            model.Naziv = naziv;
+
+            // load artikli
             try
             {
+                var queryParts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(naziv)) queryParts.Add($"naziv={Uri.EscapeDataString(naziv)}");
+                if (dobavljacId.HasValue) queryParts.Add($"dobavljacId={dobavljacId.Value}");
+                if (robnaGrupaId.HasValue) queryParts.Add($"robnaGrupaId={robnaGrupaId.Value}");
+                if (kategorijaId.HasValue) queryParts.Add($"kategorijaId={kategorijaId.Value}");
+                var query = queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : string.Empty;
+
                 var result = await client.GetFromJsonAsync<List<ArtikalViewItem>>($"api/artikli/search{query}");
-                artikli = result ?? new List<ArtikalViewItem>();
+                model.Artikli = result ?? new List<ArtikalViewItem>();
             }
             catch
             {
+                model.Artikli = new List<ArtikalViewItem>();
             }
 
-            return View(artikli);
+            // load lookups
+            try
+            {
+                var dobavljaci = await client.GetFromJsonAsync<List<DobavljacViewItem>>("api/dobavljaci");
+                model.Dobavljaci = dobavljaci ?? new List<DobavljacViewItem>();
+            }
+            catch { model.Dobavljaci = new List<DobavljacViewItem>(); }
+
+            try
+            {
+                var odeljenja = await client.GetFromJsonAsync<List<OdeljenjeViewItem>>("api/odeljenja");
+                model.Odeljenja = odeljenja ?? new List<OdeljenjeViewItem>();
+            }
+            catch { model.Odeljenja = new List<OdeljenjeViewItem>(); }
+
+            try
+            {
+                var kategorije = await client.GetFromJsonAsync<List<KategorijaViewItem>>("api/kategorije");
+                model.Kategorije = kategorije ?? new List<KategorijaViewItem>();
+            }
+            catch { model.Kategorije = new List<KategorijaViewItem>(); }
+
+            return View(model);
         }
 
         public async Task<IActionResult> Details(int id)
