@@ -26,10 +26,7 @@ public class RucChangeService : IRucChangeService
         {
             throw new ArgumentOutOfRangeException("ne moze datumod biti veci od danas");
         }
-        if(datumDo < danas)
-        {
-            throw new ArgumentOutOfRangeException("ne moze datom do biti manji od danas");
-        }
+        
         var checkInfoForChanges = await _repo.CheckInfoForChangesAsync(datumOd,datumDo,prethodniDatumOd,prethodniDatumDo);
         return checkInfoForChanges;
     }
