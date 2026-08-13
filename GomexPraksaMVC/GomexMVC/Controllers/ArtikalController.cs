@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Json;
 using GomexPraksaMVC.Models;
 
-namespace GomexPraksaMVC.Controllers
+namespace GomexPraksaMVC.GomexMVC.Controllers
 {
     public class ArtikalController : Controller
     {

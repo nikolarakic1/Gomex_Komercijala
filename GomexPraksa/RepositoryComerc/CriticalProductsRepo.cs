@@ -17,18 +17,33 @@ namespace GomexPraksa.RepositoryComerc
     DateOnly datumDo)
         {
             const string sql = """
+        WITH Kriticni AS
+        (
+            SELECT
+                kr.ArtikalId,
+                SUM(kr.RUC12) AS Ruc12,
+                SUM(kr.NedostatakMargine) AS NedostatakMargine
+            FROM dbo.KomercijalniRezultat kr
+            WHERE kr.DatumRezultata >= @DatumOd
+              AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+            GROUP BY kr.ArtikalId
+            HAVING
+                SUM(kr.RUC12) <= 0
+                OR SUM(kr.NedostatakMargine) > 0
+        )
+
         SELECT TOP 5
             a.ArtikalId,
             a.Naziv AS NazivArtikla,
             k.Naziv AS Kategorija,
 
             CASE
-                WHEN ABS(SUM(kr.RUC12)) >= 5000
-                     OR SUM(kr.NedostatakMargine) >= 5000
+                WHEN ABS(kr.Ruc12) >= 5000
+                     OR kr.NedostatakMargine >= 5000
                     THEN 'Visok'
 
-                WHEN ABS(SUM(kr.RUC12)) >= 2000
-                     OR SUM(kr.NedostatakMargine) >= 2000
+                WHEN ABS(kr.Ruc12) >= 2000
+                     OR kr.NedostatakMargine >= 2000
                     THEN 'Srednji'
 
                 ELSE 'Nizak'
@@ -36,15 +51,14 @@ namespace GomexPraksa.RepositoryComerc
 
             (
                 CASE
-                    WHEN SUM(kr.RUC12) < 0
-                        THEN SUM(kr.RUC12)
+                    WHEN kr.Ruc12 < 0
+                        THEN kr.Ruc12
                     ELSE 0
                 END
-                -
-                SUM(kr.NedostatakMargine)
+                - kr.NedostatakMargine
             ) AS ProcenjeniUticaj
 
-        FROM dbo.KomercijalniRezultat kr
+        FROM Kriticni kr
 
         INNER JOIN dbo.Artikal a
             ON a.ArtikalId = kr.ArtikalId
@@ -55,20 +69,7 @@ namespace GomexPraksa.RepositoryComerc
         LEFT JOIN dbo.Kategorija k
             ON k.KategorijaId = rg.KategorijaId
 
-        WHERE kr.DatumRezultata >= @DatumOd
-          AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
-
-        GROUP BY
-            a.ArtikalId,
-            a.Naziv,
-            k.Naziv
-
-        HAVING
-            SUM(kr.RUC12) <= 0
-            OR SUM(kr.NedostatakMargine) > 0
-
-        ORDER BY
-            ProcenjeniUticaj ASC;
+        ORDER BY ProcenjeniUticaj ASC;
         """;
 
             using var connection = _connection.CreateConnection();
