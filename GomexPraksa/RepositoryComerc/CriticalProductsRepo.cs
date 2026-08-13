@@ -150,9 +150,17 @@ namespace GomexPraksa.RepositoryComerc
                 """;
             using var connection = _connection.CreateConnection();
             return await connection.QueryAsync<CriticalProductsPageDTO>(
-         sql,
-         filter
-          );
+       sql,
+       new
+       {
+           DatumOd = filter.DatumOd.ToDateTime(TimeOnly.MinValue),
+           DatumDo = filter.DatumDo.ToDateTime(TimeOnly.MinValue),
+
+           filter.OdeljenjeId,
+           filter.KategorijaId,
+           filter.DobavljacId,
+           filter.TipProdajeId
+       });
 
         }
         

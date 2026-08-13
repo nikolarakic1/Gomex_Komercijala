@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\GomexMVC\Controllers\ArtikalController.cs" Link="Controllers\ArtikalController.cs" />
-    <Compile Include="..\GomexMVC\Controllers\DashboardController.cs" Link="Controllers\DashboardController.cs" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.11" />
   </ItemGroup>
 
 </Project>
