@@ -18,7 +18,7 @@ namespace GomexPraksa.Auth
 
         public string GenerateToken(
             ApplicationUser user,
-            IList<string?> roles)
+            IList<string> roles)
         {
             ArgumentNullException.ThrowIfNull(user);
             ArgumentNullException.ThrowIfNull(roles);

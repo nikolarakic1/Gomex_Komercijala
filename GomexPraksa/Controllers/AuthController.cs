@@ -1,4 +1,5 @@
 ﻿using GomexPraksa.ApplicationUserSecurity;
+using GomexPraksa.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Models.AuthenticationDtos;
@@ -10,35 +11,70 @@ namespace GomexPraksa.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    public AuthController(UserManager<ApplicationUser> userManager)
+    private readonly IJwtService _service;
+    public AuthController(UserManager<ApplicationUser> userManager , IJwtService service)
     {
         _userManager = userManager;
+        _service = service;
     }
     [HttpPost("Register")]
     public async Task<IActionResult> CreateAccountAsync(RegisterDTO dto)
     {
+        var existingUser =
+            await _userManager.FindByEmailAsync(dto.Email);
+
+        if (existingUser is not null)
+        {
+            return Conflict(new
+            {
+                message = "Korisnik sa ovim emailom već postoji."
+            });
+        }
+
         var user = new ApplicationUser
         {
             UserName = dto.Email,
             Email = dto.Email
         };
 
-        var result = await _userManager.CreateAsync(
+        var createResult = await _userManager.CreateAsync(
             user,
             dto.Password
         );
 
-        if (!result.Succeeded)
+        if (!createResult.Succeeded)
         {
-            return BadRequest(result.Errors);
+            return BadRequest(new
+            {
+                errors = createResult.Errors
+                    .Select(error => error.Description)
+            });
         }
 
-        await _userManager.AddToRoleAsync(
+        // Mora biti ista rola kao u RoleSeeder-u
+        const string defaultRole = "Komercijalista";
+
+        var roleResult = await _userManager.AddToRoleAsync(
             user,
-            dto.Role
+            defaultRole
         );
 
-        return Ok("Korisnik uspešno kreiran.");
+        if (!roleResult.Succeeded)
+        {
+            // Da ne ostane kreiran korisnik bez role
+            await _userManager.DeleteAsync(user);
+
+            return BadRequest(new
+            {
+                errors = roleResult.Errors
+                    .Select(error => error.Description)
+            });
+        }
+
+        return Ok(new
+        {
+            message = "Korisnik uspešno kreiran."
+        });
     }
     [HttpPut("Login")]
     public async Task<IActionResult> LogInAsync(LogInDto dto) 
