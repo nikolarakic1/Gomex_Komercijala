@@ -120,6 +120,7 @@ builder.Services.AddScoped<IRucChangeService, RucChangeService>();
 builder.Services.AddScoped<ICriticalProducts, CriticalProductsRepo>();
 builder.Services.AddScoped<ICriticalProductsService, CriticalProductsService>();
 
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 // =========================
 // APP
