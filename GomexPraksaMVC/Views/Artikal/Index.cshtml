@@ -77,7 +77,7 @@
                         <td>@(Model.Dobavljaci.FirstOrDefault(d => d.DobavljacId == a.DobavljacId)?.Naziv ?? "")</td>
                         <td>@(Model.Kategorije.FirstOrDefault(k => k.KategorijaId == a.RobnaGrupaId)?.Naziv ?? "")</td>
                         <td>@(a.Aktivan ? "Da" : "Ne")</td>
-                        <td class="text-end"><a asp-controller="Artikal" asp-action="Details" asp-route-id="@a.ArtikalId" class="btn btn-sm btn-outline-secondary">Detalji</a></td>
+                        <td class="text-end"><a asp-controller="Artikal" asp-action="Detalji" asp-route-sifra="@a.Sifra" class="btn btn-sm btn-outline-secondary">Detalji</a></td>
                     </tr>
                 }
             </tbody>

@@ -69,15 +69,27 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Detalji(string sifra)
         {
-            if (id <= 0) return BadRequest();
+            if (string.IsNullOrWhiteSpace(sifra)) return BadRequest();
 
             var client = _httpFactory.CreateClient("GomexApi");
             try
             {
-                var artikal = await client.GetFromJsonAsync<ArtikalViewItem>($"api/artikli/{id}");
+                var artikal = await client.GetFromJsonAsync<ArtikalViewItem>($"api/artikli/sifra/{sifra}");
                 if (artikal is null) return NotFound();
+
+                DobavljacViewItem? dobavljac = null;
+                try
+                {
+                    dobavljac = await client.GetFromJsonAsync<DobavljacViewItem>($"api/dobavljaci/{artikal.DobavljacId}");
+                }
+                catch
+                {
+                }
+
+                ViewData["DobavljacNaziv"] = dobavljac?.Naziv;
+
                 return View(artikal);
             }
             catch

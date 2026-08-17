@@ -143,6 +143,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-await RoleSeeder.SeedRolesAsync(app.Services);
+//await RoleSeeder.SeedRolesAsync(app.Services);
 
 app.Run();
