@@ -230,3 +230,36 @@ body {
     border: 1px solid var(--color-border);
     z-index: 1000;
 }
+.login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+}
+
+.login-card {
+    background: var(--color-card);
+    border-radius: 10px;
+    padding: 32px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.login-brand {
+    margin-bottom: 24px;
+}
+
+    .login-brand .brand-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #7A1B1B;
+        letter-spacing: 0.5px;
+    }
+
+    .login-brand .brand-sub {
+        font-size: 11px;
+        color: var(--color-text-secondary);
+        letter-spacing: 1px;
+    }
