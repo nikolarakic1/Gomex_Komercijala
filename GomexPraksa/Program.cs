@@ -143,6 +143,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+using (var scope = app.Services.CreateScope())
+{
+    await RoleSeeder.SeedRolesAsync(app.Services);
+}
+
+
 //await RoleSeeder.SeedRolesAsync(app.Services);
 
 app.Run();

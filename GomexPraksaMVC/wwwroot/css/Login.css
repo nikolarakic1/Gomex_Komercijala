@@ -1,0 +1,100 @@
+﻿:root {
+    --login-bg: #F6F7F6;
+    --login-card-bg: #FFFFFF;
+    --login-border: #E3E3DE;
+    --login-text: #1A1A18;
+    --login-text-secondary: #6B6B65;
+    --login-danger: #C1443B;
+    --login-brand: #41cc41;
+    --login-brand-hover: #35a835;
+    --login-brand-active: #2a852a;
+    --login-brand-soft: rgba(65, 204, 65, 0.2);
+}
+
+.login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--login-bg);
+}
+
+.login-card {
+    background: var(--login-card-bg);
+    border-radius: 10px;
+    padding: 32px;
+    width: 100%;
+    max-width: 380px;
+    border-top: 3px solid var(--login-brand);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.login-brand {
+    margin-bottom: 24px;
+}
+
+    .login-brand .brand-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--login-brand);
+        letter-spacing: 0.5px;
+    }
+
+    .login-brand .brand-sub {
+        font-size: 11px;
+        color: var(--login-text-secondary);
+        letter-spacing: 1px;
+    }
+
+.login-card h5 {
+    color: var(--login-text);
+}
+
+.login-card p.text-secondary {
+    color: var(--login-text-secondary) !important;
+}
+
+.login-card .form-label {
+    color: var(--login-text);
+}
+
+.login-card .form-control {
+    border-color: var(--login-border);
+}
+
+    .login-card .form-control:focus {
+        border-color: var(--login-brand);
+        box-shadow: 0 0 0 0.2rem var(--login-brand-soft);
+    }
+
+.login-card .form-check-input:checked {
+    background-color: var(--login-brand);
+    border-color: var(--login-brand);
+}
+
+.login-card .form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem var(--login-brand-soft);
+}
+
+.login-card button[type="submit"] {
+    background: var(--login-brand);
+    border: none;
+    color: #FFFFFF;
+    transition: background-color .15s ease;
+}
+
+    .login-card button[type="submit"]:hover {
+        background: var(--login-brand-hover);
+    }
+
+    .login-card button[type="submit"]:active {
+        background: var(--login-brand-active);
+    }
+
+.login-card .text-danger {
+    color: var(--login-danger) !important;
+}
+
+.login-card .form-control.is-invalid {
+    border-color: var(--login-danger);
+}

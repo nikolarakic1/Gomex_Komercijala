@@ -4,6 +4,7 @@ using GomexPraksaMVC.Models;
 
 namespace GomexPraksaMVC.Controllers
 {
+    [TypeFilter(typeof(GomexPraksaMVC.Filters.RequireAuthFilter))]
     public class DashboardController : Controller
     {
         private readonly IHttpClientFactory _httpFactory;

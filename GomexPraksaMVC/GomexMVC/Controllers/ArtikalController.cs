@@ -4,6 +4,7 @@ using GomexPraksaMVC.Models;
 
 namespace GomexPraksaMVC.GomexMVC.Controllers
 {
+    [TypeFilter(typeof(GomexPraksaMVC.Filters.RequireAuthFilter))]
     public class ArtikalController : Controller
     {
         private readonly IHttpClientFactory _httpFactory;

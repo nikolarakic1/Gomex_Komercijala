@@ -32,4 +32,20 @@
     <a href="#" class="nav-item">
         <i class="bi bi-download"></i> Export izveštaja
     </a>
+
+    <div class="sidebar-user mt-auto">
+        <div class="sidebar-user-info">
+            <div class="sidebar-user-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="sidebar-user-name">
+                @(ViewContext.HttpContext.Session.GetString("user_name") ?? "Nepoznat korisnik")
+            </div>
+        </div>
+        <form asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit" class="sidebar-logout-btn" title="Odjavi se">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </form>
+    </div>
 </div>

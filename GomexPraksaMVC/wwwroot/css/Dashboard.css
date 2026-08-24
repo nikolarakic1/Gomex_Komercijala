@@ -7,6 +7,7 @@
     --color-danger: #C1443B;
     --color-text-secondary: #6B6B65;
     --color-row-hover: #F2F4F3;
+    --color-brand: #41cc41;
 }
 
 body {
@@ -14,21 +15,11 @@ body {
 }
 
 /* === Sidebar === */
-.app-sidebar {
-    width: 220px;
-    min-height: 100vh;
-    background: #3bc135;
-    color: #F2E6E6;
-    padding: 20px 12px;
-    display: flex;
-    flex-direction: column;
+.app-sidebar .brand {
+    padding: 0 8px 20px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 16px;
 }
-
-    .app-sidebar .brand {
-        padding: 0 8px 20px 8px;
-        border-bottom: 1px solid rgba(255,255,255,0.15);
-        margin-bottom: 16px;
-    }
 
     .app-sidebar .brand-title {
         font-size: 18px;
@@ -230,36 +221,68 @@ body {
     border: 1px solid var(--color-border);
     z-index: 1000;
 }
-.login-wrapper {
-    min-height: 100vh;
+.app-sidebar {
+    width: 220px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #3bc135;
+    color: #F2E6E6;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 10px;
+    margin-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+.sidebar-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.sidebar-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    color: #FFFFFF;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-bg);
+    font-size: 15px;
+    flex-shrink: 0;
 }
 
-.login-card {
-    background: var(--color-card);
-    border-radius: 10px;
-    padding: 32px;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+.sidebar-user-name {
+    font-size: 13px;
+    color: rgba(255,255,255,0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.login-brand {
-    margin-bottom: 24px;
+.sidebar-logout-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 16px;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background-color .15s ease, color .15s ease;
 }
 
-    .login-brand .brand-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: #7A1B1B;
-        letter-spacing: 0.5px;
-    }
-
-    .login-brand .brand-sub {
-        font-size: 11px;
-        color: var(--color-text-secondary);
-        letter-spacing: 1px;
+    .sidebar-logout-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: #FFFFFF;
     }
