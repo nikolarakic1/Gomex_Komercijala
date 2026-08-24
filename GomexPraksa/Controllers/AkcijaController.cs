@@ -4,6 +4,7 @@ using Models.Dtos;
 
 namespace GomexPraksa.Controllers;
 
+[AutoValidateAntiforgeryToken]
 [ApiController]
 [Route("api/akcije")]
 public class AkcijeController : ControllerBase

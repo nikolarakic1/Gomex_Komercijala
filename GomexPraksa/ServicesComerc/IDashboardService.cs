@@ -4,6 +4,10 @@ namespace GomexPraksa.ServicesComerc
 {
     public interface IDashboardService
     {
-        public Task<DashboardSummaryDTO> FillCardsAsync(DashboardFilterDTO filterDTO);
+        Task<DashboardSummaryDTO> FillCardsAsync(
+            DashboardFilterDTO filterDTO,
+            string userId,
+            bool isSef
+        );
     }
 }

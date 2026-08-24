@@ -3,6 +3,7 @@ using GomexPraksa.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Models.AuthenticationDtos;
+using System.Security.Claims;
 
 namespace GomexPraksa.Controllers;
 
@@ -118,4 +119,16 @@ public class AuthController : ControllerBase
             token
         });
     }
+    [HttpGet("UserCredentials")]
+    public IActionResult GetCredentials()
+    {
+        var ime = User.FindFirstValue(ClaimTypes.Name);
+        var role = User.FindFirst(ClaimTypes.Role);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier);
+        var email = User.FindFirst(ClaimTypes.Email);
+        return Ok(new { ime, role, userId, email });
+    }
+    
+        
+    
 }

@@ -1,16 +1,20 @@
 ﻿using GomexPraksa.ServicesComerc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.DtosComerc;
+using System.Security.Claims;
 
 namespace GomexPraksa.Controllers
 {
+    [Authorize(Roles = "Menadzer,SefMenadzera")]
     [ApiController]
     [Route("api/[controller]")]
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardService _dashboardService;
 
-        public DashboardController(IDashboardService dashboardService)
+        public DashboardController(
+            IDashboardService dashboardService)
         {
             _dashboardService = dashboardService;
         }
@@ -19,9 +23,25 @@ namespace GomexPraksa.Controllers
         public async Task<ActionResult<DashboardSummaryDTO>> GetSummary(
             [FromQuery] DashboardFilterDTO filterDTO)
         {
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier
+            );
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized();
+            }
+
+            var isSef = User.IsInRole("SefMenadzera");
+
             try
             {
-                var rezultat = await _dashboardService.FillCardsAsync(filterDTO);
+                var rezultat =
+                    await _dashboardService.FillCardsAsync(
+                        filterDTO,
+                        userId,
+                        isSef
+                    );
 
                 return Ok(rezultat);
             }
@@ -29,10 +49,16 @@ namespace GomexPraksa.Controllers
             {
                 return BadRequest(ae.Message);
             }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
             catch (Exception)
             {
-                // generic error - avoid exposing internals
-                return StatusCode(500, "Greška prilikom obrade zahteva.");
+                return StatusCode(
+                    500,
+                    "Greška prilikom obrade zahteva."
+                );
             }
         }
     }

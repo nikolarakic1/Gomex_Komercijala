@@ -13,7 +13,7 @@ public class DashboardService : IDashboardService
     }
 
     public async Task<DashboardSummaryDTO> FillCardsAsync(
-        DashboardFilterDTO filterDTO)
+        DashboardFilterDTO filterDTO , string userId , bool isSef)
     {
         if (filterDTO is null)
         {
