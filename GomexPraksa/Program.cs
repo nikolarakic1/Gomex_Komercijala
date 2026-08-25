@@ -1,6 +1,7 @@
 using GomexPraksa.ApplicationUserSecurity;
 using GomexPraksa.Auth;
 using GomexPraksa.ConnectionFactory;
+using GomexPraksa.JWTInfo;
 using GomexPraksa.Repository;
 using GomexPraksa.RepositoryComerc;
 using GomexPraksa.Services;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,7 +34,22 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "JWT Authorization header using Bearer scheme."
+    });
+
+    options.AddSecurityRequirement(document =>
+        new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("bearer", document)] = []
+        });
+});
 
 
 // =========================
@@ -121,6 +138,7 @@ builder.Services.AddScoped<ICriticalProducts, CriticalProductsRepo>();
 builder.Services.AddScoped<ICriticalProductsService, CriticalProductsService>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IUserAccess, UserAccess>();
 
 // =========================
 // APP
@@ -142,12 +160,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    await RoleSeeder.SeedRolesAsync(app.Services);
-}
-
 
 //await RoleSeeder.SeedRolesAsync(app.Services);
 

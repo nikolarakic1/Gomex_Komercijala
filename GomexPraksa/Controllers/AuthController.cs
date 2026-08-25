@@ -1,5 +1,6 @@
 ﻿using GomexPraksa.ApplicationUserSecurity;
 using GomexPraksa.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Models.AuthenticationDtos;
@@ -7,6 +8,7 @@ using System.Security.Claims;
 
 namespace GomexPraksa.Controllers;
 
+[Authorize(Roles = "Menadzer,SefMenadzera")]
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -21,7 +23,7 @@ public class AuthController : ControllerBase
         _userManager = userManager;
         _jwtService = jwtService;
     }
-
+    [AllowAnonymous]
     [HttpPost("Register")]
     public async Task<IActionResult> CreateAccountAsync(RegisterDTO dto)
     {
@@ -79,7 +81,7 @@ public class AuthController : ControllerBase
             message = "Korisnik uspešno kreiran."
         });
     }
-
+    [AllowAnonymous]
     [HttpPost("Login")]
     public async Task<IActionResult> LogInAsync(LogInDto dto)
     {

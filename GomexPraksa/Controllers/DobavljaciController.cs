@@ -1,9 +1,11 @@
 ﻿using GomexPraksa.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
 
 namespace GomexPraksa.Controllers;
 
+[Authorize(Roles = "Menadzer,SefMenadzera")]
 [ApiController]
 [Route("api/dobavljaci")]
 public class DobavljaciController : ControllerBase

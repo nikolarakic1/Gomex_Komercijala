@@ -1,10 +1,12 @@
 using Dapper;
 using GomexPraksa.ConnectionFactory;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.ModelsDash;
 
 namespace GomexPraksa.Controllers
 {
+    [Authorize(Roles = "Menadzer,SefMenadzera")]
     [ApiController]
     [Route("api/kategorije")]
     public class KategorijeController : ControllerBase

@@ -1,10 +1,11 @@
 ﻿using GomexPraksa.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
 
 namespace GomexPraksa.Controllers;
 
-[AutoValidateAntiforgeryToken]
+[Authorize(Roles = "Menadzer,SefMenadzera")]
 [ApiController]
 [Route("api/akcije")]
 public class AkcijeController : ControllerBase

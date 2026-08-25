@@ -1,4 +1,5 @@
 ﻿using GomexPraksa.ServicesComerc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Models.Dtos;
@@ -6,6 +7,7 @@ using Models.DtosComerc;
 
 namespace GomexPraksa.Controllers
 {
+    [Authorize(Roles = "Menadzer,SefMenadzera")]
     [ApiController]
     [Route("api/RucChangeTracker")]
     public class RucChangeTrackerController : Controller

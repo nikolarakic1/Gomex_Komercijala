@@ -1,11 +1,14 @@
 ﻿using GomexPraksa.Services;
 using GomexPraksa.ServicesComerc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
 using Models.DtosComerc;
+using System.Security.Claims;
 
 namespace GomexPraksa.Controllers
 {
+    [Authorize(Roles = "Menadzer,SefMenadzera")]
     [ApiController]
     [Route("api/artikli")]
     public class ArtikliController : ControllerBase
@@ -22,8 +25,9 @@ namespace GomexPraksa.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ArtikalDto>>> GetAll()
         {
-            var artikli = await _artikalService.GetAllAsync();
 
+
+            var artikli = await _artikalService.GetAllAsync();
             return Ok(artikli);
         }
 
