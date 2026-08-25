@@ -1,4 +1,5 @@
-﻿using GomexPraksa.Repository;
+﻿using GomexPraksa.JWTInfo;
+using GomexPraksa.Repository;
 using Models.Dtos;
 using Models.ReadDetails;
 
@@ -7,10 +8,12 @@ namespace GomexPraksa.Services
     public class AkcijaService : IAkcijaService
     {
         private readonly IAkcijaRepo _akcijaRepo;
+        private readonly IUserAccess _userAccess;
 
-        public AkcijaService(IAkcijaRepo akcijaRepo)
+        public AkcijaService(IAkcijaRepo akcijaRepo,IUserAccess userAccess)
         {
             _akcijaRepo = akcijaRepo;
+            _userAccess = userAccess;
         }
 
         public async Task<IEnumerable<AkcijaDTO>> GetAllAsync()

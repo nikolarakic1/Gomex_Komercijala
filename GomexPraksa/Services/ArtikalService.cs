@@ -1,4 +1,5 @@
-﻿using GomexPraksa.Repository;
+﻿using GomexPraksa.JWTInfo;
+using GomexPraksa.Repository;
 using Models.Dtos;
 using Models.ModelsDash;
 
@@ -7,15 +8,31 @@ namespace GomexPraksa.Services
     public class ArtikalService : IArtikalService
     {
         private readonly IArtikalRepo _artikalRepo;
+        private readonly IUserAccess _userAccess;
 
-        public ArtikalService(IArtikalRepo artikalRepo)
+        public ArtikalService(IArtikalRepo artikalRepo, IUserAccess userAccess)
         {
             _artikalRepo = artikalRepo;
+            _userAccess = userAccess;
         }
 
         public async Task<IEnumerable<ArtikalDto>> GetAllAsync()
         {
-            var artikli = await _artikalRepo.GetAllAsync();
+            var access =
+                await _userAccess.GetCurrentUserAccessAsync();
+
+            if (!access.CanViewAllCategories &&
+                access.KategorijaIds.Count == 0)
+            {
+                throw new UnauthorizedAccessException(
+                    "Korisniku nije dodeljena nijedna kategorija."
+                );
+            }
+
+            var artikli = await _artikalRepo.GetAllAsync(
+                access.CanViewAllCategories,
+                access.KategorijaIds
+            );
 
             return artikli.Select(MapToDto);
         }
@@ -28,7 +45,22 @@ namespace GomexPraksa.Services
                     "ArtikalId mora biti veći od nule.");
             }
 
-            var artikal = await _artikalRepo.GetByIdAsync(id);
+            var access =
+                await _userAccess.GetCurrentUserAccessAsync();
+
+            if (!access.CanViewAllCategories &&
+                access.KategorijaIds.Count == 0)
+            {
+                throw new UnauthorizedAccessException(
+                    "Korisniku nije dodeljena nijedna kategorija."
+                );
+            }
+
+            var artikal = await _artikalRepo.GetByIdAsync(
+                id,
+                access.CanViewAllCategories,
+                access.KategorijaIds
+            );
 
             if (artikal is null)
             {
@@ -38,7 +70,6 @@ namespace GomexPraksa.Services
 
             return MapToDto(artikal);
         }
-
         public async Task<ArtikalDto> GetBySifraAsync(string sifra)
         {
             if (string.IsNullOrWhiteSpace(sifra))
@@ -47,8 +78,22 @@ namespace GomexPraksa.Services
                     "Šifra artikla je obavezna.");
             }
 
+            var access =
+                await _userAccess.GetCurrentUserAccessAsync();
+
+            if (!access.CanViewAllCategories &&
+                access.KategorijaIds.Count == 0)
+            {
+                throw new UnauthorizedAccessException(
+                    "Korisniku nije dodeljena nijedna kategorija."
+                );
+            }
+
             var artikal = await _artikalRepo.GetBySifraAsync(
-                sifra.Trim());
+                sifra.Trim(),
+                access.CanViewAllCategories,
+                access.KategorijaIds
+            );
 
             if (artikal is null)
             {

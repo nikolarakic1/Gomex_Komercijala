@@ -13,66 +13,119 @@ namespace GomexPraksa.Repository
             _connFactory = connFactory;
         }
 
-        public async Task<IEnumerable<Artikal>> GetAllAsync()
+        public async Task<IEnumerable<Artikal>> GetAllAsync(
+    bool canViewAllCategories,
+    List<int> kategorijaIds)
         {
             const string sql = """
-                SELECT
-                    ArtikalId,
-                    Sifra,
-                    Naziv,
-                    DobavljacId,
-                    RobnaGrupaId,
-                    Aktivan
-                FROM dbo.Artikal
-                ORDER BY Naziv;
-                """;
+        SELECT
+            a.ArtikalId,
+            a.Sifra,
+            a.Naziv,
+            a.DobavljacId,
+            a.RobnaGrupaId,
+            a.Aktivan
+        FROM dbo.Artikal a
+
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+        WHERE
+            @CanViewAllCategories = 1
+            OR rg.KategorijaId IN @KategorijaIds
+
+        ORDER BY a.Naziv;
+        """;
 
             using var connection = _connFactory.CreateConnection();
 
-            return await connection.QueryAsync<Artikal>(sql);
-        }
-
-        public async Task<Artikal?> GetByIdAsync(int id)
-        {
-            const string sql = """
-                SELECT
-                    ArtikalId,
-                    Sifra,
-                    Naziv,
-                    DobavljacId,
-                    RobnaGrupaId,
-                    Aktivan
-                FROM dbo.Artikal
-                WHERE ArtikalId = @Id;
-                """;
-
-            using var connection = _connFactory.CreateConnection();
-
-            return await connection.QuerySingleOrDefaultAsync<Artikal>(
+            return await connection.QueryAsync<Artikal>(
                 sql,
-                new { Id = id }
+                new
+                {
+                    CanViewAllCategories = canViewAllCategories,
+                    KategorijaIds = kategorijaIds
+                }
             );
         }
 
-        public async Task<Artikal?> GetBySifraAsync(string sifra)
+        public async Task<Artikal?> GetByIdAsync(
+     int id,
+     bool canViewAllCategories,
+     List<int> kategorijaIds)
         {
             const string sql = """
-                SELECT
-                    ArtikalId,
-                    Sifra,
-                    Naziv,
-                    DobavljacId,
-                    RobnaGrupaId,
-                    Aktivan
-                FROM dbo.Artikal
-                WHERE Sifra = @Sifra;
-                """;
+        SELECT
+            a.ArtikalId,
+            a.Sifra,
+            a.Naziv,
+            a.DobavljacId,
+            a.RobnaGrupaId,
+            a.Aktivan
+        FROM dbo.Artikal a
+
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+        WHERE
+            a.ArtikalId = @Id
+            AND
+            (
+                @CanViewAllCategories = 1
+                OR rg.KategorijaId IN @KategorijaIds
+            );
+        """;
 
             using var connection = _connFactory.CreateConnection();
 
             return await connection.QuerySingleOrDefaultAsync<Artikal>(
                 sql,
-                new { Sifra = sifra }
+                new
+                {
+                    Id = id,
+                    CanViewAllCategories = canViewAllCategories,
+                    KategorijaIds = kategorijaIds
+                }
+            );
+        }
+
+        public async Task<Artikal?> GetBySifraAsync(
+     string sifra,
+     bool canViewAllCategories,
+     List<int> kategorijaIds)
+        {
+            const string sql = """
+        SELECT
+            a.ArtikalId,
+            a.Sifra,
+            a.Naziv,
+            a.DobavljacId,
+            a.RobnaGrupaId,
+            a.Aktivan
+        FROM dbo.Artikal a
+
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+        WHERE
+            a.Sifra = @Sifra
+            AND
+            (
+                @CanViewAllCategories = 1
+                OR rg.KategorijaId IN @KategorijaIds
+            );
+        """;
+
+            using var connection = _connFactory.CreateConnection();
+
+            return await connection.QuerySingleOrDefaultAsync<Artikal>(
+                sql,
+                new
+                {
+                    Sifra = sifra,
+                    CanViewAllCategories = canViewAllCategories,
+                    KategorijaIds = kategorijaIds
+                }
             );
         }
 
