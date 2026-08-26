@@ -1,20 +1,18 @@
+using GomexPraksaMVC.Handlers;
 var builder = WebApplication.CreateBuilder(args);
 
 // Force the app to bind to the same URLs defined in launchSettings so the MVC app always listens on 7067/5261
 builder.WebHost.UseUrls("https://localhost:7067", "http://localhost:5261");
 
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<JwtAuthorizationHandler>();
 // HttpClient to call GomexPraksa API
 builder.Services.AddHttpClient("GomexApi", client =>
 {
     client.BaseAddress = new Uri("https://localhost:7212/");
-});
-
-builder.Services.AddHttpClient("GomexApi", client =>
-{
-    client.BaseAddress = new Uri("https://localhost:7212/");
-});
+})
+.AddHttpMessageHandler<JwtAuthorizationHandler>();
 builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
