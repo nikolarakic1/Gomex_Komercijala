@@ -18,6 +18,7 @@
 
         public bool Aktivan { get; set; }
 
-        
+        public decimal RedovnaCena { get; set; }
+
     }
 }
