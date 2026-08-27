@@ -85,11 +85,38 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                 {
                     dobavljac = await client.GetFromJsonAsync<DobavljacViewItem>($"api/dobavljaci/{artikal.DobavljacId}");
                 }
-                catch
+                catch { }
+
+                AkcijaViewItem? aktivnaAkcija = null;
+                try
                 {
+                    var akcije = await client.GetFromJsonAsync<List<AkcijaViewItem>>($"api/akcije/artikal/{artikal.ArtikalId}");
+                    aktivnaAkcija = akcije?
+                        .FirstOrDefault(a => a.DatumOd.Date <= DateTime.Today && a.DatumDo.Date >= DateTime.Today);
+
+                    if (aktivnaAkcija != null)
+                    {
+                        aktivnaAkcija.RedovnaCena = artikal.RedovnaCena;
+                    }
                 }
+                catch { }
+
+                CriticalProductPageViewItem? rucPodaci = null;
+                try
+                {
+                    var datumDo = DateTime.Today;
+                    var datumOd = new DateTime(datumDo.Year, 1, 1);
+
+                    var sviPodaci = await client.GetFromJsonAsync<List<CriticalProductPageViewItem>>(
+                        $"api/artikli/CriticalPage?datumOd={datumOd:yyyy-MM-dd}&datumDo={datumDo:yyyy-MM-dd}");
+
+                    rucPodaci = sviPodaci?.FirstOrDefault(p => p.ArtikalId == artikal.ArtikalId);
+                }
+                catch { }
 
                 ViewData["DobavljacNaziv"] = dobavljac?.Naziv;
+                ViewData["AktivnaAkcija"] = aktivnaAkcija;
+                ViewData["RucPodaci"] = rucPodaci;
 
                 return View(artikal);
             }
