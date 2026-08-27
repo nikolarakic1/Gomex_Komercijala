@@ -9,6 +9,8 @@ namespace GomexPraksa.RepositoryComerc
        DateOnly datumOd,
        DateOnly? datumDo,
        DateOnly? prethodniDatumOd,
-       DateOnly? prethodniDatumDo);
+       DateOnly? prethodniDatumDo,
+       bool CanViewAllCategories,
+       List<int>KategorijaIds);
     }
 }

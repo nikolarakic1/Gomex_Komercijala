@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Models.AuthenticationDtos;
+using System.Diagnostics;
 using System.Security.Claims;
 
 namespace GomexPraksa.Controllers;
@@ -23,9 +24,11 @@ public class AuthController : ControllerBase
         _userManager = userManager;
         _jwtService = jwtService;
     }
+
     [AllowAnonymous]
     [HttpPost("Register")]
-    public async Task<IActionResult> CreateAccountAsync(RegisterDTO dto)
+    public async Task<IActionResult> CreateAccountAsync(
+        RegisterDTO dto)
     {
         var existingUser =
             await _userManager.FindByEmailAsync(dto.Email);
@@ -34,7 +37,8 @@ public class AuthController : ControllerBase
         {
             return Conflict(new
             {
-                message = "Korisnik sa ovim emailom već postoji."
+                message =
+                    "Korisnik sa ovim emailom već postoji."
             });
         }
 
@@ -44,10 +48,11 @@ public class AuthController : ControllerBase
             Email = dto.Email
         };
 
-        var createResult = await _userManager.CreateAsync(
-            user,
-            dto.Password
-        );
+        var createResult =
+            await _userManager.CreateAsync(
+                user,
+                dto.Password
+            );
 
         if (!createResult.Succeeded)
         {
@@ -60,10 +65,11 @@ public class AuthController : ControllerBase
 
         const string defaultRole = "Menadzer";
 
-        var roleResult = await _userManager.AddToRoleAsync(
-            user,
-            defaultRole
-        );
+        var roleResult =
+            await _userManager.AddToRoleAsync(
+                user,
+                defaultRole
+            );
 
         if (!roleResult.Succeeded)
         {
@@ -81,11 +87,24 @@ public class AuthController : ControllerBase
             message = "Korisnik uspešno kreiran."
         });
     }
+
     [AllowAnonymous]
     [HttpPost("Login")]
-    public async Task<IActionResult> LogInAsync(LogInDto dto)
+    public async Task<IActionResult> LogInAsync(
+        LogInDto dto)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
+        var total = Stopwatch.StartNew();
+
+        var sw = Stopwatch.StartNew();
+
+        var user =
+            await _userManager.FindByEmailAsync(
+                dto.Email
+            );
+
+        Console.WriteLine(
+            $"FindByEmailAsync: {sw.ElapsedMilliseconds} ms"
+        );
 
         if (user is null)
         {
@@ -94,11 +113,17 @@ public class AuthController : ControllerBase
             );
         }
 
+        sw.Restart();
+
         var validPassword =
             await _userManager.CheckPasswordAsync(
                 user,
                 dto.Passsword
             );
+
+        Console.WriteLine(
+            $"CheckPasswordAsync: {sw.ElapsedMilliseconds} ms"
+        );
 
         if (!validPassword)
         {
@@ -107,8 +132,16 @@ public class AuthController : ControllerBase
             );
         }
 
+        sw.Restart();
+
         var roles =
             await _userManager.GetRolesAsync(user);
+
+        Console.WriteLine(
+            $"GetRolesAsync: {sw.ElapsedMilliseconds} ms"
+        );
+
+        sw.Restart();
 
         var token =
             _jwtService.GenerateToken(
@@ -116,21 +149,43 @@ public class AuthController : ControllerBase
                 roles
             );
 
+        Console.WriteLine(
+            $"GenerateToken: {sw.ElapsedMilliseconds} ms"
+        );
+
+        Console.WriteLine(
+            $"UKUPAN LOGIN: {total.ElapsedMilliseconds} ms"
+        );
+
         return Ok(new
         {
             token
         });
     }
+
     [HttpGet("UserCredentials")]
     public IActionResult GetCredentials()
     {
-        var ime = User.FindFirstValue(ClaimTypes.Name);
-        var role = User.FindFirst(ClaimTypes.Role);
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier);
-        var email = User.FindFirst(ClaimTypes.Email);
-        return Ok(new { ime, role, userId, email });
+        var ime =
+            User.FindFirstValue(ClaimTypes.Name);
+
+        var role =
+            User.FindFirstValue(ClaimTypes.Role);
+
+        var userId =
+            User.FindFirstValue(
+                ClaimTypes.NameIdentifier
+            );
+
+        var email =
+            User.FindFirstValue(ClaimTypes.Email);
+
+        return Ok(new
+        {
+            ime,
+            role,
+            userId,
+            email
+        });
     }
-    
-        
-    
 }

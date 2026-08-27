@@ -17,7 +17,9 @@ public class RucChangeTrackerRepo : IRucChangeTracker
         DateOnly datumOd,
         DateOnly? datumDo,
         DateOnly? prethodniDatumOd,
-        DateOnly? prethodniDatumDo)
+        DateOnly? prethodniDatumDo,
+        bool canViewAllCategories,
+        List<int> kategorijaIds)
     {
         const string sql = """
             WITH PrethodniPeriod AS
@@ -25,9 +27,25 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                 SELECT
                     kr.RUC12
                 FROM dbo.KomercijalniRezultat kr
-                WHERE kr.DatumRezultata >= @PrethodniDatumOd
-                  AND kr.DatumRezultata < DATEADD(DAY, 1, @PrethodniDatumDo)
+
+                INNER JOIN dbo.Artikal a
+                    ON a.ArtikalId = kr.ArtikalId
+
+                INNER JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+                WHERE
+                    kr.DatumRezultata >= @PrethodniDatumOd
+                    AND kr.DatumRezultata
+                        < DATEADD(DAY, 1, @PrethodniDatumDo)
+
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR rg.KategorijaId IN @KategorijaIds
+                    )
             ),
+
             TrenutniPeriod AS
             (
                 SELECT
@@ -35,38 +53,71 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                     kr.MarginEffect,
                     kr.VolumeEffect,
                     kr.MixEffect
+
                 FROM dbo.KomercijalniRezultat kr
-                WHERE kr.DatumRezultata >= @DatumOd
-                  AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+
+                INNER JOIN dbo.Artikal a
+                    ON a.ArtikalId = kr.ArtikalId
+
+                INNER JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+                WHERE
+                    kr.DatumRezultata >= @DatumOd
+                    AND kr.DatumRezultata
+                        < DATEADD(DAY, 1, @DatumDo)
+
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR rg.KategorijaId IN @KategorijaIds
+                    )
             ),
+
             Rezultat AS
             (
                 SELECT
                     COALESCE(
-                        (SELECT SUM(RUC12) FROM PrethodniPeriod),
+                        (
+                            SELECT SUM(RUC12)
+                            FROM PrethodniPeriod
+                        ),
                         0
                     ) AS PocetniRuc,
 
                     COALESCE(
-                        (SELECT SUM(RUC12) FROM TrenutniPeriod),
+                        (
+                            SELECT SUM(RUC12)
+                            FROM TrenutniPeriod
+                        ),
                         0
                     ) AS KonacniRuc,
 
                     COALESCE(
-                        (SELECT SUM(MarginEffect) FROM TrenutniPeriod),
+                        (
+                            SELECT SUM(MarginEffect)
+                            FROM TrenutniPeriod
+                        ),
                         0
                     ) AS MarginEffect,
 
                     COALESCE(
-                        (SELECT SUM(VolumeEffect) FROM TrenutniPeriod),
+                        (
+                            SELECT SUM(VolumeEffect)
+                            FROM TrenutniPeriod
+                        ),
                         0
                     ) AS VolumeEffect,
 
                     COALESCE(
-                        (SELECT SUM(MixEffect) FROM TrenutniPeriod),
+                        (
+                            SELECT SUM(MixEffect)
+                            FROM TrenutniPeriod
+                        ),
                         0
                     ) AS MixEffect
             )
+
             SELECT
                 PocetniRuc,
                 MarginEffect,
@@ -77,7 +128,8 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                     AS UkupnaPromena,
 
                 CASE
-                    WHEN PocetniRuc = 0 THEN 0
+                    WHEN PocetniRuc = 0
+                        THEN 0
                     ELSE
                         CAST(
                             KonacniRuc - PocetniRuc
@@ -101,18 +153,35 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             FROM Rezultat;
             """;
 
-        using var connection = _connFactory.CreateConnection();
+        using var connection =
+            _connFactory.CreateConnection();
 
         return await connection.QuerySingleAsync<RucChangeDTO>(
             sql,
             new
             {
-                DatumOd = datumOd.ToDateTime(TimeOnly.MinValue),
-                DatumDo = datumDo?.ToDateTime(TimeOnly.MinValue),
+                DatumOd =
+                    datumOd.ToDateTime(
+                        TimeOnly.MinValue),
+
+                DatumDo =
+                    datumDo?.ToDateTime(
+                        TimeOnly.MinValue),
+
                 PrethodniDatumOd =
-                    prethodniDatumOd?.ToDateTime(TimeOnly.MinValue),
+                    prethodniDatumOd?.ToDateTime(
+                        TimeOnly.MinValue),
+
                 PrethodniDatumDo =
-                    prethodniDatumDo?.ToDateTime(TimeOnly.MinValue)
-            });
+                    prethodniDatumDo?.ToDateTime(
+                        TimeOnly.MinValue),
+
+                CanViewAllCategories =
+                    canViewAllCategories,
+
+                KategorijaIds =
+                    kategorijaIds
+            }
+        );
     }
 }
