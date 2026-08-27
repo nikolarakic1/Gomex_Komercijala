@@ -1,0 +1,50 @@
+﻿@model GomexPraksaMVC.Models.AkcijaGrupaViewItem
+@{
+    ViewData["Title"] = "Proizvodi u akciji";
+    var tab = ViewData["Tab"] as string ?? "trenutne";
+}
+
+<a asp-action="Index" asp-route-tab="@tab" class="text-decoration-none text-secondary small mb-3 d-inline-block">
+    &larr; Nazad na akcije
+</a>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h4 class="mb-1">@Model.TipAkcije</h4>
+        <div class="text-secondary small">
+            @Model.DatumOd.ToString("dd.MM.yyyy.") &ndash; @Model.DatumDo.ToString("dd.MM.yyyy.")
+            &middot; @Model.BrojArtikala artikala
+        </div>
+    </div>
+</div>
+
+<div class="metric-card">
+    <div class="table-responsive">
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>Artikal</th>
+                    <th>Šifra</th>
+                    <th class="text-end">Akcijska cena</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.Artikli)
+                {
+                    <tr>
+                        <td>@(a.ArtikalNaziv ?? $"Artikal #{a.ArtikalId}")</td>
+                        <td>@a.ArtikalSifra</td>
+                        <td class="text-end">@a.AkcijskaCena.ToString("N2") RSD</td>
+                        <td class="text-end">
+                            @if (!string.IsNullOrWhiteSpace(a.ArtikalSifra))
+                            {
+                                <a asp-controller="Artikal" asp-action="Detalji" asp-route-sifra="@a.ArtikalSifra" class="btn btn-sm btn-outline-secondary">Detalji artikla</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

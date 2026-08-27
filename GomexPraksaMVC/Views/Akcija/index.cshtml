@@ -1,0 +1,60 @@
+﻿@model List<GomexPraksaMVC.Models.AkcijaGrupaViewItem>
+@{
+    ViewData["Title"] = "Akcije";
+    var activeTab = ViewData["ActiveTab"] as string ?? "trenutne";
+}
+
+<div class="dashboard-header mb-4">
+    <h2 class="mb-1">Akcije</h2>
+    <p class="text-secondary mb-0">Pregled aktivnih akcija i proizvoda unutar njih</p>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link @(activeTab == "trenutne" ? "active" : "")" asp-action="Index" asp-route-tab="trenutne">Trenutne</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(activeTab == "buduce" ? "active" : "")" asp-action="Index" asp-route-tab="buduce">Buduće</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(activeTab == "prethodne" ? "active" : "")" asp-action="Index" asp-route-tab="prethodne">Prethodne</a>
+    </li>
+</ul>
+
+@if (!Model.Any())
+{
+    <div class="metric-card text-center py-5 text-secondary">
+        Nema akcija za ovaj period.
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var grupa in Model)
+        {
+            <div class="col-md-4">
+                <div class="metric-card h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge" style="background:#E7F3EC; color:#2E7D5B; font-size:12px; padding:6px 12px;">
+                                @grupa.TipAkcije
+                            </span>
+                            <span class="text-secondary small">@grupa.BrojArtikala artikala</span>
+                        </div>
+                        <div class="text-secondary small mb-3">
+                            @grupa.DatumOd.ToString("dd.MM.yyyy.") &ndash; @grupa.DatumDo.ToString("dd.MM.yyyy.")
+                        </div>
+                    </div>
+                    <a asp-action="Grupa"
+                       asp-route-tipAkcije="@grupa.TipAkcije"
+                       asp-route-datumOd="@grupa.DatumOd.ToString("yyyy-MM-dd")"
+                       asp-route-datumDo="@grupa.DatumDo.ToString("yyyy-MM-dd")"
+                       asp-route-tab="@activeTab"
+                       class="btn btn-outline-secondary btn-sm w-100">
+                        Prikaži proizvode
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+}

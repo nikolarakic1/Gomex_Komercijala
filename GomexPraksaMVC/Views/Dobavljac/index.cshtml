@@ -1,0 +1,48 @@
+﻿@model List<GomexPraksaMVC.Models.DobavljacViewItem>
+@{
+    ViewData["Title"] = "Dobavljači";
+}
+
+<div class="dashboard-header mb-4">
+    <h2 class="mb-1">Dobavljači</h2>
+    <p class="text-secondary mb-0">Lista dobavljača i pretraga</p>
+</div>
+
+<div class="filter-card mb-4">
+    <form method="get" class="filter-bar">
+        <div class="filter-group">
+            <label>Naziv</label>
+            <input type="text" name="naziv" class="form-control" value="@ViewData["Naziv"]" placeholder="Pretraži po nazivu" />
+        </div>
+        <div class="filter-group align-self-end d-flex">
+            <button type="submit" class="btn btn-primary">Pretraži</button>
+            <a href="@Url.Action("Index", "Dobavljac")" class="btn btn-secondary ms-2">Poništi</a>
+        </div>
+    </form>
+</div>
+
+<div class="metric-card">
+    <div class="table-responsive">
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>Naziv</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model)
+                {
+                    <tr>
+                        <td>@d.Naziv</td>
+                        <td>@(d.Aktivan ? "Aktivan" : "Neaktivan")</td>
+                        <td class="text-end">
+                            <a asp-controller="Dobavljac" asp-action="Detalji" asp-route-id="@d.DobavljacId" class="btn btn-sm btn-outline-secondary">Detalji</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

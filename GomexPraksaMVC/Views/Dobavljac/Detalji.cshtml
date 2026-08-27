@@ -1,0 +1,21 @@
+﻿@model GomexPraksaMVC.Models.DobavljacViewItem
+@{
+    ViewData["Title"] = "Detalji dobavljača";
+}
+
+<a asp-controller="Dobavljac" asp-action="Index" class="text-decoration-none text-secondary small mb-3 d-inline-block">
+    &larr; Nazad na listu dobavljača
+</a>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h4 class="mb-1">@Model.Naziv</h4>
+        <div class="text-secondary small">@(Model.Aktivan ? "Aktivan" : "Neaktivan")</div>
+    </div>
+</div>
+
+<div class="metric-card">
+    <div class="text-secondary small">
+            Ce da bude
+    </div>
+</div>
