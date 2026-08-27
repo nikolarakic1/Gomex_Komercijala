@@ -8,100 +8,146 @@ namespace GomexPraksa.RepositoryComerc
     public class CriticalProductsRepo : ICriticalProducts
     {
         private readonly IConnFactory _connection;
+
         public CriticalProductsRepo(IConnFactory connection)
         {
             _connection = connection;
         }
-        public async Task<IEnumerable<CriticalProductsDTO>> CriticalProductsTop5(
-    DateOnly datumOd,
-    DateOnly datumDo)
+
+        public async Task<IEnumerable<CriticalProductsDTO>>
+            CriticalProductsTop5(
+                DateOnly datumOd,
+                DateOnly datumDo,
+                bool canViewAllCategories,
+                List<int> kategorijaIds)
         {
             const string sql = """
-        WITH Kriticni AS
-        (
-            SELECT
-                kr.ArtikalId,
-                SUM(kr.RUC12) AS Ruc12,
-                SUM(kr.NedostatakMargine) AS NedostatakMargine
-            FROM dbo.KomercijalniRezultat kr
-            WHERE kr.DatumRezultata >= @DatumOd
-              AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
-            GROUP BY kr.ArtikalId
-            HAVING
-                SUM(kr.RUC12) <= 0
-                OR SUM(kr.NedostatakMargine) > 0
-        )
+                WITH Kriticni AS
+                (
+                    SELECT
+                        kr.ArtikalId,
+                        SUM(kr.RUC12) AS Ruc12,
+                        SUM(kr.NedostatakMargine)
+                            AS NedostatakMargine
 
-        SELECT TOP 5
-            a.ArtikalId,
-            a.Naziv AS NazivArtikla,
-            k.Naziv AS Kategorija,
+                    FROM dbo.KomercijalniRezultat kr
 
-            CASE
-                WHEN ABS(kr.Ruc12) >= 5000
-                     OR kr.NedostatakMargine >= 5000
-                    THEN 'Visok'
+                    INNER JOIN dbo.Artikal a
+                        ON a.ArtikalId = kr.ArtikalId
 
-                WHEN ABS(kr.Ruc12) >= 2000
-                     OR kr.NedostatakMargine >= 2000
-                    THEN 'Srednji'
+                    LEFT JOIN dbo.RobnaGrupa rg
+                        ON rg.RobnaGrupaId = a.RobnaGrupaId
 
-                ELSE 'Nizak'
-            END AS Severnost,
+                    WHERE
+                        kr.DatumRezultata >= @DatumOd
+                        AND kr.DatumRezultata
+                            < DATEADD(DAY, 1, @DatumDo)
 
-            (
-                CASE
-                    WHEN kr.Ruc12 < 0
-                        THEN kr.Ruc12
-                    ELSE 0
-                END
-                - kr.NedostatakMargine
-            ) AS ProcenjeniUticaj
+                        AND
+                        (
+                            @CanViewAllCategories = 1
+                            OR rg.KategorijaId
+                                IN @KategorijaIds
+                        )
 
-        FROM Kriticni kr
+                    GROUP BY
+                        kr.ArtikalId
 
-        INNER JOIN dbo.Artikal a
-            ON a.ArtikalId = kr.ArtikalId
+                    HAVING
+                        SUM(kr.RUC12) <= 0
+                        OR SUM(kr.NedostatakMargine) > 0
+                )
 
-        LEFT JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId = a.RobnaGrupaId
+                SELECT TOP 5
+                    a.ArtikalId,
+                    a.Naziv AS NazivArtikla,
+                    k.Naziv AS Kategorija,
 
-        LEFT JOIN dbo.Kategorija k
-            ON k.KategorijaId = rg.KategorijaId
+                    CASE
+                        WHEN ABS(kr.Ruc12) >= 5000
+                             OR kr.NedostatakMargine >= 5000
+                            THEN 'Visok'
 
-        ORDER BY ProcenjeniUticaj ASC;
-        """;
+                        WHEN ABS(kr.Ruc12) >= 2000
+                             OR kr.NedostatakMargine >= 2000
+                            THEN 'Srednji'
 
-            using var connection = _connection.CreateConnection();
+                        ELSE 'Nizak'
+                    END AS Severnost,
 
-            return await connection.QueryAsync<CriticalProductsDTO>(
-                sql,
-                new
-                {
-                    DatumOd = datumOd.ToDateTime(TimeOnly.MinValue),
-                    DatumDo = datumDo.ToDateTime(TimeOnly.MinValue)
-                }
-            );
+                    (
+                        CASE
+                            WHEN kr.Ruc12 < 0
+                                THEN kr.Ruc12
+                            ELSE 0
+                        END
+                        - kr.NedostatakMargine
+                    ) AS ProcenjeniUticaj
+
+                FROM Kriticni kr
+
+                INNER JOIN dbo.Artikal a
+                    ON a.ArtikalId = kr.ArtikalId
+
+                LEFT JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+                LEFT JOIN dbo.Kategorija k
+                    ON k.KategorijaId = rg.KategorijaId
+
+                ORDER BY ProcenjeniUticaj ASC;
+                """;
+
+            using var connection =
+                _connection.CreateConnection();
+
+            return await connection
+                .QueryAsync<CriticalProductsDTO>(
+                    sql,
+                    new
+                    {
+                        DatumOd = datumOd.ToDateTime(
+                            TimeOnly.MinValue),
+
+                        DatumDo = datumDo.ToDateTime(
+                            TimeOnly.MinValue),
+
+                        CanViewAllCategories =
+                            canViewAllCategories,
+
+                        KategorijaIds =
+                            kategorijaIds
+                    }
+                );
         }
 
-        public async Task<IEnumerable<CriticalProductsPageDTO>> ShowCriticalProductsAsync(FilterSharedPages filter)
+        public async Task<IEnumerable<CriticalProductsPageDTO>>
+            ShowCriticalProductsAsync(
+                FilterSharedPages filter,
+                bool canViewAllCategories,
+                List<int> kategorijaIds)
         {
             const string sql = """
-                                SELECT
+                SELECT
                     ar.ArtikalId,
                     ar.Sifra,
                     ar.Naziv,
                     d.Naziv AS Dobavljac,
 
                     SUM(kr.MPBezPDV) AS Promet,
+
                     SUM(kr.RUC12) AS RUC12,
 
                     CASE
-                        WHEN SUM(kr.MPBezPDV) = 0 THEN 0
-                        ELSE SUM(kr.RUC12) / SUM(kr.MPBezPDV)
+                        WHEN SUM(kr.MPBezPDV) = 0
+                            THEN 0
+                        ELSE
+                            SUM(kr.RUC12)
+                            / SUM(kr.MPBezPDV)
                     END AS RUC12Procenat,
 
-                    SUM(kr.NedostatakMargine) AS NedostatakMargine
+                    SUM(kr.NedostatakMargine)
+                        AS NedostatakMargine
 
                 FROM dbo.KomercijalniRezultat kr
 
@@ -117,28 +163,42 @@ namespace GomexPraksa.RepositoryComerc
                 LEFT JOIN dbo.Kategorija k
                     ON rg.KategorijaId = k.KategorijaId
 
-                WHERE kr.DatumRezultata >= @DatumOd
-                  AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+                WHERE
+                    kr.DatumRezultata >= @DatumOd
 
-                  AND (
-                      @OdeljenjeId IS NULL
-                      OR k.OdeljenjeId = @OdeljenjeId
-                  )
+                    AND kr.DatumRezultata
+                        < DATEADD(DAY, 1, @DatumDo)
 
-                  AND (
-                      @KategorijaId IS NULL
-                      OR k.KategorijaId = @KategorijaId
-                  )
+                    AND
+                    (
+                        @OdeljenjeId IS NULL
+                        OR k.OdeljenjeId = @OdeljenjeId
+                    )
 
-                  AND (
-                      @DobavljacId IS NULL
-                      OR ar.DobavljacId = @DobavljacId
-                  )
+                    AND
+                    (
+                        @KategorijaId IS NULL
+                        OR k.KategorijaId = @KategorijaId
+                    )
 
-                  AND (
-                      @TipProdajeId IS NULL
-                      OR kr.TipProdajeId = @TipProdajeId
-                  )
+                    AND
+                    (
+                        @DobavljacId IS NULL
+                        OR ar.DobavljacId = @DobavljacId
+                    )
+
+                    AND
+                    (
+                        @TipProdajeId IS NULL
+                        OR kr.TipProdajeId = @TipProdajeId
+                    )
+
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR k.KategorijaId
+                            IN @KategorijaIds
+                    )
 
                 GROUP BY
                     ar.ArtikalId,
@@ -146,24 +206,42 @@ namespace GomexPraksa.RepositoryComerc
                     ar.Naziv,
                     d.Naziv
 
+                HAVING
+                    SUM(kr.RUC12) <= 0
+                    OR SUM(kr.NedostatakMargine) > 0
+
                 ORDER BY
                     SUM(kr.NedostatakMargine) DESC;
                 """;
-            using var connection = _connection.CreateConnection();
-            return await connection.QueryAsync<CriticalProductsPageDTO>(
-       sql,
-       new
-       {
-           DatumOd = filter.DatumOd.ToDateTime(TimeOnly.MinValue),
-           DatumDo = filter.DatumDo.ToDateTime(TimeOnly.MinValue),
 
-           filter.OdeljenjeId,
-           filter.KategorijaId,
-           filter.DobavljacId,
-           filter.TipProdajeId
-       });
+            using var connection =
+                _connection.CreateConnection();
 
+            return await connection
+                .QueryAsync<CriticalProductsPageDTO>(
+                    sql,
+                    new
+                    {
+                        DatumOd =
+                            filter.DatumOd.ToDateTime(
+                                TimeOnly.MinValue),
+
+                        DatumDo =
+                            filter.DatumDo.ToDateTime(
+                                TimeOnly.MinValue),
+
+                        CanViewAllCategories =
+                            canViewAllCategories,
+
+                        KategorijaIds =
+                            kategorijaIds,
+
+                        filter.OdeljenjeId,
+                        filter.KategorijaId,
+                        filter.DobavljacId,
+                        filter.TipProdajeId
+                    }
+                );
         }
-        
     }
 }
