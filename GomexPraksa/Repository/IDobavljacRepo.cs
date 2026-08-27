@@ -4,11 +4,11 @@ namespace GomexPraksa.Repository
 {
     public interface IDobavljacRepo
     {
-        public Task<IEnumerable<Dobavljac>> GetAllDobavljace();
-        public Task<Dobavljac?> GetByIdAsync(int id);
+        public Task<IEnumerable<Dobavljac>> GetAllDobavljace(bool CanViewAllCategories,List<int> KategorijaIds);
+        public Task<Dobavljac?> GetByIdAsync(int id, bool CanViewAllCategories , List<int>KategorijaIds);
         Task<IEnumerable<Dobavljac>> SearchAsync(
        string? naziv,
-       bool? aktivan);
+       bool? aktivan,bool CanViewAllCategories,List<int>KategorijaIds);
         
     }
 }

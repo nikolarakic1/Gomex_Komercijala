@@ -2,79 +2,151 @@
 using GomexPraksa.ConnectionFactory;
 using Models.ModelsDash;
 
-namespace GomexPraksa.Repository;
+namespace GomexPraksa.Repository
+{
+    public class DobavljacRepo : IDobavljacRepo
+    {
+        private readonly IConnFactory _connFactory;
 
-    public class DobavljacRepo :  IDobavljacRepo
-    {
-    private readonly IConnFactory _connFactory;
-    public DobavljacRepo(IConnFactory connFactory)
-    {
-        _connFactory = connFactory;
+        public DobavljacRepo(IConnFactory connFactory)
+        {
+            _connFactory = connFactory;
+        }
+
+        public async Task<IEnumerable<Dobavljac>> GetAllDobavljace(
+            bool canViewAllCategories,
+            List<int> kategorijaIds)
+        {
+            const string sql = """
+                SELECT
+                    d.DobavljacId,
+                    d.Naziv,
+                    d.Aktivan
+                FROM dbo.Dobavljac d
+                WHERE
+                    @CanViewAllCategories = 1
+                    OR EXISTS
+                    (
+                        SELECT 1
+                        FROM dbo.Artikal a
+                        INNER JOIN dbo.RobnaGrupa rg
+                            ON rg.RobnaGrupaId = a.RobnaGrupaId
+                        WHERE a.DobavljacId = d.DobavljacId
+                          AND rg.KategorijaId IN @KategorijaIds
+                    )
+                ORDER BY d.Naziv;
+                """;
+
+            using var connection =
+                _connFactory.CreateConnection();
+
+            return await connection.QueryAsync<Dobavljac>(
+                sql,
+                new
+                {
+                    CanViewAllCategories = canViewAllCategories,
+                    KategorijaIds = kategorijaIds
+                }
+            );
+        }
+
+        public async Task<Dobavljac?> GetByIdAsync(
+            int id,
+            bool canViewAllCategories,
+            List<int> kategorijaIds)
+        {
+            const string sql = """
+                SELECT
+                    d.DobavljacId,
+                    d.Naziv,
+                    d.Aktivan
+                FROM dbo.Dobavljac d
+                WHERE
+                    d.DobavljacId = @Id
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR EXISTS
+                        (
+                            SELECT 1
+                            FROM dbo.Artikal a
+                            INNER JOIN dbo.RobnaGrupa rg
+                                ON rg.RobnaGrupaId = a.RobnaGrupaId
+                            WHERE a.DobavljacId = d.DobavljacId
+                              AND rg.KategorijaId IN @KategorijaIds
+                        )
+                    );
+                """;
+
+            using var connection =
+                _connFactory.CreateConnection();
+
+            return await connection
+                .QueryFirstOrDefaultAsync<Dobavljac>(
+                    sql,
+                    new
+                    {
+                        Id = id,
+                        CanViewAllCategories = canViewAllCategories,
+                        KategorijaIds = kategorijaIds
+                    }
+                );
+        }
+
+        public async Task<IEnumerable<Dobavljac>> SearchAsync(
+            string? naziv,
+            bool? aktivan,
+            bool canViewAllCategories,
+            List<int> kategorijaIds)
+        {
+            const string sql = """
+                SELECT TOP (5)
+                    d.DobavljacId,
+                    d.Naziv,
+                    d.Aktivan
+                FROM dbo.Dobavljac d
+                WHERE
+                    (@Naziv IS NULL
+                        OR d.Naziv LIKE '%' + @Naziv + '%')
+
+                    AND
+                    (@Aktivan IS NULL
+                        OR d.Aktivan = @Aktivan)
+
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR EXISTS
+                        (
+                            SELECT 1
+                            FROM dbo.Artikal a
+                            INNER JOIN dbo.RobnaGrupa rg
+                                ON rg.RobnaGrupaId = a.RobnaGrupaId
+                            WHERE a.DobavljacId = d.DobavljacId
+                              AND rg.KategorijaId IN @KategorijaIds
+                        )
+                    )
+
+                ORDER BY d.Naziv;
+                """;
+
+            using var connection =
+                _connFactory.CreateConnection();
+
+            return await connection.QueryAsync<Dobavljac>(
+                sql,
+                new
+                {
+                    Naziv = string.IsNullOrWhiteSpace(naziv)
+                        ? null
+                        : naziv.Trim(),
+
+                    Aktivan = aktivan,
+
+                    CanViewAllCategories = canViewAllCategories,
+                    KategorijaIds = kategorijaIds
+                }
+            );
+        }
     }
-
-    public async Task<IEnumerable<Dobavljac>> GetAllDobavljace()
-    {
-        var sql = """
-            SELECT
-            DobavljacId,
-            Naziv,
-            Aktivan FROM dbo.Dobavljac;
-            
-            """;
-        using var connection = _connFactory.CreateConnection();
-        return await connection.QueryAsync<Dobavljac>(sql);
-    }
-
-    public async Task<Dobavljac?> GetByIdAsync(int id)
-    {
-        const string sql = """
-        SELECT
-            DobavljacId,
-            Naziv,
-            Aktivan
-        FROM dbo.Dobavljac
-        WHERE DobavljacId = @Id;
-        """;
-
-        using var connection = _connFactory.CreateConnection();
-
-        return await connection.QueryFirstOrDefaultAsync<Dobavljac>(
-            sql,
-            new { Id = id }
-        );
-    }
-
-    public async Task<IEnumerable<Dobavljac>> SearchAsync(
-     string? naziv,
-     bool? aktivan)
-    {
-        const string sql = """
-        SELECT TOP (5)
-            DobavljacId,
-            Naziv,
-            Aktivan
-        FROM dbo.Dobavljac
-        WHERE
-            (@Naziv IS NULL OR Naziv LIKE '%' + @Naziv + '%')
-            AND
-            (@Aktivan IS NULL OR Aktivan = @Aktivan)
-        ORDER BY Naziv;
-        """;
-
-        using var connection = _connFactory.CreateConnection();
-
-        return await connection.QueryAsync<Dobavljac>(
-            sql,
-            new
-            {
-                Naziv = string.IsNullOrWhiteSpace(naziv)
-                    ? null
-                    : naziv.Trim(),
-
-                Aktivan = aktivan
-            });
-        
-    }
-   
 }
-
