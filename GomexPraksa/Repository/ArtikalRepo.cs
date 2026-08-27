@@ -130,27 +130,40 @@ namespace GomexPraksa.Repository
         }
 
         public async Task<IEnumerable<Artikal>> SearchAsync(
-            string? naziv,
-            int? dobavljacId,
-            int? robnaGrupaId,
-            bool? aktivan)
+    string? naziv,
+    int? dobavljacId,
+    int? robnaGrupaId,
+    bool? aktivan,
+    bool canViewAllCategories,
+    List<int> kategorijaIds)
         {
             const string sql = """
-                SELECT
-                    ArtikalId,
-                    Sifra,
-                    Naziv,
-                    DobavljacId,
-                    RobnaGrupaId,
-                    Aktivan
-                FROM dbo.Artikal
-                WHERE
-                    (@Naziv IS NULL OR Naziv LIKE '%' + @Naziv + '%')
-                    AND (@DobavljacId IS NULL OR DobavljacId = @DobavljacId)
-                    AND (@RobnaGrupaId IS NULL OR RobnaGrupaId = @RobnaGrupaId)
-                    AND (@Aktivan IS NULL OR Aktivan = @Aktivan)
-                ORDER BY Naziv;
-                """;
+        SELECT
+            a.ArtikalId,
+            a.Sifra,
+            a.Naziv,
+            a.DobavljacId,
+            a.RobnaGrupaId,
+            a.Aktivan
+        FROM dbo.Artikal a
+
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+        WHERE
+            (@Naziv IS NULL OR a.Naziv LIKE '%' + @Naziv + '%')
+            AND (@DobavljacId IS NULL OR a.DobavljacId = @DobavljacId)
+            AND (@RobnaGrupaId IS NULL OR a.RobnaGrupaId = @RobnaGrupaId)
+            AND (@Aktivan IS NULL OR a.Aktivan = @Aktivan)
+
+            AND
+            (
+                @CanViewAllCategories = 1
+                OR rg.KategorijaId IN @KategorijaIds
+            )
+
+        ORDER BY a.Naziv;
+        """;
 
             using var connection = _connFactory.CreateConnection();
 
@@ -158,10 +171,16 @@ namespace GomexPraksa.Repository
                 sql,
                 new
                 {
-                    Naziv = string.IsNullOrWhiteSpace(naziv) ? null : naziv,
+                    Naziv = string.IsNullOrWhiteSpace(naziv)
+                        ? null
+                        : naziv,
+
                     DobavljacId = dobavljacId,
                     RobnaGrupaId = robnaGrupaId,
-                    Aktivan = aktivan
+                    Aktivan = aktivan,
+
+                    CanViewAllCategories = canViewAllCategories,
+                    KategorijaIds = kategorijaIds
                 }
             );
         }

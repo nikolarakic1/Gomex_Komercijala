@@ -17,5 +17,7 @@ public interface IArtikalRepo
         string? naziv,
         int? dobavljacId,
         int? robnaGrupaId,
-        bool? aktivan);
+        bool? aktivan,
+        bool CanViewAllCategories,
+        List<int> kategorijaIds);
 }

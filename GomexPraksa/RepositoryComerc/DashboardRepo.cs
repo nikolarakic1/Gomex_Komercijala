@@ -14,7 +14,7 @@ public class DashboardRepo : IDashboardRepo
     }
 
     public async Task<DashboardSummaryDTO> FillCardsAsync(
-        DashboardFilterDTO filterDTO)
+        DashboardFilterDTO filterDTO, bool isAllCategoriesVisibile, List<int> KategorijaIds)
     {
         ArgumentNullException.ThrowIfNull(filterDTO);
 
@@ -88,6 +88,11 @@ public class DashboardRepo : IDashboardRepo
                   AND (
                       @KategorijaId IS NULL
                       OR k.KategorijaId = @KategorijaId
+                  )
+                  AND
+                  (
+                @CanViewAllCategories = 1
+                OR k.KategorijaId IN @KategorijaIds
                   )
 
                   AND (
@@ -346,23 +351,26 @@ public class DashboardRepo : IDashboardRepo
                 new
                 {
                     DatumOd = datumOd.ToDateTime(
-                        TimeOnly.MinValue),
+        TimeOnly.MinValue),
 
                     DatumDo = datumDo.ToDateTime(
-                        TimeOnly.MinValue),
+        TimeOnly.MinValue),
 
                     PrethodniDatumOd =
-                        prethodniDatumOd.ToDateTime(
-                            TimeOnly.MinValue),
+        prethodniDatumOd.ToDateTime(
+            TimeOnly.MinValue),
 
                     PrethodniDatumDo =
-                        prethodniDatumDo.ToDateTime(
-                            TimeOnly.MinValue),
+        prethodniDatumDo.ToDateTime(
+            TimeOnly.MinValue),
 
                     filterDTO.OdeljenjeId,
                     filterDTO.KategorijaId,
                     filterDTO.DobavljacId,
-                    filterDTO.TipProdajeId
+                    filterDTO.TipProdajeId,
+
+                    CanViewAllCategories = isAllCategoriesVisibile,
+                    KategorijaIds = KategorijaIds
                 });
     }
 

@@ -105,15 +105,29 @@ namespace GomexPraksa.Services
         }
 
         public async Task<IEnumerable<ArtikalDto>> SearchAsync(
-            ArtikalFilterDto filter)
+    ArtikalFilterDto filter)
         {
             ArgumentNullException.ThrowIfNull(filter);
+
+            var access =
+                await _userAccess.GetCurrentUserAccessAsync();
+
+            if (!access.CanViewAllCategories &&
+                access.KategorijaIds.Count == 0)
+            {
+                throw new UnauthorizedAccessException(
+                    "Korisniku nije dodeljena nijedna kategorija."
+                );
+            }
 
             var artikli = await _artikalRepo.SearchAsync(
                 filter.Naziv,
                 filter.DobavljacId,
                 filter.RobnaGrupaId,
-                filter.Aktivan);
+                filter.Aktivan,
+                access.CanViewAllCategories,
+                access.KategorijaIds
+            );
 
             return artikli.Select(MapToDto);
         }
