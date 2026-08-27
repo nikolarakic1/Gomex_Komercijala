@@ -11,9 +11,16 @@
 
         public string? ArtikalNaziv { get; set; }
         public string? ArtikalSifra { get; set; }
+        public decimal? RedovnaCena { get; set; }
+
+        public decimal? ProcenatPopusta =>
+            RedovnaCena.HasValue && RedovnaCena.Value > 0
+                ? Math.Round((1 - (AkcijskaCena / RedovnaCena.Value)) * 100, 1)
+                : null;
     }
 
-    public class AkcijaGrupaViewItem
+
+public class AkcijaGrupaViewItem
     {
         public string TipAkcije { get; set; } = string.Empty;
         public DateTime DatumOd { get; set; }
