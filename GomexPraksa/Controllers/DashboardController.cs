@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.DtosComerc;
-using System.Security.Claims;
 
 namespace GomexPraksa.Controllers
 {
@@ -23,24 +22,11 @@ namespace GomexPraksa.Controllers
         public async Task<ActionResult<DashboardSummaryDTO>> GetSummary(
             [FromQuery] DashboardFilterDTO filterDTO)
         {
-            var userId = User.FindFirstValue(
-                ClaimTypes.NameIdentifier
-            );
-
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                return Unauthorized();
-            }
-
-            var isSef = User.IsInRole("SefMenadzera");
-
             try
             {
                 var rezultat =
                     await _dashboardService.FillCardsAsync(
-                        filterDTO,
-                        userId,
-                        isSef
+                        filterDTO
                     );
 
                 return Ok(rezultat);
