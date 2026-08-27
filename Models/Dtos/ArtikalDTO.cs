@@ -17,5 +17,6 @@ namespace Models.Dtos
         public int RobnaGrupaId { get; set; }
 
         public bool Aktivan { get; set; }
+        public decimal? RedovnaCena { get; set; }
     }
 }

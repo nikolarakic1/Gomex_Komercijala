@@ -14,173 +14,208 @@ namespace GomexPraksa.Repository
         }
 
         public async Task<IEnumerable<Artikal>> GetAllAsync(
-    bool canViewAllCategories,
-    List<int> kategorijaIds)
+            bool canViewAllCategories,
+            List<int> kategorijaIds)
         {
             const string sql = """
-        SELECT
-            a.ArtikalId,
-            a.Sifra,
-            a.Naziv,
-            a.DobavljacId,
-            a.RobnaGrupaId,
-            a.Aktivan
-        FROM dbo.Artikal a
+                SELECT
+                    a.ArtikalId,
+                    a.Sifra,
+                    a.Naziv,
+                    a.DobavljacId,
+                    a.RobnaGrupaId,
+                    a.Aktivan,
+                    a.RedovnaCena
+                FROM dbo.Artikal a
 
-        INNER JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId = a.RobnaGrupaId
+                INNER JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
 
-        WHERE
-            @CanViewAllCategories = 1
-            OR rg.KategorijaId IN @KategorijaIds
+                WHERE
+                    @CanViewAllCategories = 1
+                    OR rg.KategorijaId IN @KategorijaIds
 
-        ORDER BY a.Naziv;
-        """;
+                ORDER BY a.Naziv;
+                """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
             return await connection.QueryAsync<Artikal>(
                 sql,
                 new
                 {
-                    CanViewAllCategories = canViewAllCategories,
-                    KategorijaIds = kategorijaIds
+                    CanViewAllCategories =
+                        canViewAllCategories,
+
+                    KategorijaIds =
+                        kategorijaIds
                 }
             );
         }
 
         public async Task<Artikal?> GetByIdAsync(
-     int id,
-     bool canViewAllCategories,
-     List<int> kategorijaIds)
+            int id,
+            bool canViewAllCategories,
+            List<int> kategorijaIds)
         {
             const string sql = """
-        SELECT
-            a.ArtikalId,
-            a.Sifra,
-            a.Naziv,
-            a.DobavljacId,
-            a.RobnaGrupaId,
-            a.Aktivan
-        FROM dbo.Artikal a
+                SELECT
+                    a.ArtikalId,
+                    a.Sifra,
+                    a.Naziv,
+                    a.DobavljacId,
+                    a.RobnaGrupaId,
+                    a.Aktivan,
+                    a.RedovnaCena
+                FROM dbo.Artikal a
 
-        INNER JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId = a.RobnaGrupaId
+                INNER JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
 
-        WHERE
-            a.ArtikalId = @Id
-            AND
-            (
-                @CanViewAllCategories = 1
-                OR rg.KategorijaId IN @KategorijaIds
-            );
-        """;
+                WHERE
+                    a.ArtikalId = @Id
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR rg.KategorijaId IN @KategorijaIds
+                    );
+                """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
-            return await connection.QuerySingleOrDefaultAsync<Artikal>(
-                sql,
-                new
-                {
-                    Id = id,
-                    CanViewAllCategories = canViewAllCategories,
-                    KategorijaIds = kategorijaIds
-                }
-            );
+            return await connection
+                .QuerySingleOrDefaultAsync<Artikal>(
+                    sql,
+                    new
+                    {
+                        Id = id,
+
+                        CanViewAllCategories =
+                            canViewAllCategories,
+
+                        KategorijaIds =
+                            kategorijaIds
+                    }
+                );
         }
 
         public async Task<Artikal?> GetBySifraAsync(
-     string sifra,
-     bool canViewAllCategories,
-     List<int> kategorijaIds)
+            string sifra,
+            bool canViewAllCategories,
+            List<int> kategorijaIds)
         {
             const string sql = """
-        SELECT
-            a.ArtikalId,
-            a.Sifra,
-            a.Naziv,
-            a.DobavljacId,
-            a.RobnaGrupaId,
-            a.Aktivan
-        FROM dbo.Artikal a
+                SELECT
+                    a.ArtikalId,
+                    a.Sifra,
+                    a.Naziv,
+                    a.DobavljacId,
+                    a.RobnaGrupaId,
+                    a.Aktivan,
+                    a.RedovnaCena
+                FROM dbo.Artikal a
 
-        INNER JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId = a.RobnaGrupaId
+                INNER JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
 
-        WHERE
-            a.Sifra = @Sifra
-            AND
-            (
-                @CanViewAllCategories = 1
-                OR rg.KategorijaId IN @KategorijaIds
-            );
-        """;
+                WHERE
+                    a.Sifra = @Sifra
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR rg.KategorijaId IN @KategorijaIds
+                    );
+                """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
-            return await connection.QuerySingleOrDefaultAsync<Artikal>(
-                sql,
-                new
-                {
-                    Sifra = sifra,
-                    CanViewAllCategories = canViewAllCategories,
-                    KategorijaIds = kategorijaIds
-                }
-            );
+            return await connection
+                .QuerySingleOrDefaultAsync<Artikal>(
+                    sql,
+                    new
+                    {
+                        Sifra = sifra,
+
+                        CanViewAllCategories =
+                            canViewAllCategories,
+
+                        KategorijaIds =
+                            kategorijaIds
+                    }
+                );
         }
 
         public async Task<IEnumerable<Artikal>> SearchAsync(
-    string? naziv,
-    int? dobavljacId,
-    int? robnaGrupaId,
-    bool? aktivan,
-    bool canViewAllCategories,
-    List<int> kategorijaIds)
+            string? naziv,
+            int? dobavljacId,
+            int? robnaGrupaId,
+            bool? aktivan,
+            bool canViewAllCategories,
+            List<int> kategorijaIds)
         {
             const string sql = """
-        SELECT
-            a.ArtikalId,
-            a.Sifra,
-            a.Naziv,
-            a.DobavljacId,
-            a.RobnaGrupaId,
-            a.Aktivan
-        FROM dbo.Artikal a
+                SELECT
+                    a.ArtikalId,
+                    a.Sifra,
+                    a.Naziv,
+                    a.DobavljacId,
+                    a.RobnaGrupaId,
+                    a.Aktivan,
+                    a.RedovnaCena
+                FROM dbo.Artikal a
 
-        INNER JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId = a.RobnaGrupaId
+                INNER JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
 
-        WHERE
-            (@Naziv IS NULL OR a.Naziv LIKE '%' + @Naziv + '%')
-            AND (@DobavljacId IS NULL OR a.DobavljacId = @DobavljacId)
-            AND (@RobnaGrupaId IS NULL OR a.RobnaGrupaId = @RobnaGrupaId)
-            AND (@Aktivan IS NULL OR a.Aktivan = @Aktivan)
+                WHERE
+                    (@Naziv IS NULL
+                        OR a.Naziv LIKE '%' + @Naziv + '%')
 
-            AND
-            (
-                @CanViewAllCategories = 1
-                OR rg.KategorijaId IN @KategorijaIds
-            )
+                    AND
+                    (@DobavljacId IS NULL
+                        OR a.DobavljacId = @DobavljacId)
 
-        ORDER BY a.Naziv;
-        """;
+                    AND
+                    (@RobnaGrupaId IS NULL
+                        OR a.RobnaGrupaId = @RobnaGrupaId)
 
-            using var connection = _connFactory.CreateConnection();
+                    AND
+                    (@Aktivan IS NULL
+                        OR a.Aktivan = @Aktivan)
+
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR rg.KategorijaId IN @KategorijaIds
+                    )
+
+                ORDER BY a.Naziv;
+                """;
+
+            using var connection =
+                _connFactory.CreateConnection();
 
             return await connection.QueryAsync<Artikal>(
                 sql,
                 new
                 {
-                    Naziv = string.IsNullOrWhiteSpace(naziv)
-                        ? null
-                        : naziv,
+                    Naziv =
+                        string.IsNullOrWhiteSpace(naziv)
+                            ? null
+                            : naziv.Trim(),
 
                     DobavljacId = dobavljacId,
                     RobnaGrupaId = robnaGrupaId,
                     Aktivan = aktivan,
 
-                    CanViewAllCategories = canViewAllCategories,
-                    KategorijaIds = kategorijaIds
+                    CanViewAllCategories =
+                        canViewAllCategories,
+
+                    KategorijaIds =
+                        kategorijaIds
                 }
             );
         }
