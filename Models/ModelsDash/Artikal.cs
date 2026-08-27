@@ -17,8 +17,13 @@
         public RobnaGrupa? RobnaGrupa { get; set; }
 
         public bool Aktivan { get; set; }
+        public decimal? RedovnaCena { get; set; }
 
+
+<<<<<<< HEAD
+=======
         public decimal RedovnaCena { get; set; }
 
+>>>>>>> 79e71937660ae51f2d6ef2c2747c1f2d2b96389f
     }
 }

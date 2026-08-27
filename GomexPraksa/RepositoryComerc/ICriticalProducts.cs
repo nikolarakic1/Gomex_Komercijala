@@ -7,10 +7,12 @@ namespace GomexPraksa.RepositoryComerc
     {
         Task<IEnumerable<CriticalProductsDTO>> CriticalProductsTop5(
             DateOnly datumOd,
-            DateOnly datumDo);
+            DateOnly datumDo,
+            bool CanAllViewCategories,
+            List<int> KategorijaIds);
 
         Task<IEnumerable<CriticalProductsPageDTO>> ShowCriticalProductsAsync(
-            FilterSharedPages filter);
+            FilterSharedPages filter , bool CanViewAllCategories,List<int> KategorijaIds);
         
     }
 }
