@@ -9,7 +9,7 @@ namespace Models.Dtos
         public int ArtikalId { get; set; }
 
         public string Sifra { get; set; } = string.Empty;
-
+        
         public string Naziv { get; set; } = string.Empty;
 
         public int DobavljacId { get; set; }

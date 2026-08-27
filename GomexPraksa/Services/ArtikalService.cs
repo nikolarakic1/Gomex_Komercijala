@@ -141,7 +141,8 @@ namespace GomexPraksa.Services
                 Naziv = artikal.Naziv,
                 DobavljacId = artikal.DobavljacId,
                 RobnaGrupaId = artikal.RobnaGrupaId,
-                Aktivan = artikal.Aktivan
+                Aktivan = artikal.Aktivan,
+                RedovnaCena = artikal.RedovnaCena
             };
         }
     }

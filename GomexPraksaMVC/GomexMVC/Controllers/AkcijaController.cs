@@ -114,6 +114,7 @@ namespace GomexPraksaMVC.Controllers
                 {
                     akcija.ArtikalNaziv = artikal.Naziv;
                     akcija.ArtikalSifra = artikal.Sifra;
+                    akcija.RedovnaCena = artikal.RedovnaCena;
                 }
             }
 

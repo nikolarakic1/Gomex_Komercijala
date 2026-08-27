@@ -25,7 +25,9 @@
                 <tr>
                     <th>Artikal</th>
                     <th>Šifra</th>
+                    <th class="text-end">Redovna cena</th>
                     <th class="text-end">Akcijska cena</th>
+                    <th class="text-end">Popust</th>
                     <th></th>
                 </tr>
             </thead>
@@ -35,7 +37,18 @@
                     <tr>
                         <td>@(a.ArtikalNaziv ?? $"Artikal #{a.ArtikalId}")</td>
                         <td>@a.ArtikalSifra</td>
+                        <td class="text-end">@(a.RedovnaCena.HasValue ? a.RedovnaCena.Value.ToString("N2") + " RSD" : "-")</td>
                         <td class="text-end">@a.AkcijskaCena.ToString("N2") RSD</td>
+                        <td class="text-end">
+                            @if (a.ProcenatPopusta.HasValue)
+                            {
+                                <span class="text-success">-@a.ProcenatPopusta.Value%</span>
+                            }
+                            else
+                            {
+                                <span class="text-secondary">-</span>
+                            }
+                        </td>
                         <td class="text-end">
                             @if (!string.IsNullOrWhiteSpace(a.ArtikalSifra))
                             {
