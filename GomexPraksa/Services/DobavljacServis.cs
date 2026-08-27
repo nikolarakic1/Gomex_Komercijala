@@ -1,4 +1,5 @@
-﻿using GomexPraksa.Repository;
+﻿using GomexPraksa.JWTInfo;
+using GomexPraksa.Repository;
 using Models.Dtos;
 using Models.ModelsDash;
 
@@ -7,22 +8,62 @@ namespace GomexPraksa.Services;
 public class DobavljacServis : IDobavljacServis
 {
     private readonly IDobavljacRepo _repo;
+    private readonly IUserAccess _userAccess;
 
-    public DobavljacServis(IDobavljacRepo repo)
+    public DobavljacServis(
+        IDobavljacRepo repo,
+        IUserAccess userAccess)
     {
         _repo = repo;
+        _userAccess = userAccess;
     }
 
     public async Task<IEnumerable<DobavljacDTO>> GetAllDobavljaceAsync()
     {
-        var dobavljaci = await _repo.GetAllDobavljace();
+        var access =
+            await _userAccess.GetCurrentUserAccessAsync();
+
+        if (!access.CanViewAllCategories &&
+            access.KategorijaIds.Count == 0)
+        {
+            throw new UnauthorizedAccessException(
+                "Korisniku nije dodeljena nijedna kategorija."
+            );
+        }
+
+        var dobavljaci = await _repo.GetAllDobavljace(
+            access.CanViewAllCategories,
+            access.KategorijaIds
+        );
 
         return dobavljaci.Select(MapToDto);
     }
 
     public async Task<DobavljacDTO?> GetByIdAsync(int id)
     {
-        var dobavljac = await _repo.GetByIdAsync(id);
+        if (id <= 0)
+        {
+            throw new ArgumentException(
+                "DobavljacId mora biti veći od nule."
+            );
+        }
+
+        var access =
+            await _userAccess.GetCurrentUserAccessAsync();
+
+        if (!access.CanViewAllCategories &&
+            access.KategorijaIds.Count == 0)
+        {
+            throw new UnauthorizedAccessException(
+                "Korisniku nije dodeljena nijedna kategorija."
+            );
+        }
+
+        var dobavljac = await _repo.GetByIdAsync(
+            id,
+            access.CanViewAllCategories,
+            access.KategorijaIds
+        );
 
         if (dobavljac is null)
             return null;
@@ -34,7 +75,23 @@ public class DobavljacServis : IDobavljacServis
         string? naziv,
         bool? aktivan)
     {
-        var dobavljaci = await _repo.SearchAsync(naziv, aktivan);
+        var access =
+            await _userAccess.GetCurrentUserAccessAsync();
+
+        if (!access.CanViewAllCategories &&
+            access.KategorijaIds.Count == 0)
+        {
+            throw new UnauthorizedAccessException(
+                "Korisniku nije dodeljena nijedna kategorija."
+            );
+        }
+
+        var dobavljaci = await _repo.SearchAsync(
+            naziv,
+            aktivan,
+            access.CanViewAllCategories,
+            access.KategorijaIds
+        );
 
         return dobavljaci.Select(MapToDto);
     }
