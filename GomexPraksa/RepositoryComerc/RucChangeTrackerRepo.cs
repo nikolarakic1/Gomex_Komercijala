@@ -1,6 +1,8 @@
 ﻿using Dapper;
 using GomexPraksa.ConnectionFactory;
+using Microsoft.Data.SqlClient;
 using Models.DtosComerc;
+using System.Diagnostics;
 
 namespace GomexPraksa.RepositoryComerc;
 
@@ -21,167 +23,133 @@ public class RucChangeTrackerRepo : IRucChangeTracker
         bool canViewAllCategories,
         List<int> kategorijaIds)
     {
-        const string sql = """
-            WITH PrethodniPeriod AS
+    const string sql = """
+    WITH PrethodniPeriod AS
+    (
+        SELECT
+            COALESCE(SUM(kr.RUC12), 0) AS PocetniRuc
+        FROM dbo.KomercijalniRezultat kr
+        INNER JOIN dbo.Artikal a
+            ON a.ArtikalId = kr.ArtikalId
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
+        WHERE
+            kr.DatumRezultata >= @PrethodniDatumOd
+            AND kr.DatumRezultata < DATEADD(DAY, 1, @PrethodniDatumDo)
+            AND
             (
-                SELECT
-                    kr.RUC12
-                FROM dbo.KomercijalniRezultat kr
-
-                INNER JOIN dbo.Artikal a
-                    ON a.ArtikalId = kr.ArtikalId
-
-                INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId = a.RobnaGrupaId
-
-                WHERE
-                    kr.DatumRezultata >= @PrethodniDatumOd
-                    AND kr.DatumRezultata
-                        < DATEADD(DAY, 1, @PrethodniDatumDo)
-
-                    AND
-                    (
-                        @CanViewAllCategories = 1
-                        OR rg.KategorijaId IN @KategorijaIds
-                    )
-            ),
-
-            TrenutniPeriod AS
-            (
-                SELECT
-                    kr.RUC12,
-                    kr.MarginEffect,
-                    kr.VolumeEffect,
-                    kr.MixEffect
-
-                FROM dbo.KomercijalniRezultat kr
-
-                INNER JOIN dbo.Artikal a
-                    ON a.ArtikalId = kr.ArtikalId
-
-                INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId = a.RobnaGrupaId
-
-                WHERE
-                    kr.DatumRezultata >= @DatumOd
-                    AND kr.DatumRezultata
-                        < DATEADD(DAY, 1, @DatumDo)
-
-                    AND
-                    (
-                        @CanViewAllCategories = 1
-                        OR rg.KategorijaId IN @KategorijaIds
-                    )
-            ),
-
-            Rezultat AS
-            (
-                SELECT
-                    COALESCE(
-                        (
-                            SELECT SUM(RUC12)
-                            FROM PrethodniPeriod
-                        ),
-                        0
-                    ) AS PocetniRuc,
-
-                    COALESCE(
-                        (
-                            SELECT SUM(RUC12)
-                            FROM TrenutniPeriod
-                        ),
-                        0
-                    ) AS KonacniRuc,
-
-                    COALESCE(
-                        (
-                            SELECT SUM(MarginEffect)
-                            FROM TrenutniPeriod
-                        ),
-                        0
-                    ) AS MarginEffect,
-
-                    COALESCE(
-                        (
-                            SELECT SUM(VolumeEffect)
-                            FROM TrenutniPeriod
-                        ),
-                        0
-                    ) AS VolumeEffect,
-
-                    COALESCE(
-                        (
-                            SELECT SUM(MixEffect)
-                            FROM TrenutniPeriod
-                        ),
-                        0
-                    ) AS MixEffect
+                @CanViewAllCategories = 1
+                OR rg.KategorijaId IN @KategorijaIds
             )
+    ),
+    TrenutniPeriod AS
+    (
+        SELECT
+            COALESCE(SUM(kr.RUC12), 0) AS KonacniRuc,
+            COALESCE(SUM(kr.MarginEffect), 0) AS MarginEffect,
+            COALESCE(SUM(kr.VolumeEffect), 0) AS VolumeEffect,
+            COALESCE(SUM(kr.MixEffect), 0) AS MixEffect
+        FROM dbo.KomercijalniRezultat kr
+        INNER JOIN dbo.Artikal a
+            ON a.ArtikalId = kr.ArtikalId
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
+        WHERE
+            kr.DatumRezultata >= @DatumOd
+            AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+            AND
+            (
+                @CanViewAllCategories = 1
+                OR rg.KategorijaId IN @KategorijaIds
+            )
+    )
+    SELECT
+        p.PocetniRuc,
+        t.MarginEffect,
+        t.VolumeEffect,
+        t.MixEffect,
 
-            SELECT
-                PocetniRuc,
-                MarginEffect,
-                VolumeEffect,
-                MixEffect,
+        t.KonacniRuc - p.PocetniRuc
+            AS UkupnaPromena,
 
-                KonacniRuc - PocetniRuc
-                    AS UkupnaPromena,
-
-                CASE
-                    WHEN PocetniRuc = 0
-                        THEN 0
-                    ELSE
-                        CAST(
-                            KonacniRuc - PocetniRuc
-                            AS DECIMAL(18, 6)
-                        )
-                        / NULLIF(PocetniRuc, 0)
-                END AS UkupnaPromenaProcenat,
-
-                KonacniRuc,
-
-                (
-                    KonacniRuc - PocetniRuc
+        CASE
+            WHEN p.PocetniRuc = 0 THEN 0
+            ELSE
+                CAST(
+                    t.KonacniRuc - p.PocetniRuc
+                    AS DECIMAL(18, 6)
                 )
-                -
-                (
-                    MarginEffect
-                    + VolumeEffect
-                    + MixEffect
-                ) AS KontrolnaRazlika
+                / NULLIF(p.PocetniRuc, 0)
+        END AS UkupnaPromenaProcenat,
 
-            FROM Rezultat;
-            """;
+        t.KonacniRuc,
+
+        (
+            t.KonacniRuc - p.PocetniRuc
+        )
+        -
+        (
+            t.MarginEffect
+            + t.VolumeEffect
+            + t.MixEffect
+        ) AS KontrolnaRazlika
+
+    FROM PrethodniPeriod p
+    CROSS JOIN TrenutniPeriod t;
+    """; 
 
         using var connection =
-            _connFactory.CreateConnection();
+            (SqlConnection)_connFactory.CreateConnection();
 
-        return await connection.QuerySingleAsync<RucChangeDTO>(
-            sql,
-            new
-            {
-                DatumOd =
-                    datumOd.ToDateTime(
-                        TimeOnly.MinValue),
+        var total = Stopwatch.StartNew();
 
-                DatumDo =
-                    datumDo?.ToDateTime(
-                        TimeOnly.MinValue),
+        var sw = Stopwatch.StartNew();
 
-                PrethodniDatumOd =
-                    prethodniDatumOd?.ToDateTime(
-                        TimeOnly.MinValue),
+        await connection.OpenAsync();
 
-                PrethodniDatumDo =
-                    prethodniDatumDo?.ToDateTime(
-                        TimeOnly.MinValue),
-
-                CanViewAllCategories =
-                    canViewAllCategories,
-
-                KategorijaIds =
-                    kategorijaIds
-            }
+        Console.WriteLine(
+            $"RUC OpenConnectionAsync: {sw.ElapsedMilliseconds} ms"
         );
+
+        sw.Restart();
+
+        var rezultat =
+            await connection.QuerySingleAsync<RucChangeDTO>(
+                sql,
+                new
+                {
+                    DatumOd =
+                        datumOd.ToDateTime(
+                            TimeOnly.MinValue),
+
+                    DatumDo =
+                        datumDo?.ToDateTime(
+                            TimeOnly.MinValue),
+
+                    PrethodniDatumOd =
+                        prethodniDatumOd?.ToDateTime(
+                            TimeOnly.MinValue),
+
+                    PrethodniDatumDo =
+                        prethodniDatumDo?.ToDateTime(
+                            TimeOnly.MinValue),
+
+                    CanViewAllCategories =
+                        canViewAllCategories,
+
+                    KategorijaIds =
+                        kategorijaIds
+                }
+            );
+
+        Console.WriteLine(
+            $"RUC QuerySingleAsync: {sw.ElapsedMilliseconds} ms"
+        );
+
+        Console.WriteLine(
+            $"RUC TOTAL: {total.ElapsedMilliseconds} ms"
+        );
+
+        return rezultat;
     }
 }

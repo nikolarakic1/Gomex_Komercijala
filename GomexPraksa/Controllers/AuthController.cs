@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Models.AuthenticationDtos;
-using System.Diagnostics;
 using System.Security.Claims;
 
 namespace GomexPraksa.Controllers;
@@ -93,18 +92,10 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> LogInAsync(
         LogInDto dto)
     {
-        var total = Stopwatch.StartNew();
-
-        var sw = Stopwatch.StartNew();
-
         var user =
             await _userManager.FindByEmailAsync(
                 dto.Email
             );
-
-        Console.WriteLine(
-            $"FindByEmailAsync: {sw.ElapsedMilliseconds} ms"
-        );
 
         if (user is null)
         {
@@ -113,17 +104,11 @@ public class AuthController : ControllerBase
             );
         }
 
-        sw.Restart();
-
         var validPassword =
             await _userManager.CheckPasswordAsync(
                 user,
                 dto.Passsword
             );
-
-        Console.WriteLine(
-            $"CheckPasswordAsync: {sw.ElapsedMilliseconds} ms"
-        );
 
         if (!validPassword)
         {
@@ -132,30 +117,14 @@ public class AuthController : ControllerBase
             );
         }
 
-        sw.Restart();
-
         var roles =
             await _userManager.GetRolesAsync(user);
-
-        Console.WriteLine(
-            $"GetRolesAsync: {sw.ElapsedMilliseconds} ms"
-        );
-
-        sw.Restart();
 
         var token =
             _jwtService.GenerateToken(
                 user,
                 roles
             );
-
-        Console.WriteLine(
-            $"GenerateToken: {sw.ElapsedMilliseconds} ms"
-        );
-
-        Console.WriteLine(
-            $"UKUPAN LOGIN: {total.ElapsedMilliseconds} ms"
-        );
 
         return Ok(new
         {
@@ -167,10 +136,14 @@ public class AuthController : ControllerBase
     public IActionResult GetCredentials()
     {
         var ime =
-            User.FindFirstValue(ClaimTypes.Name);
+            User.FindFirstValue(
+                ClaimTypes.Name
+            );
 
         var role =
-            User.FindFirstValue(ClaimTypes.Role);
+            User.FindFirstValue(
+                ClaimTypes.Role
+            );
 
         var userId =
             User.FindFirstValue(
@@ -178,7 +151,9 @@ public class AuthController : ControllerBase
             );
 
         var email =
-            User.FindFirstValue(ClaimTypes.Email);
+            User.FindFirstValue(
+                ClaimTypes.Email
+            );
 
         return Ok(new
         {
