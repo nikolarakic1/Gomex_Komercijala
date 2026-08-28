@@ -176,106 +176,46 @@ function initDeptFilter() {
     // Apply initial visibility based on currentDept
     applyDeptVisibility(currentDept);
 }
-
 function initPrometChart() {
     var canvas = document.getElementById('prometChart');
     if (!canvas) return;
 
-    var series = null; // will be fetched from API; fallback if necessary
+    var podaci = window.__dashboardData && window.__dashboardData.promet
+        ? window.__dashboardData.promet
+        : null;
 
-    var chart = null;
-    var granularity = 'nedelja';
-    var offset = 0;
+    if (!podaci) return;
 
-    function lastIndex(arr) {
-        for (var i = arr.length - 1; i >= 0; i--) {
-            if (arr[i] !== null && arr[i] !== undefined) return i;
-        }
-        return arr.length - 1;
-    }
+    var trenutni = podaci.trenutni || 0;
+    var promena = podaci.promenaProcenat || 0;
 
-    function defaultOffset(d) {
-        var end = lastIndex(d.actual);
-        return Math.max(0, end - d.window + 1);
-    }
+    // promenaProcenat = (trenutni - prethodni) / prethodni  =>  prethodni = trenutni / (1 + promena)
+    var prethodni = (1 + promena) !== 0 ? trenutni / (1 + promena) : 0;
 
-    function render() {
-        var d = series && series[granularity] ? series[granularity] : null;
-        var start = offset;
-        if (!d) {
-            // nothing loaded yet
-            return;
-        }
-        var end = Math.min(start + d.window, d.labels.length);
-
-        var labels = d.labels.slice(start, end);
-        var actual = d.actual.slice(start, end);
-        var compare = d.compare ? d.compare.slice(start, end) : null;
-
-        document.getElementById('prometChartTitle').textContent = d.title || '';
-        document.getElementById('prometChartLegend').style.display = compare ? 'flex' : 'none';
-
-        var datasets = [{
-            label: 'Trenutni period',
-            data: actual,
-            borderColor: '#1F4E5C',
-            backgroundColor: d.type === 'bar' ? '#1F4E5C' : 'rgba(31,78,92,0.08)',
-            fill: d.type === 'line',
-            spanGaps: false,
-            tension: 0.3
-        }];
-
-        if (compare) {
-            datasets.push({
-                label: 'Prethodni period',
-                data: compare,
-                borderColor: '#B4B2A9',
-                borderDash: [4, 4],
-                fill: false,
-                tension: 0.3
-            });
-        }
-
-        if (chart) chart.destroy();
-
-        chart = new Chart(canvas, {
-            type: d.type,
-            data: { labels: labels, datasets: datasets },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: false } }
+    new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: ['Prethodni period', 'Trenutni period'],
+            datasets: [{
+                label: 'Promet (RSD)',
+                data: [prethodni, trenutni],
+                backgroundColor: ['#B4B2A9', '#1F4E5C'],
+                borderRadius: 4
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function (value) {
+                            return (value / 1000000).toFixed(1) + 'M';
+                        }
+                    }
+                }
             }
-        });
-
-        document.getElementById('prometBtnPrev').disabled = (start <= 0);
-        document.getElementById('prometBtnNext').disabled = (end >= d.labels.length);
-    }
-
-    function switchGranularity(key) {
-        granularity = key;
-    offset = defaultOffset(series[key]);
-    render();
-    }
-
-    switchGranularity('nedelja');
-
-    var buttons = document.querySelectorAll('#prometGranularityToggle button');
-    buttons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            buttons.forEach(function (b) { b.classList.remove('active'); });
-            this.classList.add('active');
-            switchGranularity(this.getAttribute('data-granularity'));
-        });
-    });
-
-    document.getElementById('prometBtnPrev').addEventListener('click', function () {
-        offset = Math.max(0, offset - 1);
-        render();
-    });
-    document.getElementById('prometBtnNext').addEventListener('click', function () {
-        var maxStart = series[granularity].labels.length - series[granularity].window;
-        offset = Math.min(maxStart, offset + 1);
-        render();
+        }
     });
 }
 

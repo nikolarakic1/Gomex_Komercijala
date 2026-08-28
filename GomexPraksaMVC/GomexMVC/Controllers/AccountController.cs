@@ -37,24 +37,23 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                 Passsword = model.Password
             };
 
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            Console.WriteLine($"[MVC] Pre poziva ka API-ju: {DateTime.Now:HH:mm:ss.fff}");
+
             HttpResponseMessage response;
             try
             {
                 response = await client.PostAsJsonAsync("api/auth/login", loginPayload);
+                Console.WriteLine($"[MVC] Posle poziva ka API-ju: {sw.ElapsedMilliseconds} ms");
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[MVC] IZUZETAK posle {sw.ElapsedMilliseconds} ms: {ex.GetType().Name} - {ex.Message}");
                 ModelState.AddModelError(string.Empty, "Server trenutno nije dostupan.");
                 return View(model);
-            }
+            }        
 
-            if (!response.IsSuccessStatusCode)
-            {
-                ModelState.AddModelError(string.Empty, "Pogrešno korisničko ime ili lozinka.");
-                return View(model);
-            }
-
-            var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             var token = doc.RootElement.GetProperty("token").GetString();
 
