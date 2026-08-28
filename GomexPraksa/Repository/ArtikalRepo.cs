@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using GomexPraksa.AddedFunctions;
 using GomexPraksa.ConnectionFactory;
 using Models.ModelsDash;
 
@@ -13,45 +14,85 @@ namespace GomexPraksa.Repository
             _connFactory = connFactory;
         }
 
-        public async Task<IEnumerable<Artikal>> GetAllAsync(
-            bool canViewAllCategories,
-            List<int> kategorijaIds)
+        public async Task<PaginationGeneric<Artikal>> GetAllAsync(
+    bool canViewAllCategories,
+    List<int> kategorijaIds,
+    PaginationParams paginationArtikli)
         {
             const string sql = """
-                SELECT
-                    a.ArtikalId,
-                    a.Sifra,
-                    a.Naziv,
-                    a.DobavljacId,
-                    a.RobnaGrupaId,
-                    a.Aktivan,
-                    a.RedovnaCena
-                FROM dbo.Artikal a
+        SELECT
+            a.ArtikalId,
+            a.Sifra,
+            a.Naziv,
+            a.DobavljacId,
+            a.RobnaGrupaId,
+            a.Aktivan,
+            a.RedovnaCena
+        FROM dbo.Artikal a
 
-                INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
 
-                WHERE
-                    @CanViewAllCategories = 1
-                    OR rg.KategorijaId IN @KategorijaIds
+        WHERE
+            @CanViewAllCategories = 1
+            OR rg.KategorijaId IN @KategorijaIds
 
-                ORDER BY a.Naziv;
-                """;
+        ORDER BY a.Naziv
+
+        OFFSET @Offset ROWS
+        FETCH NEXT @PageSize ROWS ONLY;
+
+        SELECT COUNT(*)
+        FROM dbo.Artikal a
+
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+        WHERE
+            @CanViewAllCategories = 1
+            OR rg.KategorijaId IN @KategorijaIds;
+        """;
 
             using var connection =
                 _connFactory.CreateConnection();
 
-            return await connection.QueryAsync<Artikal>(
-                sql,
-                new
-                {
-                    CanViewAllCategories =
-                        canViewAllCategories,
+            var offset =
+                (paginationArtikli.Page - 1)
+                * paginationArtikli.PageSize;
 
-                    KategorijaIds =
-                        kategorijaIds
-                }
-            );
+            using var result =
+                await connection.QueryMultipleAsync(
+                    sql,
+                    new
+                    {
+                        CanViewAllCategories =
+                            canViewAllCategories,
+
+                        KategorijaIds =
+                            kategorijaIds,
+
+                        Offset =
+                            offset,
+
+                        PageSize =
+                            paginationArtikli.PageSize
+                    }
+                );
+
+            var artikli =
+                (await result.ReadAsync<Artikal>())
+                .ToList();
+
+            var totalCount =
+                await result.ReadSingleAsync<int>();
+
+            return new PaginationGeneric<Artikal>
+            {
+                Items = artikli,
+                Page = paginationArtikli.Page,
+                PageSize = paginationArtikli.PageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<Artikal?> GetByIdAsync(

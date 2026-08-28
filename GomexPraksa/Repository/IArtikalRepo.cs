@@ -1,12 +1,14 @@
-﻿using Models.ModelsDash;
+﻿using GomexPraksa.AddedFunctions;
+using Models.ModelsDash;
 
 namespace GomexPraksa.Repository;
 
 public interface IArtikalRepo
 {
-    Task<IEnumerable<Artikal>> GetAllAsync(
+    public Task<PaginationGeneric<Artikal>> GetAllAsync(
     bool canViewAllCategories,
-    List<int> kategorijaIds);
+    List<int> kategorijaIds,
+    PaginationParams paginationArtikli);
 
     public Task<Artikal?> GetByIdAsync(int id, bool canViewAllCategories,
     List<int> kategorijaIds);

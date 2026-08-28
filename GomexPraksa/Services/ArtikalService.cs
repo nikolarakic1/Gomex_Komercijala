@@ -1,4 +1,5 @@
-﻿using GomexPraksa.JWTInfo;
+﻿using GomexPraksa.AddedFunctions;
+using GomexPraksa.JWTInfo;
 using GomexPraksa.Repository;
 using Models.Dtos;
 using Models.ModelsDash;
@@ -16,7 +17,8 @@ namespace GomexPraksa.Services
             _userAccess = userAccess;
         }
 
-        public async Task<IEnumerable<ArtikalDto>> GetAllAsync()
+        public async Task<PaginationGeneric<ArtikalDto>> GetAllAsync(
+    PaginationParams pagination)
         {
             var access =
                 await _userAccess.GetCurrentUserAccessAsync();
@@ -29,12 +31,20 @@ namespace GomexPraksa.Services
                 );
             }
 
-            var artikli = await _artikalRepo.GetAllAsync(
-                access.CanViewAllCategories,
-                access.KategorijaIds
-            );
+            var artikli =
+                await _artikalRepo.GetAllAsync(
+                    access.CanViewAllCategories,
+                    access.KategorijaIds,
+                    pagination
+                );
 
-            return artikli.Select(MapToDto);
+            return new PaginationGeneric<ArtikalDto>
+            {
+                Items = artikli.Items.Select(MapToDto),
+                Page = artikli.Page,
+                PageSize = artikli.PageSize,
+                TotalCount = artikli.TotalCount
+            };
         }
 
         public async Task<ArtikalDto> GetByIdAsync(int id)

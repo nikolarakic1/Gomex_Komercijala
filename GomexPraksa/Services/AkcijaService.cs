@@ -8,12 +8,11 @@ namespace GomexPraksa.Services
     public class AkcijaService : IAkcijaService
     {
         private readonly IAkcijaRepo _akcijaRepo;
-        private readonly IUserAccess _userAccess;
+    
 
-        public AkcijaService(IAkcijaRepo akcijaRepo,IUserAccess userAccess)
+        public AkcijaService(IAkcijaRepo akcijaRepo)
         {
             _akcijaRepo = akcijaRepo;
-            _userAccess = userAccess;
         }
 
         public async Task<IEnumerable<AkcijaDTO>> GetAllAsync()

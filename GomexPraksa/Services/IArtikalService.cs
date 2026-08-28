@@ -1,10 +1,12 @@
-﻿using Models.Dtos;
+﻿using GomexPraksa.AddedFunctions;
+using Models.Dtos;
 
 namespace GomexPraksa.Services
 {
     public interface IArtikalService
     {
-        Task<IEnumerable<ArtikalDto>> GetAllAsync();
+        public Task<PaginationGeneric<ArtikalDto>> GetAllAsync(
+    PaginationParams pagination);
 
         Task<ArtikalDto> GetByIdAsync(int id);
 

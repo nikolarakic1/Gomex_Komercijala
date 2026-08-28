@@ -1,4 +1,5 @@
-﻿using GomexPraksa.Services;
+﻿using GomexPraksa.AddedFunctions;
+using GomexPraksa.Services;
 using GomexPraksa.ServicesComerc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,11 +24,14 @@ namespace GomexPraksa.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ArtikalDto>>> GetAll()
+        public async Task<ActionResult<PaginationGeneric<ArtikalDto>>> GetAll(
+    [FromQuery] PaginationParams pagination)
         {
+            var artikli =
+                await _artikalService.GetAllAsync(
+                    pagination
+                );
 
-
-            var artikli = await _artikalService.GetAllAsync();
             return Ok(artikli);
         }
 
