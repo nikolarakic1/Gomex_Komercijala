@@ -102,32 +102,32 @@ namespace GomexPraksa.Repository
         }
 
         public async Task<Artikal?> GetBySifraAsync(
-            string sifra,
-            bool canViewAllCategories,
-            List<int> kategorijaIds)
+    string sifra,
+    bool canViewAllCategories,
+    List<int> kategorijaIds)
         {
             const string sql = """
-                SELECT
-                    a.ArtikalId,
-                    a.Sifra,
-                    a.Naziv,
-                    a.DobavljacId,
-                    a.RobnaGrupaId,
-                    a.Aktivan,
-                    a.RedovnaCena
-                FROM dbo.Artikal a
+        SELECT
+            a.ArtikalId,
+            a.Sifra,
+            a.Naziv,
+            a.DobavljacId,
+            a.RobnaGrupaId,
+            a.Aktivan,
+            a.RedovnaCena
+        FROM dbo.Artikal a
 
-                INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
 
-                WHERE
-                    a.Sifra = @Sifra
-                    AND
-                    (
-                        @CanViewAllCategories = 1
-                        OR rg.KategorijaId IN @KategorijaIds
-                    );
-                """;
+        WHERE
+            a.Sifra = @Sifra
+            AND
+            (
+                @CanViewAllCategories = 1
+                OR rg.KategorijaId IN @KategorijaIds
+            );
+        """;
 
             using var connection =
                 _connFactory.CreateConnection();
@@ -138,12 +138,8 @@ namespace GomexPraksa.Repository
                     new
                     {
                         Sifra = sifra,
-
-                        CanViewAllCategories =
-                            canViewAllCategories,
-
-                        KategorijaIds =
-                            kategorijaIds
+                        CanViewAllCategories = canViewAllCategories,
+                        KategorijaIds = kategorijaIds
                     }
                 );
         }
