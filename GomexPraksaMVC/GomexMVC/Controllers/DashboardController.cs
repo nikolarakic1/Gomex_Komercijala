@@ -251,9 +251,42 @@ namespace GomexPraksaMVC.Controllers
 
             try
             {
+                var topParts = new List<string>
+{
+    $"datumOd={datumStart:yyyy-MM-dd}",
+    $"datumDo={datumEnd:yyyy-MM-dd}"
+};
+
+                if (odeljenjeId.HasValue)
+                {
+                    topParts.Add(
+                        $"odeljenjeId={odeljenjeId.Value}"
+                    );
+                }
+
+                if (kategorijaId.HasValue)
+                {
+                    topParts.Add(
+                        $"kategorijaId={kategorijaId.Value}"
+                    );
+                }
+
+                if (dobavljacId.HasValue)
+                {
+                    topParts.Add(
+                        $"dobavljacId={dobavljacId.Value}"
+                    );
+                }
+
+                if (tipProdajeId.HasValue)
+                {
+                    topParts.Add(
+                        $"tipProdajeId={tipProdajeId.Value}"
+                    );
+                }
+
                 var topQuery =
-                    $"?datumOd={datumStart:yyyy-MM-dd}" +
-                    $"&datumDo={datumEnd:yyyy-MM-dd}";
+                    "?" + string.Join("&", topParts);
 
                 model.CriticalTop5 =
                     await client.GetFromJsonAsync<

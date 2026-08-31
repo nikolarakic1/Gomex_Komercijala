@@ -60,9 +60,21 @@ namespace GomexPraksa.ServicesComerc
 
         public async Task<IEnumerable<CriticalProductsDTO>>
             CriticalProductsTop(
-                DateOnly datumOd,
-                DateOnly datumDo)
+                DashboardFilterDTO filter)
         {
+            if (!filter.DatumOd.HasValue ||
+                !filter.DatumDo.HasValue)
+            {
+                throw new ArgumentException(
+                    "Period je obavezan.");
+            }
+
+            var datumOd =
+                filter.DatumOd.Value;
+
+            var datumDo =
+                filter.DatumDo.Value;
+
             if (datumOd > datumDo)
             {
                 throw new ArgumentException(
@@ -76,6 +88,34 @@ namespace GomexPraksa.ServicesComerc
                     "Datum završetka ne može biti u budućnosti.");
             }
 
+            if (filter.OdeljenjeId.HasValue &&
+                filter.OdeljenjeId.Value <= 0)
+            {
+                throw new ArgumentException(
+                    "OdeljenjeId nije validan.");
+            }
+
+            if (filter.KategorijaId.HasValue &&
+                filter.KategorijaId.Value <= 0)
+            {
+                throw new ArgumentException(
+                    "KategorijaId nije validan.");
+            }
+
+            if (filter.DobavljacId.HasValue &&
+                filter.DobavljacId.Value <= 0)
+            {
+                throw new ArgumentException(
+                    "DobavljacId nije validan.");
+            }
+
+            if (filter.TipProdajeId.HasValue &&
+                filter.TipProdajeId.Value <= 0)
+            {
+                throw new ArgumentException(
+                    "TipProdajeId nije validan.");
+            }
+
             var access =
                 await _userAccess.GetCurrentUserAccessAsync();
 
@@ -87,6 +127,7 @@ namespace GomexPraksa.ServicesComerc
             }
 
             return await _repo.CriticalProductsTop5(
+                filter,
                 datumOd,
                 datumDo,
                 access.CanViewAllCategories,

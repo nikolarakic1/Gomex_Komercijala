@@ -1,121 +1,338 @@
 ﻿@model GomexPraksaMVC.Models.ArtikalViewItem
+
 @{
     ViewData["Title"] = "Detalji artikla";
-    var dobavljacNaziv = ViewData["DobavljacNaziv"] as string;
-    var aktivnaAkcija = ViewData["AktivnaAkcija"] as GomexPraksaMVC.Models.AkcijaViewItem;
-    var rucPodaci = ViewData["RucPodaci"] as GomexPraksaMVC.Models.CriticalProductPageViewItem;
+
+    var dobavljacNaziv =
+        ViewData["DobavljacNaziv"] as string;
+
+    var aktivnaAkcija =
+        ViewData["AktivnaAkcija"]
+        as GomexPraksaMVC.Models.AkcijaViewItem;
+
+    var rucPodaci =
+        ViewData["RucPodaci"]
+        as GomexPraksaMVC.Models.CriticalProductPageViewItem;
 }
 
-<a asp-controller="Dashboard" asp-action="Index" class="text-decoration-none text-secondary small mb-3 d-inline-block">
-    &larr; Nazad na dashboard
+<a asp-controller="Artikal"
+   asp-action="Index"
+   class="text-decoration-none text-secondary small mb-3 d-inline-block">
+
+    &larr; Nazad na artikle
+
 </a>
 
+
 <div class="d-flex justify-content-between align-items-start mb-4">
+
     <div>
-        <h4 class="mb-1">@Model?.Naziv</h4>
+
+        <h4 class="mb-1">
+            @Model?.Naziv
+        </h4>
+
         <div class="text-secondary small">
+
             Šifra @Model?.Sifra
+
             @if (!string.IsNullOrWhiteSpace(dobavljacNaziv))
             {
-                <text> &middot; Dobavljač: @dobavljacNaziv</text>
+                <text>
+                    &middot; Dobavljač: @dobavljacNaziv
+                </text>
             }
+
         </div>
+
     </div>
-    <span class="badge" style="background:@(Model != null && Model.Aktivan ? "#E7F3EC" : "#FBEAEA"); color:@(Model != null && Model.Aktivan ? "#2E7D5B" : "#C1443B"); font-size:12px; padding:6px 12px;">
-        @(Model != null && Model.Aktivan ? "Aktivan" : "Neaktivan")
+
+
+    <span class="badge"
+          style="
+        background:@(Model != null && Model.Aktivan ? "#E7F3EC" : "#FBEAEA");
+        color:@(Model != null && Model.Aktivan ? "#2E7D5B" : "#C1443B");
+        font-size:12px;
+        padding:6px 12px;">
+
+        @(Model != null && Model.Aktivan
+            ? "Aktivan"
+            : "Neaktivan")
+
     </span>
+
 </div>
 
-<!-- Red 1: Cena, akcija -->
+
+<!-- =========================================
+     CENA I AKCIJA
+     ========================================= -->
+
 <div class="row g-3 mb-3">
+
+    <!-- REDOVNA CENA -->
+
     <div class="col-md-3">
+
         <div class="metric-card">
-            <div class="metric-label">Redovna cena</div>
-            <div class="metric-value" style="font-size:22px;">
-                @(Model?.RedovnaCena.HasValue == true ? Model.RedovnaCena.Value.ToString("N2") + " RSD" : "—")
+
+            <div class="metric-label">
+                Redovna cena
             </div>
+
+            <div class="metric-value"
+                 style="font-size:22px;">
+
+                @(
+                    Model?.RedovnaCena.HasValue == true
+                        ? Model.RedovnaCena.Value.ToString("N2") + " RSD"
+                        : "—"
+                )
+
+            </div>
+
         </div>
+
     </div>
+
 
     @if (aktivnaAkcija != null)
     {
+        <!-- AKCIJSKA CENA -->
+
         <div class="col-md-3">
-            <div class="metric-card" style="border-left:3px solid #2E7D5B; border-radius:0 8px 8px 0;">
-                <div class="metric-label">Akcijska cena</div>
-                <div class="metric-value" style="font-size:22px; color:#2E7D5B;">
-                    @aktivnaAkcija.AkcijskaCena.ToString("N2") RSD
+
+            <div class="metric-card"
+                 style="
+                border-left:3px solid #2E7D5B;
+                border-radius:0 8px 8px 0;">
+
+                <div class="metric-label">
+                    Akcijska cena
                 </div>
+
+                <div class="metric-value"
+                     style="
+                    font-size:22px;
+                    color:#2E7D5B;">
+
+                    @aktivnaAkcija.AkcijskaCena.ToString("N2") RSD
+
+                </div>
+
+
                 @if (aktivnaAkcija.ProcenatPopusta.HasValue)
                 {
-                    <div class="metric-yoy positive">-@aktivnaAkcija.ProcenatPopusta.Value% popusta</div>
+                    <div class="metric-yoy positive">
+
+                        -@aktivnaAkcija.ProcenatPopusta.Value% popusta
+
+                    </div>
                 }
+
             </div>
+
         </div>
+
+
+        <!-- AKTIVNA AKCIJA -->
+
         <div class="col-md-6">
+
             <div class="metric-card d-flex align-items-center justify-content-between">
+
                 <div>
-                    <div class="metric-label">Aktivna akcija</div>
-                    <div class="fw-medium mt-1">@aktivnaAkcija.TipAkcije</div>
+
+                    <div class="metric-label">
+                        Aktivna akcija
+                    </div>
+
+                    <div class="fw-medium mt-1">
+                        @aktivnaAkcija.TipAkcije
+                    </div>
+
                 </div>
+
+
                 <div class="text-end text-secondary small">
-                    @aktivnaAkcija.DatumOd.ToString("dd.MM.yyyy.")<br />
-                    &ndash; @aktivnaAkcija.DatumDo.ToString("dd.MM.yyyy.")
+
+                    @aktivnaAkcija.DatumOd.ToString("dd.MM.yyyy.")
+
+                    <br />
+
+                    &ndash;
+
+                    @aktivnaAkcija.DatumDo.ToString("dd.MM.yyyy.")
+
                 </div>
+
             </div>
+
         </div>
     }
     else
     {
         <div class="col-md-9">
+
             <div class="metric-card d-flex align-items-center h-100">
-                <span class="text-secondary small"><i class="bi bi-dash-circle"></i> Artikal trenutno nije u akciji.</span>
+
+                <span class="text-secondary small">
+
+                    <i class="bi bi-dash-circle me-1"></i>
+
+                    Artikal trenutno nije u akciji.
+
+                </span>
+
             </div>
+
         </div>
     }
+
 </div>
 
-<!-- Red 2: RUC / performanse -->
+
+<!-- =========================================
+     PERFORMANSE
+     ========================================= -->
 @if (rucPodaci != null)
 {
-    <h6 class="mb-3 mt-4">Performanse u tekućoj godini</h6>
+    <h6 class="mb-3 mt-4">
+        Performanse u poslednjih 30 dana
+    </h6>
+
+
     <div class="row g-3 mb-3">
+
+        <!-- PROMET -->
+
         <div class="col-md-3">
+
             <div class="metric-card">
-                <div class="metric-label">Promet</div>
-                <div class="metric-value" style="font-size:20px;">@rucPodaci.Promet.ToString("N0") RSD</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="metric-card">
-                <div class="metric-label">RUC12</div>
-                <div class="metric-value" style="font-size:20px;">@rucPodaci.RUC12.ToString("N0") RSD</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="metric-card">
-                <div class="metric-label">Marža (RUC12%)</div>
-                <div class="metric-value" style="font-size:20px;">@((rucPodaci.RUC12Procenat * 100m).ToString("0.0"))%</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="metric-card">
-                <div class="metric-label">Nedostatak margine</div>
-                <div class="metric-value" style="font-size:20px; color:@(rucPodaci.NedostatakMargine > 0 ? "#C1443B" : "#2E7D5B")">
-                    @rucPodaci.NedostatakMargine.ToString("N0") RSD
+
+                <div class="metric-label">
+                    Promet
                 </div>
+
+                <div class="metric-value"
+                     style="font-size:20px;">
+
+                    @rucPodaci.Promet.ToString("N0") RSD
+
+                </div>
+
             </div>
+
         </div>
+
+
+        <!-- RUC12 -->
+
+        <div class="col-md-3">
+
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    RUC12
+                </div>
+
+                <div class="metric-value"
+                     style="font-size:20px;">
+
+                    @rucPodaci.RUC12.ToString("N0") RSD
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RUC12 % -->
+
+        <div class="col-md-3">
+
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    Marža (RUC12%)
+                </div>
+
+                <div class="metric-value"
+                     style="font-size:20px;">
+
+                    @(
+                        (rucPodaci.RUC12Procenat * 100m)
+                        .ToString("0.0")
+                    )%
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- NEDOSTATAK MARGINE -->
+
+        <div class="col-md-3">
+
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    Nedostatak margine
+                </div>
+
+                <div class="metric-value"
+                     style="
+                    font-size:20px;
+                    color:@(
+                     rucPodaci.NedostatakMargine < 0
+                         ? "#C1443B"
+                         : "#2E7D5B"
+                                         );">
+
+                    @rucPodaci.NedostatakMargine.ToString("N0") RSD
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 }
 else
 {
     <div class="metric-card mb-3">
-        <div class="text-secondary small">Nema podataka o performansama za ovaj artikal u tekućoj godini.</div>
+
+        <div class="text-secondary small">
+
+            Nema podataka o performansama za ovaj artikal
+            u poslednjih 30 dana.
+
+        </div>
+
     </div>
 }
 
+
+<!-- =========================================
+     ISTORIJA CENA
+     ========================================= -->
+
 <div class="metric-card">
-    <div class="text-secondary small">
-        Istorija cena trenutno nije dostupna — potrebna je posebna tabela u bazi koja beleži datum i iznos svake promene cene.
+
+    <div class="metric-label mb-2">
+        Istorija cena
     </div>
+
+    <div class="text-secondary small">
+
+        Istorija cena trenutno nije dostupna.
+        Potrebna je posebna tabela u bazi koja beleži
+        datum i iznos svake promene cene.
+
+    </div>
+
 </div>

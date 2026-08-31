@@ -1,48 +1,111 @@
 ﻿@model GomexPraksaMVC.Models.LoginViewModel
+
 @{
     ViewData["Title"] = "Prijava";
     Layout = "_LoginLayout";
 }
 
 <div class="login-wrapper">
+
     <div class="login-card">
+
         <div class="login-brand">
-            <div class="brand-title">GOMEX</div>
-            <div class="brand-sub">ANALITIKA</div>
+            <div class="brand-title">
+                GOMEX
+            </div>
+
+            <div class="brand-sub">
+                ANALITIKA
+            </div>
         </div>
 
-        <h5 class="mb-1">Prijava</h5>
-        <p class="text-secondary small mb-4">Unesite podatke da pristupite dashboard-u</p>
+        <div class="login-heading">
 
-        <form asp-controller="Account" asp-action="Login" method="post">
-            <input type="hidden" asp-for="ReturnUrl" />
+            <h2>
+                Prijava
+            </h2>
 
-            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+            <p>
+                Pristup komercijalnom analitičkom portalu
+            </p>
 
-            <div class="mb-3">
-                <label asp-for="UserName" class="form-label small"></label>
-                <input asp-for="UserName" class="form-control" autocomplete="username" autofocus />
-                <span asp-validation-for="UserName" class="text-danger small"></span>
+        </div>
+
+        <form asp-controller="Account"
+              asp-action="Login"
+              method="post">
+
+            <input type="hidden"
+                   asp-for="ReturnUrl" />
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger">
             </div>
 
             <div class="mb-3">
-                <label asp-for="Password" class="form-label small"></label>
-                <input asp-for="Password" class="form-control" autocomplete="current-password" />
-                <span asp-validation-for="Password" class="text-danger small"></span>
+
+                <label asp-for="UserName"
+                       class="form-label">
+                </label>
+
+                <input asp-for="UserName"
+                       class="form-control"
+                       autocomplete="username"
+                       placeholder="Unesite korisničko ime"
+                       autofocus />
+
+                <span asp-validation-for="UserName"
+                      class="text-danger">
+                </span>
+
             </div>
 
-            <div class="mb-4 form-check">
-                <input asp-for="RememberMe" class="form-check-input" />
-                <label asp-for="RememberMe" class="form-check-label small"></label>
+            <div class="mb-3">
+
+                <label asp-for="Password"
+                       class="form-label">
+                </label>
+
+                <input asp-for="Password"
+                       class="form-control"
+                       autocomplete="current-password"
+                       placeholder="Unesite lozinku" />
+
+                <span asp-validation-for="Password"
+                      class="text-danger">
+                </span>
+
             </div>
 
-            <button type="submit" class="btn w-100" color:#fff;">
+            <div class="login-options">
+
+                <div class="form-check">
+
+                    <input asp-for="RememberMe"
+                           class="form-check-input" />
+
+                    <label asp-for="RememberMe"
+                           class="form-check-label">
+                    </label>
+
+                </div>
+
+            </div>
+
+            <button type="submit"
+                    class="btn login-button">
+
                 Prijavi se
+
             </button>
+
         </form>
+
     </div>
+
 </div>
 
-@section Scripts {
+@section Scripts
+{
     <partial name="_ValidationScriptsPartial" />
 }

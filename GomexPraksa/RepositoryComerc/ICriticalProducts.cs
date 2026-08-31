@@ -6,6 +6,7 @@ namespace GomexPraksa.RepositoryComerc
     public interface ICriticalProducts
     {
         Task<IEnumerable<CriticalProductsDTO>> CriticalProductsTop5(
+            DashboardFilterDTO filter,
             DateOnly datumOd,
             DateOnly datumDo,
             bool CanAllViewCategories,

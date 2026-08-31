@@ -68,15 +68,11 @@ namespace GomexPraksa.Controllers
         }
         [HttpGet("criticalProductsTop")]
         public async Task<ActionResult<IEnumerable<CriticalProductsDTO>>> Top5CriticalProducts(
-            DateOnly datumOd,
-            DateOnly datumDo
-            )
+    [FromQuery] DashboardFilterDTO filter)
         {
-            var proizvodi = await _productsService.CriticalProductsTop(datumOd, datumDo);
-            if (proizvodi is null)
-            {
-                return BadRequest();
-            }
+            var proizvodi =
+                await _productsService.CriticalProductsTop(filter);
+
             return Ok(proizvodi);
         }
         [HttpGet("CriticalPage")]

@@ -54,48 +54,6 @@
             </select>
         </div>
 
-        <div class="filter-group">
-            <label>Odeljenje</label>
-
-            <select class="form-select"
-                    name="odeljenjeId">
-
-                <option value="">
-                    Sva odeljenja
-                </option>
-
-                @foreach (var o in Model.Odeljenja)
-                {
-                    <option value="@o.OdeljenjeId"
-                            selected="@(Model.SelectedOdeljenjeId == o.OdeljenjeId ? "selected" : null)">
-                        @o.Naziv
-                    </option>
-                }
-
-            </select>
-        </div>
-
-        <div class="filter-group">
-            <label>Kategorija</label>
-
-            <select class="form-select"
-                    name="kategorijaId">
-
-                <option value="">
-                    Sve kategorije
-                </option>
-
-                @foreach (var k in Model.Kategorije)
-                {
-                    <option value="@k.KategorijaId"
-                            selected="@(Model.SelectedKategorijaId == k.KategorijaId ? "selected" : null)">
-                        @k.Naziv
-                    </option>
-                }
-
-            </select>
-        </div>
-
         <div class="filter-group align-self-end d-flex">
 
             <button type="submit"
@@ -207,8 +165,6 @@
                        asp-route-naziv="@Model.Naziv"
                        asp-route-dobavljacId="@Model.SelectedDobavljacId"
                        asp-route-robnaGrupaId="@Model.SelectedRobnaGrupaId"
-                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
-                       asp-route-kategorijaId="@Model.SelectedKategorijaId"
                        class="btn btn-sm btn-outline-secondary">
 
                         Prethodna
@@ -225,8 +181,6 @@
                        asp-route-naziv="@Model.Naziv"
                        asp-route-dobavljacId="@Model.SelectedDobavljacId"
                        asp-route-robnaGrupaId="@Model.SelectedRobnaGrupaId"
-                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
-                       asp-route-kategorijaId="@Model.SelectedKategorijaId"
                        class="btn btn-sm btn-outline-primary">
 
                         Sledeća

@@ -3,14 +3,11 @@ using Models.DtosComerc;
 
 namespace GomexPraksa.ServicesComerc;
 
-    public interface ICriticalProductsService
-    {
+public interface ICriticalProductsService
+{
     Task<IEnumerable<CriticalProductsDTO>> CriticalProductsTop(
-    DateOnly datumOd,
-    DateOnly datumDo);
+        DashboardFilterDTO filter);
 
     Task<IEnumerable<CriticalProductsPageDTO>> CriticalProductsPage(
         FilterSharedPages filter);
-    
 }
-

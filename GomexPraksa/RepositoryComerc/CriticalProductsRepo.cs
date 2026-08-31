@@ -15,13 +15,13 @@ namespace GomexPraksa.RepositoryComerc
             _connection = connection;
         }
 
-
         // =============================================
         // TOP 5 KRITICNIH ARTIKALA
         // =============================================
 
         public async Task<IEnumerable<CriticalProductsDTO>>
             CriticalProductsTop5(
+                DashboardFilterDTO filter,
                 DateOnly datumOd,
                 DateOnly datumDo,
                 bool canViewAllCategories,
@@ -48,9 +48,13 @@ namespace GomexPraksa.RepositoryComerc
                     INNER JOIN dbo.Artikal a
                         ON a.ArtikalId = kr.ArtikalId
 
-                    LEFT JOIN dbo.RobnaGrupa rg
+                    INNER JOIN dbo.RobnaGrupa rg
                         ON rg.RobnaGrupaId =
                            a.RobnaGrupaId
+
+                    INNER JOIN dbo.Kategorija k
+                        ON k.KategorijaId =
+                           rg.KategorijaId
 
                     WHERE
                         kr.DatumRezultata >= @DatumOd
@@ -62,12 +66,41 @@ namespace GomexPraksa.RepositoryComerc
                                 @DatumDo
                             )
 
+                        AND a.Aktivan = 1
+
+                        AND
+                        (
+                            @OdeljenjeId IS NULL
+                            OR k.OdeljenjeId =
+                               @OdeljenjeId
+                        )
+
+                        AND
+                        (
+                            @KategorijaId IS NULL
+                            OR k.KategorijaId =
+                               @KategorijaId
+                        )
+
+                        AND
+                        (
+                            @DobavljacId IS NULL
+                            OR a.DobavljacId =
+                               @DobavljacId
+                        )
+
+                        AND
+                        (
+                            @TipProdajeId IS NULL
+                            OR kr.TipProdajeId =
+                               @TipProdajeId
+                        )
+
                         AND
                         (
                             @CanViewAllCategories = 1
-
-                            OR rg.KategorijaId
-                                IN @KategorijaIds
+                            OR k.KategorijaId
+                               IN @KategorijaIds
                         )
 
                     GROUP BY
@@ -100,36 +133,26 @@ namespace GomexPraksa.RepositoryComerc
                     k.Naziv
                         AS Kategorija,
 
-
                     CASE
                         WHEN
                             ABS(kr.Ruc12) >= 5000
-
                             OR
-
                             ABS(
                                 kr.NedostatakMargine
                             ) >= 5000
-
                             THEN 'Visok'
-
 
                         WHEN
                             ABS(kr.Ruc12) >= 2000
-
                             OR
-
                             ABS(
                                 kr.NedostatakMargine
                             ) >= 2000
-
                             THEN 'Srednji'
 
-
                         ELSE 'Nizak'
-
-                    END AS Severnost,
-
+                    END
+                        AS Severnost,
 
                     (
                         CASE
@@ -137,17 +160,14 @@ namespace GomexPraksa.RepositoryComerc
                                 THEN kr.Ruc12
                             ELSE 0
                         END
-
                         +
-
                         CASE
                             WHEN kr.NedostatakMargine < 0
                                 THEN kr.NedostatakMargine
                             ELSE 0
                         END
-
-                    ) AS ProcenjeniUticaj
-
+                    )
+                        AS ProcenjeniUticaj
 
                 FROM Kriticni kr
 
@@ -155,23 +175,20 @@ namespace GomexPraksa.RepositoryComerc
                     ON a.ArtikalId =
                        kr.ArtikalId
 
-                LEFT JOIN dbo.RobnaGrupa rg
+                INNER JOIN dbo.RobnaGrupa rg
                     ON rg.RobnaGrupaId =
                        a.RobnaGrupaId
 
-                LEFT JOIN dbo.Kategorija k
+                INNER JOIN dbo.Kategorija k
                     ON k.KategorijaId =
                        rg.KategorijaId
-
 
                 ORDER BY
                     ProcenjeniUticaj ASC;
                 """;
 
-
             using var connection =
                 _connection.CreateConnection();
-
 
             return await connection
                 .QueryAsync<CriticalProductsDTO>(
@@ -180,13 +197,19 @@ namespace GomexPraksa.RepositoryComerc
                     {
                         DatumOd =
                             datumOd.ToDateTime(
-                                TimeOnly.MinValue
-                            ),
+                                TimeOnly.MinValue),
 
                         DatumDo =
                             datumDo.ToDateTime(
-                                TimeOnly.MinValue
-                            ),
+                                TimeOnly.MinValue),
+
+                        filter.OdeljenjeId,
+
+                        filter.KategorijaId,
+
+                        filter.DobavljacId,
+
+                        filter.TipProdajeId,
 
                         CanViewAllCategories =
                             canViewAllCategories,
@@ -196,7 +219,6 @@ namespace GomexPraksa.RepositoryComerc
                     }
                 );
         }
-
 
         // =============================================
         // STRANICA SVIH KRITICNIH ARTIKALA
@@ -219,20 +241,15 @@ namespace GomexPraksa.RepositoryComerc
                     d.Naziv
                         AS Dobavljac,
 
-
                     SUM(kr.MPBezPDV)
                         AS Promet,
-
 
                     SUM(kr.RUC12)
                         AS RUC12,
 
-
                     CASE
-                        WHEN
-                            SUM(kr.MPBezPDV) = 0
+                        WHEN SUM(kr.MPBezPDV) = 0
                             THEN 0
-
                         ELSE
                             CAST(
                                 SUM(kr.RUC12)
@@ -243,9 +260,8 @@ namespace GomexPraksa.RepositoryComerc
                                 SUM(kr.MPBezPDV),
                                 0
                             )
-
-                    END AS RUC12Procenat,
-
+                    END
+                        AS RUC12Procenat,
 
                     SUM(
                         COALESCE(
@@ -260,7 +276,6 @@ namespace GomexPraksa.RepositoryComerc
                     )
                         AS NedostatakMargine
 
-
                 FROM dbo.KomercijalniRezultat kr
 
                 INNER JOIN dbo.Artikal ar
@@ -271,14 +286,13 @@ namespace GomexPraksa.RepositoryComerc
                     ON ar.DobavljacId =
                        d.DobavljacId
 
-                LEFT JOIN dbo.RobnaGrupa rg
+                INNER JOIN dbo.RobnaGrupa rg
                     ON ar.RobnaGrupaId =
                        rg.RobnaGrupaId
 
-                LEFT JOIN dbo.Kategorija k
+                INNER JOIN dbo.Kategorija k
                     ON rg.KategorijaId =
                        k.KategorijaId
-
 
                 WHERE
                     kr.DatumRezultata >=
@@ -291,58 +305,48 @@ namespace GomexPraksa.RepositoryComerc
                             @DatumDo
                         )
 
+                    AND ar.Aktivan = 1
 
                     AND
                     (
                         @OdeljenjeId IS NULL
-
                         OR k.OdeljenjeId =
                            @OdeljenjeId
                     )
 
-
                     AND
                     (
                         @KategorijaId IS NULL
-
                         OR k.KategorijaId =
                            @KategorijaId
                     )
 
-
                     AND
                     (
                         @DobavljacId IS NULL
-
                         OR ar.DobavljacId =
                            @DobavljacId
                     )
 
-
                     AND
                     (
                         @TipProdajeId IS NULL
-
                         OR kr.TipProdajeId =
                            @TipProdajeId
                     )
 
-
                     AND
                     (
                         @CanViewAllCategories = 1
-
                         OR k.KategorijaId
-                            IN @KategorijaIds
+                           IN @KategorijaIds
                     )
-
 
                 GROUP BY
                     ar.ArtikalId,
                     ar.Sifra,
                     ar.Naziv,
                     d.Naziv
-
 
                 HAVING
                     SUM(kr.RUC12) <= 0
@@ -361,7 +365,6 @@ namespace GomexPraksa.RepositoryComerc
                         )
                     ) < 0
 
-
                 ORDER BY
                     SUM(
                         COALESCE(
@@ -376,10 +379,8 @@ namespace GomexPraksa.RepositoryComerc
                     ) ASC;
                 """;
 
-
             using var connection =
                 _connection.CreateConnection();
-
 
             return await connection
                 .QueryAsync<CriticalProductsPageDTO>(
@@ -388,19 +389,11 @@ namespace GomexPraksa.RepositoryComerc
                     {
                         DatumOd =
                             filter.DatumOd.ToDateTime(
-                                TimeOnly.MinValue
-                            ),
+                                TimeOnly.MinValue),
 
                         DatumDo =
                             filter.DatumDo.ToDateTime(
-                                TimeOnly.MinValue
-                            ),
-
-                        CanViewAllCategories =
-                            canViewAllCategories,
-
-                        KategorijaIds =
-                            kategorijaIds,
+                                TimeOnly.MinValue),
 
                         filter.OdeljenjeId,
 
@@ -408,7 +401,13 @@ namespace GomexPraksa.RepositoryComerc
 
                         filter.DobavljacId,
 
-                        filter.TipProdajeId
+                        filter.TipProdajeId,
+
+                        CanViewAllCategories =
+                            canViewAllCategories,
+
+                        KategorijaIds =
+                            kategorijaIds
                     }
                 );
         }
