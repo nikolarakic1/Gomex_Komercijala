@@ -185,76 +185,139 @@ namespace GomexPraksa.Repository
                 );
         }
 
-        public async Task<IEnumerable<Artikal>> SearchAsync(
-            string? naziv,
-            int? dobavljacId,
-            int? robnaGrupaId,
-            bool? aktivan,
-            bool canViewAllCategories,
-            List<int> kategorijaIds)
+        public async Task<PaginationGeneric<Artikal>> SearchAsync(
+    string? naziv,
+    int? dobavljacId,
+    int? robnaGrupaId,
+    bool? aktivan,
+    bool canViewAllCategories,
+    List<int> kategorijaIds,
+    PaginationParams paginationArtikli)
         {
             const string sql = """
-                SELECT
-                    a.ArtikalId,
-                    a.Sifra,
-                    a.Naziv,
-                    a.DobavljacId,
-                    a.RobnaGrupaId,
-                    a.Aktivan,
-                    a.RedovnaCena
-                FROM dbo.Artikal a
+        SELECT
+            a.ArtikalId,
+            a.Sifra,
+            a.Naziv,
+            a.DobavljacId,
+            a.RobnaGrupaId,
+            a.Aktivan,
+            a.RedovnaCena
+        FROM dbo.Artikal a
 
-                INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
 
-                WHERE
-                    (@Naziv IS NULL
-                        OR a.Naziv LIKE '%' + @Naziv + '%')
+        WHERE
+            (@Naziv IS NULL
+                OR a.Naziv LIKE '%' + @Naziv + '%')
 
-                    AND
-                    (@DobavljacId IS NULL
-                        OR a.DobavljacId = @DobavljacId)
+            AND
+            (@DobavljacId IS NULL
+                OR a.DobavljacId = @DobavljacId)
 
-                    AND
-                    (@RobnaGrupaId IS NULL
-                        OR a.RobnaGrupaId = @RobnaGrupaId)
+            AND
+            (@RobnaGrupaId IS NULL
+                OR a.RobnaGrupaId = @RobnaGrupaId)
 
-                    AND
-                    (@Aktivan IS NULL
-                        OR a.Aktivan = @Aktivan)
+            AND
+            (@Aktivan IS NULL
+                OR a.Aktivan = @Aktivan)
 
-                    AND
-                    (
-                        @CanViewAllCategories = 1
-                        OR rg.KategorijaId IN @KategorijaIds
-                    )
+            AND
+            (
+                @CanViewAllCategories = 1
+                OR rg.KategorijaId IN @KategorijaIds
+            )
 
-                ORDER BY a.Naziv;
-                """;
+        ORDER BY a.Naziv
+
+        OFFSET @Offset ROWS
+        FETCH NEXT @PageSize ROWS ONLY;
+
+
+        SELECT COUNT(*)
+        FROM dbo.Artikal a
+
+        INNER JOIN dbo.RobnaGrupa rg
+            ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+        WHERE
+            (@Naziv IS NULL
+                OR a.Naziv LIKE '%' + @Naziv + '%')
+
+            AND
+            (@DobavljacId IS NULL
+                OR a.DobavljacId = @DobavljacId)
+
+            AND
+            (@RobnaGrupaId IS NULL
+                OR a.RobnaGrupaId = @RobnaGrupaId)
+
+            AND
+            (@Aktivan IS NULL
+                OR a.Aktivan = @Aktivan)
+
+            AND
+            (
+                @CanViewAllCategories = 1
+                OR rg.KategorijaId IN @KategorijaIds
+            );
+        """;
 
             using var connection =
                 _connFactory.CreateConnection();
 
-            return await connection.QueryAsync<Artikal>(
-                sql,
-                new
-                {
-                    Naziv =
-                        string.IsNullOrWhiteSpace(naziv)
-                            ? null
-                            : naziv.Trim(),
+            var offset =
+                (paginationArtikli.Page - 1)
+                * paginationArtikli.PageSize;
 
-                    DobavljacId = dobavljacId,
-                    RobnaGrupaId = robnaGrupaId,
-                    Aktivan = aktivan,
+            var parametri = new
+            {
+                Naziv =
+                    string.IsNullOrWhiteSpace(naziv)
+                        ? null
+                        : naziv.Trim(),
 
-                    CanViewAllCategories =
-                        canViewAllCategories,
+                DobavljacId = dobavljacId,
 
-                    KategorijaIds =
-                        kategorijaIds
-                }
-            );
+                RobnaGrupaId = robnaGrupaId,
+
+                Aktivan = aktivan,
+
+                CanViewAllCategories =
+                    canViewAllCategories,
+
+                KategorijaIds =
+                    kategorijaIds,
+
+                Offset =
+                    offset,
+
+                PageSize =
+                    paginationArtikli.PageSize
+            };
+
+            using var result =
+                await connection.QueryMultipleAsync(
+                    sql,
+                    parametri
+                );
+
+            var artikli =
+                (await result.ReadAsync<Artikal>())
+                .ToList();
+
+            var totalCount =
+                await result.ReadSingleAsync<int>();
+
+            return new PaginationGeneric<Artikal>
+            {
+                Items = artikli,
+                Page = paginationArtikli.Page,
+                PageSize = paginationArtikli.PageSize,
+                TotalCount = totalCount
+            };
         }
     }
 }

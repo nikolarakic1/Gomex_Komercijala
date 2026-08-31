@@ -14,7 +14,9 @@ public class DashboardRepo : IDashboardRepo
     }
 
     public async Task<DashboardSummaryDTO> FillCardsAsync(
-        DashboardFilterDTO filterDTO, bool isAllCategoriesVisibile, List<int> KategorijaIds)
+        DashboardFilterDTO filterDTO,
+        bool canViewAllCategories,
+        List<int> kategorijaIds)
     {
         ArgumentNullException.ThrowIfNull(filterDTO);
 
@@ -47,6 +49,7 @@ public class DashboardRepo : IDashboardRepo
                 "DatumOd ne može biti posle DatumDo.");
         }
 
+        // Prethodni period ima isti broj dana kao trenutni period.
         int brojDana =
             datumDo.DayNumber - datumOd.DayNumber + 1;
 
@@ -65,54 +68,63 @@ public class DashboardRepo : IDashboardRepo
                     kr.DatumUnosa,
                     kr.MPBezPDV,
                     kr.RUC12,
-                    kr.NedostatakMargine
+                    COALESCE(kr.MarginEffect, 0) AS MarginEffect,
+                    COALESCE(kr.MixEffect, 0) AS MixEffect
                 FROM dbo.KomercijalniRezultat kr
-
                 INNER JOIN dbo.Artikal a
                     ON a.ArtikalId = kr.ArtikalId
-
                 LEFT JOIN dbo.RobnaGrupa rg
                     ON rg.RobnaGrupaId = a.RobnaGrupaId
-
                 LEFT JOIN dbo.Kategorija k
                     ON k.KategorijaId = rg.KategorijaId
+                WHERE
+                    kr.DatumRezultata >= @PrethodniDatumOd
+                    AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
 
-                WHERE kr.DatumRezultata >= @PrethodniDatumOd
-                  AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+                    -- Filter po odeljenju.
+                    AND
+                    (
+                        @OdeljenjeId IS NULL
+                        OR k.OdeljenjeId = @OdeljenjeId
+                    )
 
-                  AND (
-                      @OdeljenjeId IS NULL
-                      OR k.OdeljenjeId = @OdeljenjeId
-                  )
+                    -- Filter po kategoriji.
+                    AND
+                    (
+                        @KategorijaId IS NULL
+                        OR k.KategorijaId = @KategorijaId
+                    )
 
-                  AND (
-                      @KategorijaId IS NULL
-                      OR k.KategorijaId = @KategorijaId
-                  )
-                  AND
-                  (
-                @CanViewAllCategories = 1
-                OR k.KategorijaId IN @KategorijaIds
-                  )
+                    -- Menadzer vidi svoje kategorije, sef vidi sve.
+                    AND
+                    (
+                        @CanViewAllCategories = 1
+                        OR k.KategorijaId IN @KategorijaIds
+                    )
 
-                  AND (
-                      @DobavljacId IS NULL
-                      OR a.DobavljacId = @DobavljacId
-                  )
+                    -- Filter po dobavljacu.
+                    AND
+                    (
+                        @DobavljacId IS NULL
+                        OR a.DobavljacId = @DobavljacId
+                    )
 
-                  AND (
-                      @TipProdajeId IS NULL
-                      OR kr.TipProdajeId = @TipProdajeId
-                  )
+                    -- Filter po tipu prodaje.
+                    AND
+                    (
+                        @TipProdajeId IS NULL
+                        OR kr.TipProdajeId = @TipProdajeId
+                    )
 
-                  AND a.Aktivan = 1
+                    -- Dashboard koristi samo aktivne artikle.
+                    AND a.Aktivan = 1
             ),
-
             PoArtiklu AS
             (
                 SELECT
                     ArtikalId,
 
+                    -- Promet u trenutnom periodu.
                     COALESCE(
                         SUM(
                             CASE
@@ -125,6 +137,7 @@ public class DashboardRepo : IDashboardRepo
                         0
                     ) AS TrenutniPromet,
 
+                    -- RUC12 u trenutnom periodu.
                     COALESCE(
                         SUM(
                             CASE
@@ -137,18 +150,20 @@ public class DashboardRepo : IDashboardRepo
                         0
                     ) AS TrenutniRuc,
 
+                    -- Nedostatak margine = MarginEffect + MixEffect.
                     COALESCE(
                         SUM(
                             CASE
                                 WHEN DatumRezultata >= @DatumOd
                                  AND DatumRezultata < DATEADD(DAY, 1, @DatumDo)
-                                THEN NedostatakMargine
+                                THEN MarginEffect + MixEffect
                                 ELSE 0
                             END
                         ),
                         0
                     ) AS TrenutniNedostatak,
 
+                    -- Promet u prethodnom periodu.
                     COALESCE(
                         SUM(
                             CASE
@@ -161,6 +176,7 @@ public class DashboardRepo : IDashboardRepo
                         0
                     ) AS PrethodniPromet,
 
+                    -- RUC12 u prethodnom periodu.
                     COALESCE(
                         SUM(
                             CASE
@@ -173,23 +189,21 @@ public class DashboardRepo : IDashboardRepo
                         0
                     ) AS PrethodniRuc,
 
+                    -- Nedostatak margine u prethodnom periodu.
                     COALESCE(
                         SUM(
                             CASE
                                 WHEN DatumRezultata >= @PrethodniDatumOd
                                  AND DatumRezultata < DATEADD(DAY, 1, @PrethodniDatumDo)
-                                THEN NedostatakMargine
+                                THEN MarginEffect + MixEffect
                                 ELSE 0
                             END
                         ),
                         0
                     ) AS PrethodniNedostatak
-
                 FROM Podaci
-
                 GROUP BY ArtikalId
             ),
-
             Ukupno AS
             (
                 SELECT
@@ -202,11 +216,13 @@ public class DashboardRepo : IDashboardRepo
                     COALESCE(SUM(TrenutniNedostatak), 0)
                         AS TrenutniNedostatak,
 
+                    -- Kritican artikal:
+                    -- RUC12 <= 0 ili nedostatak margine < 0.
                     COALESCE(
                         SUM(
                             CASE
                                 WHEN TrenutniRuc <= 0
-                                  OR TrenutniNedostatak > 0
+                                  OR TrenutniNedostatak < 0
                                 THEN 1
                                 ELSE 0
                             END
@@ -227,20 +243,21 @@ public class DashboardRepo : IDashboardRepo
                         SUM(
                             CASE
                                 WHEN PrethodniRuc <= 0
-                                  OR PrethodniNedostatak > 0
+                                  OR PrethodniNedostatak < 0
                                 THEN 1
                                 ELSE 0
                             END
                         ),
                         0
                     ) AS PrethodniKriticni
-
                 FROM PoArtiklu
             )
-
             SELECT
+                -- Ukupan promet bez PDV-a.
                 TrenutniPromet AS PrometBezPdv,
 
+                -- Promena prometa:
+                -- (trenutni - prethodni) / prethodni.
                 CAST(
                     CASE
                         WHEN PrethodniPromet = 0 THEN 0
@@ -254,8 +271,11 @@ public class DashboardRepo : IDashboardRepo
                     AS DECIMAL(18, 4)
                 ) AS PrometPromenaProcenat,
 
+                -- Apsolutni RUC12.
                 TrenutniRuc AS Ruc12,
 
+                -- Procentualna promena RUC12:
+                -- (trenutni - prethodni) / prethodni.
                 CAST(
                     CASE
                         WHEN PrethodniRuc = 0 THEN 0
@@ -269,6 +289,7 @@ public class DashboardRepo : IDashboardRepo
                     AS DECIMAL(18, 4)
                 ) AS Ruc12PromenaProcenat,
 
+                -- RUC12% = RUC12 / promet bez PDV-a.
                 CAST(
                     CASE
                         WHEN TrenutniPromet = 0 THEN 0
@@ -282,6 +303,8 @@ public class DashboardRepo : IDashboardRepo
                     AS DECIMAL(18, 4)
                 ) AS Ruc12Procenat,
 
+                -- Promena RUC12% u procentnim poenima:
+                -- trenutni RUC12% - prethodni RUC12%.
                 CAST(
                     (
                         CASE
@@ -309,15 +332,19 @@ public class DashboardRepo : IDashboardRepo
                     AS DECIMAL(18, 4)
                 ) AS Ruc12PromenaProcentniPoeni,
 
+                -- Broj kriticnih artikala u trenutnom periodu.
                 TrenutniKriticni AS KriticniArtikli,
 
+                -- Razlika broja kriticnih artikala.
                 TrenutniKriticni
                 - PrethodniKriticni
                     AS KriticniArtikliPromena,
 
+                -- Ukupan nedostatak margine.
                 TrenutniNedostatak
                     AS NedostatakMarze,
 
+                -- Procentualna promena nedostatka margine.
                 CAST(
                     CASE
                         WHEN PrethodniNedostatak = 0 THEN 0
@@ -327,16 +354,23 @@ public class DashboardRepo : IDashboardRepo
                                 - PrethodniNedostatak
                                 AS DECIMAL(28, 6)
                             )
-                            / NULLIF(PrethodniNedostatak, 0)
+                            / NULLIF(
+                                ABS(PrethodniNedostatak),
+                                0
+                            )
                     END
                     AS DECIMAL(18, 4)
                 ) AS NedostatakMarzePromenaProcenat,
 
+                -- Poslednje vreme unosa podataka
+                -- za trenutni period.
                 (
                     SELECT MAX(DatumUnosa)
                     FROM Podaci
-                    WHERE DatumRezultata >= @DatumOd
-                      AND DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+                    WHERE
+                        DatumRezultata >= @DatumOd
+                        AND DatumRezultata
+                            < DATEADD(DAY, 1, @DatumDo)
                 ) AS PodaciOsvezeni
 
             FROM Ukupno;
@@ -350,30 +384,33 @@ public class DashboardRepo : IDashboardRepo
                 sql,
                 new
                 {
-                    DatumOd = datumOd.ToDateTime(
-        TimeOnly.MinValue),
+                    DatumOd =
+                        datumOd.ToDateTime(
+                            TimeOnly.MinValue),
 
-                    DatumDo = datumDo.ToDateTime(
-        TimeOnly.MinValue),
+                    DatumDo =
+                        datumDo.ToDateTime(
+                            TimeOnly.MinValue),
 
                     PrethodniDatumOd =
-        prethodniDatumOd.ToDateTime(
-            TimeOnly.MinValue),
+                        prethodniDatumOd.ToDateTime(
+                            TimeOnly.MinValue),
 
                     PrethodniDatumDo =
-        prethodniDatumDo.ToDateTime(
-            TimeOnly.MinValue),
+                        prethodniDatumDo.ToDateTime(
+                            TimeOnly.MinValue),
 
                     filterDTO.OdeljenjeId,
                     filterDTO.KategorijaId,
                     filterDTO.DobavljacId,
                     filterDTO.TipProdajeId,
 
-                    CanViewAllCategories = isAllCategoriesVisibile,
-                    KategorijaIds = KategorijaIds
-                });
+                    CanViewAllCategories =
+                        canViewAllCategories,
+
+                    KategorijaIds =
+                        kategorijaIds
+                }
+            );
     }
-
-
-
 }

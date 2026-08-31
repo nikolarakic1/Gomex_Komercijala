@@ -14,127 +14,281 @@ namespace GomexPraksaMVC.Controllers
             _httpFactory = httpFactory;
         }
 
-        public async Task<IActionResult> Index(DateTime? datumOd, DateTime? datumDo, int? odeljenjeId, int? kategorijaId, int? dobavljacId, int? tipProdajeId)
+        public async Task<IActionResult> Index(
+            DateTime? datumOd,
+            DateTime? datumDo,
+            int? odeljenjeId,
+            int? kategorijaId,
+            int? dobavljacId,
+            int? tipProdajeId)
         {
             var client = _httpFactory.CreateClient("GomexApi");
 
-            // normalize date range: default to last 30 days if none provided
-            DateOnly? sd = datumOd.HasValue ? DateOnly.FromDateTime(datumOd.Value) : null;
-            DateOnly? ed = datumDo.HasValue ? DateOnly.FromDateTime(datumDo.Value) : null;
+            // Jedan isti period koristi ceo dashboard.
+            DateOnly datumStart;
+            DateOnly datumEnd;
 
-            if (!sd.HasValue && !ed.HasValue)
+            if (!datumOd.HasValue && !datumDo.HasValue)
             {
-                ed = DateOnly.FromDateTime(DateTime.Today);
-                sd = ed.Value.AddDays(-29); // last 30 days
+                datumEnd = DateOnly.FromDateTime(DateTime.Today);
+                datumStart = new DateOnly(datumEnd.Year, 1, 1);
             }
-            else if (sd.HasValue && !ed.HasValue)
+            else if (datumOd.HasValue && !datumDo.HasValue)
             {
-                ed = DateOnly.FromDateTime(DateTime.Today);
+                datumStart = DateOnly.FromDateTime(datumOd.Value);
+                datumEnd = DateOnly.FromDateTime(DateTime.Today);
             }
-            else if (!sd.HasValue && ed.HasValue)
+            else if (!datumOd.HasValue && datumDo.HasValue)
             {
-                sd = ed.Value.AddDays(-29);
+                datumEnd = DateOnly.FromDateTime(datumDo.Value);
+                datumStart = new DateOnly(datumEnd.Year, 1, 1);
             }
-
-            var queryParts = new List<string>();
-            if (sd.HasValue) queryParts.Add($"datumOd={sd.Value:yyyy-MM-dd}");
-            if (ed.HasValue) queryParts.Add($"datumDo={ed.Value:yyyy-MM-dd}");
-            if (odeljenjeId.HasValue) queryParts.Add($"odeljenjeId={odeljenjeId.Value}");
-            if (kategorijaId.HasValue) queryParts.Add($"kategorijaId={kategorijaId.Value}");
-            if (dobavljacId.HasValue) queryParts.Add($"dobavljacId={dobavljacId.Value}");
-            if (tipProdajeId.HasValue) queryParts.Add($"tipProdajeId={tipProdajeId.Value}");
-
-            var query = queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : string.Empty;
-
-            DashboardViewModel? model = null;
-            try
+            else
             {
-                model = await client.GetFromJsonAsync<DashboardViewModel>($"api/dashboard/summary{query}");
-            }
-            catch
-            {
+                datumStart = DateOnly.FromDateTime(datumOd!.Value);
+                datumEnd = DateOnly.FromDateTime(datumDo!.Value);
             }
 
-            model ??= new DashboardViewModel();
+            if (datumStart > datumEnd)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Datum od ne može biti posle datuma do.");
 
-            try
-            {
-                var dobavljaci = await client.GetFromJsonAsync<List<DobavljacViewItem>>("api/dobavljaci");
-                model.Dobavljaci = dobavljaci ?? new List<DobavljacViewItem>();
-            }
-            catch
-            {
-                model.Dobavljaci = new List<DobavljacViewItem>();
+                datumEnd = DateOnly.FromDateTime(DateTime.Today);
+                datumStart = new DateOnly(datumEnd.Year, 1, 1);
             }
 
-            try
+            var model = new DashboardViewModel
             {
-                var odeljenja = await client.GetFromJsonAsync<List<OdeljenjeViewItem>>("api/odeljenja");
-                model.Odeljenja = odeljenja ?? new List<OdeljenjeViewItem>();
-            }
-            catch
-            {
-                model.Odeljenja = new List<OdeljenjeViewItem>();
-            }
+                DatumOd = datumStart,
+                DatumDo = datumEnd,
+                OdeljenjeId = odeljenjeId,
+                KategorijaId = kategorijaId,
+                SelectedDobavljacId = dobavljacId,
+                TipProdajeId = tipProdajeId
+            };
+
+            // =============================================
+            // DASHBOARD SUMMARY
+            // =============================================
 
             try
             {
-                var kategorije = await client.GetFromJsonAsync<List<KategorijaViewItem>>("api/kategorije");
-                model.Kategorije = kategorije ?? new List<KategorijaViewItem>();
+                var queryParts = new List<string>
+                {
+                    $"datumOd={datumStart:yyyy-MM-dd}",
+                    $"datumDo={datumEnd:yyyy-MM-dd}"
+                };
+
+                if (odeljenjeId.HasValue)
+                    queryParts.Add($"odeljenjeId={odeljenjeId.Value}");
+
+                if (kategorijaId.HasValue)
+                    queryParts.Add($"kategorijaId={kategorijaId.Value}");
+
+                if (dobavljacId.HasValue)
+                    queryParts.Add($"dobavljacId={dobavljacId.Value}");
+
+                if (tipProdajeId.HasValue)
+                    queryParts.Add($"tipProdajeId={tipProdajeId.Value}");
+
+                var query = "?" + string.Join("&", queryParts);
+
+                var summary =
+                    await client.GetFromJsonAsync<DashboardViewModel>(
+                        $"api/dashboard/summary{query}");
+
+                if (summary != null)
+                {
+                    model.PrometBezPdv =
+                        summary.PrometBezPdv;
+
+                    model.PrometPromenaProcenat =
+                        summary.PrometPromenaProcenat;
+
+                    model.Ruc12 =
+                        summary.Ruc12;
+
+                    model.Ruc12PromenaProcenat =
+                        summary.Ruc12PromenaProcenat;
+
+                    model.Ruc12Procenat =
+                        summary.Ruc12Procenat;
+
+                    model.Ruc12PromenaProcentniPoeni =
+                        summary.Ruc12PromenaProcentniPoeni;
+
+                    model.KriticniArtikli =
+                        summary.KriticniArtikli;
+
+                    model.KriticniArtikliPromena =
+                        summary.KriticniArtikliPromena;
+
+                    model.NedostatakMarze =
+                        summary.NedostatakMarze;
+
+                    model.NedostatakMarzePromenaProcenat =
+                        summary.NedostatakMarzePromenaProcenat;
+
+                    model.PodaciOsvezeni =
+                        summary.PodaciOsvezeni;
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                model.Kategorije = new List<KategorijaViewItem>();
+                Console.WriteLine(
+                    $"GRESKA DASHBOARD SUMMARY: {ex.Message}");
             }
+
+            // =============================================
+            // DOBAVLJACI
+            // =============================================
 
             try
             {
-                var kategorije = await client.GetFromJsonAsync<List<KategorijaViewItem>>("api/kategorije");
-                model.Kategorije = kategorije ?? new List<KategorijaViewItem>();
+                model.Dobavljaci =
+                    await client.GetFromJsonAsync<
+                        List<DobavljacViewItem>
+                    >("api/dobavljaci")
+                    ?? new List<DobavljacViewItem>();
             }
-            catch
+            catch (Exception ex)
             {
-                model.Kategorije = new List<KategorijaViewItem>();
+                Console.WriteLine(
+                    $"GRESKA DOBAVLJACI: {ex.Message}");
+
+                model.Dobavljaci =
+                    new List<DobavljacViewItem>();
             }
 
-            if (sd.HasValue) model.DatumOd = sd;
-            if (ed.HasValue) model.DatumDo = ed;
-            model.OdeljenjeId = odeljenjeId;
-            model.KategorijaId = kategorijaId;
-            model.TipProdajeId = tipProdajeId;
-            model.SelectedDobavljacId = dobavljacId;
+            // =============================================
+            // ODELJENJA
+            // =============================================
 
-            // Top5 critical products
             try
             {
-                DateOnly topDatumOd = datumOd.HasValue ? DateOnly.FromDateTime(datumOd.Value) : DateOnly.FromDateTime(DateTime.Today).AddDays(-(DateTime.Today.DayOfYear - 1));
-                DateOnly topDatumDo = datumDo.HasValue ? DateOnly.FromDateTime(datumDo.Value) : DateOnly.FromDateTime(DateTime.Today);
-                var topQuery = $"?datumOd={topDatumOd:yyyy-MM-dd}&datumDo={topDatumDo:yyyy-MM-dd}";
-                var top5 = await client.GetFromJsonAsync<List<CriticalProductViewItem>>($"api/artikli/criticalProductsTop{topQuery}");
-                model.CriticalTop5 = top5 ?? new List<CriticalProductViewItem>();
+                model.Odeljenja =
+                    await client.GetFromJsonAsync<
+                        List<OdeljenjeViewItem>
+                    >("api/odeljenja")
+                    ?? new List<OdeljenjeViewItem>();
             }
-            catch
+            catch (Exception ex)
             {
-                model.CriticalTop5 = new List<CriticalProductViewItem>();
+                Console.WriteLine(
+                    $"GRESKA ODELJENJA: {ex.Message}");
+
+                model.Odeljenja =
+                    new List<OdeljenjeViewItem>();
             }
 
-            // RUC change (waterfall) - call backend RucChangeTracker
+            // =============================================
+            // KATEGORIJE
+            // =============================================
+
             try
             {
-                // compute previous period same as repository logic
-                DateOnly datumStart = datumOd.HasValue ? DateOnly.FromDateTime(datumOd.Value) : DateOnly.FromDateTime(DateTime.Today).AddDays(-(DateTime.Today.DayOfYear - 1));
-                DateOnly datumEnd = datumDo.HasValue ? DateOnly.FromDateTime(datumDo.Value) : DateOnly.FromDateTime(DateTime.Today);
-
-                int daysCount = datumEnd.DayNumber - datumStart.DayNumber + 1;
-                DateOnly prevEnd = datumStart.AddDays(-1);
-                DateOnly prevStart = prevEnd.AddDays(-(daysCount - 1));
-
-                var rucQuery = $"?datumOd={datumStart:yyyy-MM-dd}&datumDo={datumEnd:yyyy-MM-dd}&prethodniDatumOd={prevStart:yyyy-MM-dd}&prethodniDatumDo={prevEnd:yyyy-MM-dd}";
-                var ruc = await client.GetFromJsonAsync<RucChangeViewItem>($"api/RucChangeTracker{rucQuery}");
-                model.RucChange = ruc;
+                model.Kategorije =
+                    await client.GetFromJsonAsync<
+                        List<KategorijaViewItem>
+                    >("api/kategorije")
+                    ?? new List<KategorijaViewItem>();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(
+                    $"GRESKA KATEGORIJE: {ex.Message}");
+
+                model.Kategorije =
+                    new List<KategorijaViewItem>();
+            }
+
+            // =============================================
+            // TIPOVI PRODAJE
+            // =============================================
+
+            try
+            {
+                model.TipoviProdaje =
+                    await client.GetFromJsonAsync<
+                        List<TipProdajeViewItem>
+                    >("api/tipprodaje")
+                    ?? new List<TipProdajeViewItem>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"GRESKA TIPOVI PRODAJE: {ex.Message}");
+
+                model.TipoviProdaje =
+                    new List<TipProdajeViewItem>();
+            }
+
+            // =============================================
+            // TOP 5 KRITICNIH PROIZVODA
+            // =============================================
+
+            try
+            {
+                var topQuery =
+                    $"?datumOd={datumStart:yyyy-MM-dd}" +
+                    $"&datumDo={datumEnd:yyyy-MM-dd}";
+
+                model.CriticalTop5 =
+                    await client.GetFromJsonAsync<
+                        List<CriticalProductViewItem>
+                    >(
+                        $"api/artikli/criticalProductsTop{topQuery}"
+                    )
+                    ?? new List<CriticalProductViewItem>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"GRESKA TOP 5: {ex.Message}");
+
+                model.CriticalTop5 =
+                    new List<CriticalProductViewItem>();
+            }
+
+            // =============================================
+            // RUC CHANGE TRACKER
+            // =============================================
+
+            try
+            {
+                int brojDana =
+                    datumEnd.DayNumber
+                    - datumStart.DayNumber
+                    + 1;
+
+                DateOnly prethodniDatumDo =
+                    datumStart.AddDays(-1);
+
+                DateOnly prethodniDatumOd =
+                    prethodniDatumDo.AddDays(
+                        -(brojDana - 1)
+                    );
+
+                var rucQuery =
+                    $"?datumOd={datumStart:yyyy-MM-dd}" +
+                    $"&datumDo={datumEnd:yyyy-MM-dd}" +
+                    $"&prethodniDatumOd={prethodniDatumOd:yyyy-MM-dd}" +
+                    $"&prethodniDatumDo={prethodniDatumDo:yyyy-MM-dd}";
+
+                model.RucChange =
+                    await client.GetFromJsonAsync<
+                        RucChangeViewItem
+                    >(
+                        $"api/RucChangeTracker{rucQuery}"
+                    );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"GRESKA RUC TRACKER: {ex.Message}");
+
                 model.RucChange = null;
             }
 

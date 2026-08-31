@@ -114,8 +114,9 @@ namespace GomexPraksa.Services
             return MapToDto(artikal);
         }
 
-        public async Task<IEnumerable<ArtikalDto>> SearchAsync(
-    ArtikalFilterDto filter)
+        public async Task<PaginationGeneric<ArtikalDto>> SearchAsync(
+    ArtikalFilterDto filter,
+    PaginationParams pagination)
         {
             ArgumentNullException.ThrowIfNull(filter);
 
@@ -130,16 +131,33 @@ namespace GomexPraksa.Services
                 );
             }
 
-            var artikli = await _artikalRepo.SearchAsync(
-                filter.Naziv,
-                filter.DobavljacId,
-                filter.RobnaGrupaId,
-                filter.Aktivan,
-                access.CanViewAllCategories,
-                access.KategorijaIds
-            );
+            var artikli =
+                await _artikalRepo.SearchAsync(
+                    filter.Naziv,
+                    filter.DobavljacId,
+                    filter.RobnaGrupaId,
+                    filter.Aktivan,
+                    access.CanViewAllCategories,
+                    access.KategorijaIds,
+                    pagination
+                );
 
-            return artikli.Select(MapToDto);
+            return new PaginationGeneric<ArtikalDto>
+            {
+                Items =
+                    artikli.Items
+                        .Select(MapToDto)
+                        .ToList(),
+
+                Page =
+                    artikli.Page,
+
+                PageSize =
+                    artikli.PageSize,
+
+                TotalCount =
+                    artikli.TotalCount
+            };
         }
 
         private static ArtikalDto MapToDto(Artikal artikal)

@@ -15,11 +15,12 @@ public interface IArtikalRepo
 
     Task<Artikal?> GetBySifraAsync(string sifra,bool canViewAllCategories,List<int> kategorijaIds);
 
-    Task<IEnumerable<Artikal>> SearchAsync(
+    Task<PaginationGeneric<Artikal>> SearchAsync(
         string? naziv,
         int? dobavljacId,
         int? robnaGrupaId,
         bool? aktivan,
         bool CanViewAllCategories,
-        List<int> kategorijaIds);
+        List<int> kategorijaIds,
+        PaginationParams paginationArtikli);
 }

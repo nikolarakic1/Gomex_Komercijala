@@ -57,12 +57,59 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
 
             // ==============================
             // ARTIKLI
+            // filter + pagination
             // ==============================
 
             try
             {
+                var queryParts =
+                    new List<string>();
+
+                // pagination
+                queryParts.Add(
+                    $"page={page}"
+                );
+
+                queryParts.Add(
+                    $"pageSize={pageSize}"
+                );
+
+                // filter naziv
+                if (!string.IsNullOrWhiteSpace(naziv))
+                {
+                    queryParts.Add(
+                        $"naziv={Uri.EscapeDataString(naziv)}"
+                    );
+                }
+
+                // filter dobavljac
+                if (dobavljacId.HasValue)
+                {
+                    queryParts.Add(
+                        $"dobavljacId={dobavljacId.Value}"
+                    );
+                }
+
+                // filter robna grupa
+                if (robnaGrupaId.HasValue)
+                {
+                    queryParts.Add(
+                        $"robnaGrupaId={robnaGrupaId.Value}"
+                    );
+                }
+
+                var query =
+                    "?" + string.Join(
+                        "&",
+                        queryParts
+                    );
+
                 var url =
-                    $"api/artikli?page={page}&pageSize={pageSize}";
+                    $"api/artikli/search{query}";
+
+                Console.WriteLine(
+                    $"ARTIKLI URL: {url}"
+                );
 
                 var result =
                     await client.GetFromJsonAsync<
@@ -101,6 +148,11 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
 
                 model.Artikli =
                     new List<ArtikalViewItem>();
+
+                model.TotalCount = 0;
+                model.TotalPages = 0;
+                model.HasPreviousPage = false;
+                model.HasNextPage = false;
             }
 
 

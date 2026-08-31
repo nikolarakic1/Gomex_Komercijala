@@ -11,7 +11,6 @@
     </p>
 </div>
 
-
 <div class="filter-card mb-4">
 
     <form method="get" class="filter-bar">
@@ -24,9 +23,7 @@
                name="pageSize"
                value="@Model.PageSize" />
 
-
         <div class="filter-group">
-
             <label>Naziv</label>
 
             <input type="text"
@@ -34,12 +31,9 @@
                    class="form-control"
                    value="@Model.Naziv"
                    placeholder="Pretraži po nazivu" />
-
         </div>
 
-
         <div class="filter-group">
-
             <label>Dobavljač</label>
 
             <select class="form-select"
@@ -52,25 +46,15 @@
                 @foreach (var d in Model.Dobavljaci)
                 {
                     <option value="@d.DobavljacId"
-                            selected="@(
-                            Model.SelectedDobavljacId
-                            == d.DobavljacId
-                                ? "selected"
-                                : null
-                                            )">
-
+                            selected="@(Model.SelectedDobavljacId == d.DobavljacId ? "selected" : null)">
                         @d.Naziv
-
                     </option>
                 }
 
             </select>
-
         </div>
 
-
         <div class="filter-group">
-
             <label>Odeljenje</label>
 
             <select class="form-select"
@@ -83,25 +67,15 @@
                 @foreach (var o in Model.Odeljenja)
                 {
                     <option value="@o.OdeljenjeId"
-                            selected="@(
-                            Model.SelectedOdeljenjeId
-                            == o.OdeljenjeId
-                                ? "selected"
-                                : null
-                                            )">
-
+                            selected="@(Model.SelectedOdeljenjeId == o.OdeljenjeId ? "selected" : null)">
                         @o.Naziv
-
                     </option>
                 }
 
             </select>
-
         </div>
 
-
         <div class="filter-group">
-
             <label>Kategorija</label>
 
             <select class="form-select"
@@ -114,38 +88,25 @@
                 @foreach (var k in Model.Kategorije)
                 {
                     <option value="@k.KategorijaId"
-                            selected="@(
-                            Model.SelectedKategorijaId
-                            == k.KategorijaId
-                                ? "selected"
-                                : null
-                                            )">
-
+                            selected="@(Model.SelectedKategorijaId == k.KategorijaId ? "selected" : null)">
                         @k.Naziv
-
                     </option>
                 }
 
             </select>
-
         </div>
-
 
         <div class="filter-group align-self-end d-flex">
 
             <button type="submit"
                     class="btn btn-primary">
-
                 Primeni filtere
-
             </button>
 
             <a asp-controller="Artikal"
                asp-action="Index"
                class="btn btn-secondary ms-2">
-
                 Poništi
-
             </a>
 
         </div>
@@ -153,7 +114,6 @@
     </form>
 
 </div>
-
 
 <div class="metric-card">
 
@@ -172,7 +132,6 @@
                 </tr>
             </thead>
 
-
             <tbody>
 
                 @foreach (var a in Model.Artikli)
@@ -188,27 +147,14 @@
                         </td>
 
                         <td>
-                            @(
-                                Model.Dobavljaci
-                                    .FirstOrDefault(
-                                        d =>
-                                            d.DobavljacId
-                                            == a.DobavljacId
-                                    )?.Naziv
-                                ?? ""
-                            )
+                            @(Model.Dobavljaci
+                                .FirstOrDefault(
+                                    d => d.DobavljacId == a.DobavljacId
+                                )?.Naziv ?? "")
                         </td>
 
                         <td>
-                            @(
-                                Model.Kategorije
-                                    .FirstOrDefault(
-                                        k =>
-                                            k.KategorijaId
-                                            == a.RobnaGrupaId
-                                    )?.Naziv
-                                ?? ""
-                            )
+                            @a.RobnaGrupaId
                         </td>
 
                         <td>
@@ -221,9 +167,7 @@
                                asp-action="Detalji"
                                asp-route-sifra="@a.Sifra"
                                class="btn btn-sm btn-outline-secondary">
-
                                 Detalji
-
                             </a>
 
                         </td>
@@ -237,26 +181,20 @@
 
     </div>
 
-
     @if (Model.TotalPages > 0)
     {
         <div class="d-flex justify-content-between align-items-center mt-3">
 
             <div class="text-secondary">
-
                 Strana
                 <strong>@Model.Page</strong>
                 od
                 <strong>@Model.TotalPages</strong>
 
-                ·
-
-                Ukupno
+                · Ukupno
                 <strong>@Model.TotalCount</strong>
                 artikala
-
             </div>
-
 
             <div class="d-flex gap-2">
 
@@ -267,21 +205,16 @@
                        asp-route-page="@(Model.Page - 1)"
                        asp-route-pageSize="@Model.PageSize"
                        asp-route-naziv="@Model.Naziv"
-                       asp-route-dobavljacId="
-                        @Model.SelectedDobavljacId"
-                       asp-route-robnaGrupaId="
-                        @Model.SelectedRobnaGrupaId"
-                       asp-route-odeljenjeId="
-                        @Model.SelectedOdeljenjeId"
-                       asp-route-kategorijaId="
-                        @Model.SelectedKategorijaId"
+                       asp-route-dobavljacId="@Model.SelectedDobavljacId"
+                       asp-route-robnaGrupaId="@Model.SelectedRobnaGrupaId"
+                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
+                       asp-route-kategorijaId="@Model.SelectedKategorijaId"
                        class="btn btn-sm btn-outline-secondary">
 
                         Prethodna
 
                     </a>
                 }
-
 
                 @if (Model.HasNextPage)
                 {
@@ -290,14 +223,10 @@
                        asp-route-page="@(Model.Page + 1)"
                        asp-route-pageSize="@Model.PageSize"
                        asp-route-naziv="@Model.Naziv"
-                       asp-route-dobavljacId="
-                        @Model.SelectedDobavljacId"
-                       asp-route-robnaGrupaId="
-                        @Model.SelectedRobnaGrupaId"
-                       asp-route-odeljenjeId="
-                        @Model.SelectedOdeljenjeId"
-                       asp-route-kategorijaId="
-                        @Model.SelectedKategorijaId"
+                       asp-route-dobavljacId="@Model.SelectedDobavljacId"
+                       asp-route-robnaGrupaId="@Model.SelectedRobnaGrupaId"
+                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
+                       asp-route-kategorijaId="@Model.SelectedKategorijaId"
                        class="btn btn-sm btn-outline-primary">
 
                         Sledeća
@@ -311,7 +240,6 @@
     }
 
 </div>
-
 
 @section Scripts
 {

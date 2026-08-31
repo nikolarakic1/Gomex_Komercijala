@@ -54,11 +54,15 @@ namespace GomexPraksa.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<ArtikalDto>>> Search(
-            [FromQuery] ArtikalFilterDto filter)
+        public async Task<ActionResult<PaginationGeneric<ArtikalDto>>> Search(
+    [FromQuery] ArtikalFilterDto filter,
+    [FromQuery] PaginationParams pagination)
         {
             var artikli =
-                await _artikalService.SearchAsync(filter);
+                await _artikalService.SearchAsync(
+                    filter,
+                    pagination
+                );
 
             return Ok(artikli);
         }

@@ -12,7 +12,8 @@ namespace GomexPraksa.Services
 
         Task<ArtikalDto> GetBySifraAsync(string sifra);
 
-        Task<IEnumerable<ArtikalDto>> SearchAsync(
-            ArtikalFilterDto filter);
+        public Task<PaginationGeneric<ArtikalDto>> SearchAsync(
+    ArtikalFilterDto filter,
+    PaginationParams pagination);
     }
 }
