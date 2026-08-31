@@ -1,16 +1,14 @@
 ﻿using Models.DtosComerc;
-using Models.ModelsDash;
 
-namespace GomexPraksa.RepositoryComerc
+namespace GomexPraksa.RepositoryComerc;
+
+public interface IRucChangeTracker
 {
-    public interface IRucChangeTracker
-    {
-        public Task<RucChangeDTO> CheckInfoForChangesAsync(
-       DateOnly datumOd,
-       DateOnly? datumDo,
-       DateOnly? prethodniDatumOd,
-       DateOnly? prethodniDatumDo,
-       bool CanViewAllCategories,
-       List<int>KategorijaIds);
-    }
+    Task<RucChangeDTO> CheckInfoForChangesAsync(
+        DashboardFilterDTO filter,
+        DateOnly prethodniDatumOd,
+        DateOnly prethodniDatumDo,
+        bool canViewAllCategories,
+        List<int> kategorijaIds
+    );
 }

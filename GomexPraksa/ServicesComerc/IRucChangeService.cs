@@ -4,10 +4,10 @@ namespace GomexPraksa.ServicesComerc
 {
     public interface IRucChangeService
     {
-        public Task<RucChangeDTO> CheckInfoForChangesAsync(
-       DateOnly datumOd,
-       DateOnly? datumDo,
-       DateOnly? prethodniDatumOd,
-       DateOnly? prethodniDatumDo);
+        Task<RucChangeDTO> CheckInfoForChangesAsync(
+            DashboardFilterDTO filter,
+            DateOnly prethodniDatumOd,
+            DateOnly prethodniDatumDo
+        );
     }
 }

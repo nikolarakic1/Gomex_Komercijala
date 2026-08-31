@@ -4,208 +4,550 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="dashboard-header mb-4">
-    <h2 class="mb-1">Dashboard</h2>
-    <p class="text-secondary mb-0">
-        Pregled prodaje, RUC-a i odstupanja
-    </p>
-</div>
+<style>
+    /* =====================================================
+               DASHBOARD PAGE
+               ===================================================== */
 
-<div class="filter-card mb-4">
-    <form method="get" class="filter-bar">
+    .dashboard-page {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
 
-        <div class="filter-group">
-            <label>Datum od</label>
-            <input type="date"
-                   name="datumOd"
-                   class="form-control"
-                   value="@(Model.DatumOd?.ToString("yyyy-MM-dd") ?? string.Empty)" />
-        </div>
+    /* =====================================================
+               HEADER
+               ===================================================== */
 
-        <div class="filter-group">
-            <label>Datum do</label>
-            <input type="date"
-                   name="datumDo"
-                   class="form-control"
-                   value="@(Model.DatumDo?.ToString("yyyy-MM-dd") ?? string.Empty)" />
-        </div>
+    .dashboard-header {
+        margin-bottom: 18px;
+    }
 
-        <div class="filter-group">
-            <label>Odeljenje</label>
+        .dashboard-header h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
 
-            <select class="form-select"
-                    name="odeljenjeId">
+        .dashboard-header p {
+            margin-top: 3px;
+            font-size: 14px;
+        }
 
-                <option value="">
-                    Sva odeljenja
-                </option>
+    /* =====================================================
+               FILTERS
+               ===================================================== */
 
-                @foreach (var od in Model.Odeljenja)
-                {
-                    <option value="@od.OdeljenjeId"
-                            selected="@(Model.OdeljenjeId == od.OdeljenjeId)">
-                        @od.Naziv
-                    </option>
-                }
+    .dashboard-filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+        gap: 12px;
+        align-items: end;
+    }
 
-            </select>
-        </div>
+    .dashboard-filter-item {
+        min-width: 0;
+    }
 
-        <div class="filter-group">
-            <label>Kategorija</label>
+        .dashboard-filter-item label {
+            display: block;
+            margin-bottom: 5px;
+            color: #6B706C;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
 
-            <select class="form-select"
-                    name="kategorijaId">
+        .dashboard-filter-item .form-control,
+        .dashboard-filter-item .form-select {
+            width: 100%;
+            min-height: 40px;
+        }
 
-                <option value="">
-                    Sve kategorije
-                </option>
+    .dashboard-filter-buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
 
-                @foreach (var kategorija in Model.Kategorije)
-                {
-                    <option value="@kategorija.KategorijaId"
-                            selected="@(Model.KategorijaId == kategorija.KategorijaId)">
-                        @kategorija.Naziv
-                    </option>
-                }
+        .dashboard-filter-buttons .btn {
+            min-height: 40px;
+        }
 
-            </select>
-        </div>
+    /* =====================================================
+               KPI GRID
+               ===================================================== */
 
-        <div class="filter-group">
-            <label>Dobavljač</label>
+    .dashboard-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+    }
 
-            <select class="form-select"
-                    name="dobavljacId">
+        .dashboard-kpi-grid .metric-card {
+            min-width: 0;
+            min-height: 125px;
+            padding: 17px;
+            overflow: hidden;
+        }
 
-                <option value="">
-                    Svi dobavljači
-                </option>
+        .dashboard-kpi-grid .metric-label {
+            min-height: 27px;
+            font-size: 10.5px;
+            line-height: 1.25;
+        }
 
-                @foreach (var dobavljac in Model.Dobavljaci)
-                {
-                    <option value="@dobavljac.DobavljacId"
-                            selected="@(Model.SelectedDobavljacId == dobavljac.DobavljacId)">
-                        @dobavljac.Naziv
-                    </option>
-                }
+        .dashboard-kpi-grid .metric-value {
+            margin: 7px 0;
+            font-size: clamp(20px, 1.8vw, 29px);
+            line-height: 1.15;
+            white-space: nowrap;
+        }
 
-            </select>
-        </div>
+        .dashboard-kpi-grid .metric-yoy {
+            font-size: 11px;
+            line-height: 1.3;
+        }
 
-        @if (Model.TipoviProdaje.Any())
-        {
-            <div class="filter-group">
-                <label>Tip prodaje</label>
+    /* =====================================================
+               MAIN GRID
+               ===================================================== */
 
-                <select class="form-select"
-                        name="tipProdajeId">
+    .dashboard-main-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+        .dashboard-main-grid > * {
+            min-width: 0;
+        }
+
+    /* =====================================================
+               CHARTS
+               ===================================================== */
+
+    .dashboard-chart-card {
+        min-width: 0;
+        height: 100%;
+    }
+
+    .dashboard-chart-wrapper {
+        position: relative;
+        width: 100%;
+        height: 280px;
+        min-width: 0;
+    }
+
+        .dashboard-chart-wrapper canvas {
+            display: block;
+            max-width: 100%;
+        }
+
+    /* =====================================================
+               CRITICAL PRODUCTS
+               ===================================================== */
+
+    .critical-card {
+        margin-bottom: 14px;
+    }
+
+    .critical-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+        .critical-table-wrapper table {
+            min-width: 650px;
+        }
+
+    /* =====================================================
+               RESPONSIVE
+               ===================================================== */
+
+    @@media (max-width: 1350px) {
+
+        .dashboard-kpi-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 1000px) {
+
+        .dashboard-kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .dashboard-main-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 650px) {
+
+        .dashboard-kpi-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-filters {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-filter-buttons {
+            flex-wrap: wrap;
+        }
+
+        .dashboard-chart-wrapper {
+            height: 230px;
+        }
+    }
+</style>
+
+
+<div class="dashboard-page">
+
+    <!-- =================================================
+         HEADER
+         ================================================= -->
+
+    <div class="dashboard-header">
+
+        <h2>
+            Dashboard
+        </h2>
+
+        <p class="text-secondary mb-0">
+            Pregled prodaje, RUC-a i odstupanja
+        </p>
+
+    </div>
+
+
+    <!-- =================================================
+         FILTERI
+         ================================================= -->
+
+    <div class="filter-card mb-3">
+
+        <form id="dashboardFilterForm"
+              method="get"
+              action="/Dashboard/Index"
+              class="dashboard-filters">
+
+            <!-- DATUM OD -->
+
+            <div class="dashboard-filter-item">
+
+                <label for="datumOd">
+                    Datum od
+                </label>
+
+                <input id="datumOd"
+                       type="date"
+                       name="datumOd"
+                       class="form-control"
+                       value="@(Model.DatumOd?.ToString("yyyy-MM-dd") ?? "")" />
+
+            </div>
+
+
+            <!-- DATUM DO -->
+
+            <div class="dashboard-filter-item">
+
+                <label for="datumDo">
+                    Datum do
+                </label>
+
+                <input id="datumDo"
+                       type="date"
+                       name="datumDo"
+                       class="form-control"
+                       value="@(Model.DatumDo?.ToString("yyyy-MM-dd") ?? "")" />
+
+            </div>
+
+
+            <!-- ODELJENJE -->
+
+            <div class="dashboard-filter-item">
+
+                <label for="odeljenjeId">
+                    Odeljenje
+                </label>
+
+                <select id="odeljenjeId"
+                        name="odeljenjeId"
+                        class="form-select">
 
                     <option value="">
-                        Svi tipovi prodaje
+                        Sva odeljenja
                     </option>
 
-                    @foreach (var tip in Model.TipoviProdaje)
+                    @foreach (var od in Model.Odeljenja)
                     {
-                        <option value="@tip.TipProdajeId"
-                                selected="@(Model.TipProdajeId == tip.TipProdajeId)">
-                            @tip.Naziv
-                        </option>
+                        if (Model.OdeljenjeId == od.OdeljenjeId)
+                        {
+                            <option value="@od.OdeljenjeId"
+                                    selected>
+                                @od.Naziv
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@od.OdeljenjeId">
+                                @od.Naziv
+                            </option>
+                        }
                     }
 
                 </select>
+
             </div>
-        }
 
-        <div class="filter-group align-self-end d-flex">
-            <button type="submit"
-                    class="btn btn-primary">
 
-                Primeni filtere
-            </button>
+            <!-- KATEGORIJA -->
 
-            <a href="@Url.Action("Index", "Dashboard")"
-               class="btn btn-secondary ms-2">
+            <div class="dashboard-filter-item">
 
-                Poništi filtere
-            </a>
-        </div>
+                <label for="kategorijaId">
+                    Kategorija
+                </label>
 
-    </form>
-</div>
+                <select id="kategorijaId"
+                        name="kategorijaId"
+                        class="form-select">
 
-<div class="row g-3 mb-4">
+                    <option value="">
+                        Sve kategorije
+                    </option>
 
-    <div class="col-md-4">
+                    @foreach (var kategorija in Model.Kategorije)
+                    {
+                        if (Model.KategorijaId == kategorija.KategorijaId)
+                        {
+                            <option value="@kategorija.KategorijaId"
+                                    selected>
+                                @kategorija.Naziv
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@kategorija.KategorijaId">
+                                @kategorija.Naziv
+                            </option>
+                        }
+                    }
+
+                </select>
+
+            </div>
+
+
+            <!-- DOBAVLJAC -->
+
+            <div class="dashboard-filter-item">
+
+                <label for="dobavljacId">
+                    Dobavljač
+                </label>
+
+                <select id="dobavljacId"
+                        name="dobavljacId"
+                        class="form-select">
+
+                    <option value="">
+                        Svi dobavljači
+                    </option>
+
+                    @foreach (var dobavljac in Model.Dobavljaci)
+                    {
+                        if (Model.SelectedDobavljacId == dobavljac.DobavljacId)
+                        {
+                            <option value="@dobavljac.DobavljacId"
+                                    selected>
+                                @dobavljac.Naziv
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@dobavljac.DobavljacId">
+                                @dobavljac.Naziv
+                            </option>
+                        }
+                    }
+
+                </select>
+
+            </div>
+
+
+            <!-- TIP PRODAJE -->
+            @if (Model.TipoviProdaje.Any())
+            {
+                <div class="dashboard-filter-item">
+
+                    <label for="tipProdajeId">
+                        Tip prodaje
+                    </label>
+
+                    <select id="tipProdajeId"
+                            name="tipProdajeId"
+                            class="form-select">
+
+                        <option value="">
+                            Svi tipovi prodaje
+                        </option>
+
+                        @foreach (var tip in Model.TipoviProdaje)
+                        {
+                            if (Model.TipProdajeId == tip.TipProdajeId)
+                            {
+                                <option value="@tip.TipProdajeId"
+                                        selected>
+                                    @tip.Naziv
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@tip.TipProdajeId">
+                                    @tip.Naziv
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+            }
+
+
+            <!-- BUTTONS -->
+
+            <div class="dashboard-filter-buttons">
+
+                <button id="applyDashboardFilters"
+                        type="submit"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-funnel me-1"></i>
+
+                    Primeni
+
+                </button>
+
+
+                <a href="/Dashboard/Index"
+                   class="btn btn-secondary">
+
+                    Poništi
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =================================================
+         KPI KARTICE
+         ================================================= -->
+
+    <div class="dashboard-kpi-grid">
+
+        <!-- PROMET -->
+
         <div class="metric-card">
 
             <div class="metric-label">
-                Promet (bez PDV)
+                Promet bez PDV
             </div>
 
             <div id="prometValue"
                  class="metric-value">
 
                 @Model.PrometBezPdv.ToString("N0") RSD
+
             </div>
 
             <div id="prometYoY"
                  class="metric-yoy @(Model.PrometPromenaProcenat >= 0 ? "positive" : "negative")">
 
-                @((Model.PrometPromenaProcenat * 100m).ToString("0.0"))%
+                @((Model.PrometPromenaProcenat * 100m)
+                    .ToString("+0.0;-0.0;0.0"))%
+
                 vs prethodni period
+
             </div>
 
         </div>
-    </div>
 
-    <div class="col-md-4">
+
+        <!-- RUC12 -->
+
         <div class="metric-card">
 
             <div class="metric-label">
-                RUC12 (RSD)
+                RUC12
             </div>
 
             <div id="zaradaValue"
                  class="metric-value">
 
                 @Model.Ruc12.ToString("N0") RSD
+
             </div>
 
             <div id="zaradaYoY"
                  class="metric-yoy @(Model.Ruc12PromenaProcenat >= 0 ? "positive" : "negative")">
 
-                @((Model.Ruc12PromenaProcenat * 100m).ToString("0.0"))%
+                @((Model.Ruc12PromenaProcenat * 100m)
+                    .ToString("+0.0;-0.0;0.0"))%
+
                 vs prethodni period
+
             </div>
 
         </div>
-    </div>
 
-    <div class="col-md-4">
+
+        <!-- RUC12 PROCENAT -->
+
         <div class="metric-card">
 
             <div class="metric-label">
-                Marža (RUC12%)
+                RUC12%
             </div>
 
             <div id="marzaValue"
                  class="metric-value @(Model.Ruc12Procenat >= 0 ? "text-success" : "text-danger")">
 
-                @((Model.Ruc12Procenat * 100m).ToString("0.0"))%
+                @((Model.Ruc12Procenat * 100m)
+                    .ToString("0.0"))%
+
             </div>
 
             <div id="marzaYoY"
                  class="metric-yoy @(Model.Ruc12PromenaProcentniPoeni >= 0 ? "positive" : "negative")">
 
-                @((Model.Ruc12PromenaProcentniPoeni * 100m).ToString("+0.0;-0.0;0.0"))
+                @((Model.Ruc12PromenaProcentniPoeni * 100m)
+                    .ToString("+0.0;-0.0;0.0"))
+
                 p.p. vs prethodni period
+
             </div>
 
         </div>
-    </div>
 
-    <div class="col-md-4">
+
+        <!-- KRITICNI ARTIKLI -->
+
         <div class="metric-card">
 
             <div class="metric-label">
@@ -216,20 +558,25 @@
                  class="metric-value">
 
                 @Model.KriticniArtikli
+
             </div>
 
             <div id="artikliYoY"
                  class="metric-yoy @(Model.KriticniArtikliPromena <= 0 ? "positive" : "negative")">
 
-                @(Model.KriticniArtikliPromena >= 0 ? "+" : "")
+                @(Model.KriticniArtikliPromena > 0 ? "+" : "")
+
                 @Model.KriticniArtikliPromena
+
                 vs prethodni period
+
             </div>
 
         </div>
-    </div>
 
-    <div class="col-md-4">
+
+        <!-- NEDOSTATAK MARZE -->
+
         <div class="metric-card">
 
             <div class="metric-label">
@@ -240,186 +587,340 @@
                  class="metric-value @(Model.NedostatakMarze >= 0 ? "text-success" : "text-danger")">
 
                 @Model.NedostatakMarze.ToString("N0") RSD
+
             </div>
 
             <div id="nedostatakMarzeYoY"
                  class="metric-yoy">
 
-                @((Model.NedostatakMarzePromenaProcenat * 100m).ToString("+0.0;-0.0;0.0"))%
+                @((Model.NedostatakMarzePromenaProcenat * 100m)
+                    .ToString("+0.0;-0.0;0.0"))%
+
                 vs prethodni period
+
             </div>
 
         </div>
+
     </div>
+
+
+    <!-- =================================================
+         GLAVNI GRAFICI
+         ================================================= -->
+
+    <div class="dashboard-main-grid">
+
+        <!-- PROMET -->
+
+        <div class="metric-card dashboard-chart-card">
+
+            <div class="d-flex
+                justify-content-between
+                align-items-center
+                mb-3">
+
+                <div class="metric-label mb-0">
+                    Promet: trenutni vs prethodni period
+                </div>
+
+                <small class="text-secondary">
+                    RSD
+                </small>
+
+            </div>
+
+            <div class="dashboard-chart-wrapper">
+
+                <canvas id="prometChart">
+                </canvas>
+
+            </div>
+
+        </div>
+
+
+        <!-- RUC CHANGE -->
+        @if (Model.RucChange != null)
+        {
+            <div class="metric-card dashboard-chart-card">
+
+                <div class="d-flex
+                    justify-content-between
+                    align-items-center
+                    mb-3">
+
+                    <div class="metric-label mb-0">
+                        Zašto se RUC promenio?
+                    </div>
+
+                    <small class="text-secondary">
+                        RSD
+                    </small>
+
+                </div>
+
+
+                <div class="dashboard-chart-wrapper">
+
+                    <canvas id="rucWaterfall">
+                    </canvas>
+
+                </div>
+
+
+                <div class="mt-3 small text-secondary">
+
+                    <span class="me-3">
+
+                        Početni:
+
+                        <strong>
+                            @Model.RucChange.PocetniRuc.ToString("N0")
+                        </strong>
+
+                    </span>
+
+
+                    <span class="me-3">
+
+                        Konačni:
+
+                        <strong>
+                            @Model.RucChange.KonacniRuc.ToString("N0")
+                        </strong>
+
+                    </span>
+
+
+                    <span>
+
+                        Promena:
+
+                        <strong>
+                            @Model.RucChange.UkupnaPromena.ToString("N0")
+                        </strong>
+
+                    </span>
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <div class="metric-card dashboard-chart-card">
+
+                <div class="metric-label">
+                    Promena RUC-a
+                </div>
+
+                <div class="text-secondary mt-4">
+                    Nema podataka za izabrani period.
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+
+    <!-- =================================================
+         TOP 5 KRITICNIH
+         ================================================= -->
+
+    <div class="metric-card critical-card">
+
+        <div class="d-flex
+            justify-content-between
+            align-items-center
+            mb-3">
+
+            <div>
+
+                <div class="metric-label mb-1">
+                    Top 5 kritičnih proizvoda
+                </div>
+
+                <small class="text-secondary">
+                    Procenjeni uticaj
+                </small>
+
+            </div>
+
+
+            <a asp-controller="Artikal"
+               asp-action="Kriticni"
+               asp-route-datumOd="@Model.DatumOd?.ToString("yyyy-MM-dd")"
+               asp-route-datumDo="@Model.DatumDo?.ToString("yyyy-MM-dd")"
+               asp-route-odeljenjeId="@Model.OdeljenjeId"
+               asp-route-kategorijaId="@Model.KategorijaId"
+               asp-route-dobavljacId="@Model.SelectedDobavljacId"
+               asp-route-tipProdajeId="@Model.TipProdajeId"
+               class="btn btn-sm btn-outline-primary">
+
+                <i class="bi bi-list-ul me-1"></i>
+
+                Prikaži sve
+
+            </a>
+
+        </div>
+
+
+        @if (Model.CriticalTop5.Any())
+        {
+            <div class="dashboard-main-grid mb-0">
+
+                <!-- CHART -->
+
+                <div>
+
+                    <div class="dashboard-chart-wrapper">
+
+                        <canvas id="criticalTopChart">
+                        </canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TABLE -->
+
+                <div class="critical-table-wrapper">
+
+                    <table class="table
+                        table-hover
+                        align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Artikal
+                                </th>
+
+                                <th>
+                                    Kategorija
+                                </th>
+
+                                <th>
+                                    Severnost
+                                </th>
+
+                                <th class="text-end">
+                                    Uticaj
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model.CriticalTop5)
+                            {
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+                                            @item.NazivArtikla
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+                                        @item.Kategorija
+                                    </td>
+
+                                    <td>
+                                        @item.Severnost
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        @item.ProcenjeniUticaj.ToString("N0")
+                                        RSD
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <div class="py-4
+                text-center
+                text-secondary">
+
+                Nema kritičnih proizvoda
+                za izabrani period.
+
+            </div>
+        }
+
+    </div>
+
+
+    <!-- =================================================
+         DATA REFRESH
+         ================================================= -->
+    @if (Model.PodaciOsvezeni.HasValue)
+    {
+        <div class="text-end
+            text-secondary
+            small
+            mb-3">
+
+            Podaci osveženi:
+
+            @Model.PodaciOsvezeni.Value
+            .ToString("dd.MM.yyyy HH:mm")
+
+        </div>
+    }
 
 </div>
 
-<div class="metric-card mb-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="metric-label mb-0">
-            Promet — trenutni period naspram prethodnog
-        </div>
-
-        <small class="text-secondary">
-            RSD
-        </small>
-    </div>
-
-    <canvas id="prometChart"
-            height="90">
-    </canvas>
-
-</div>
-
-@if (Model.RucChange != null)
-{
-    <div class="metric-card mb-4">
-
-        <div class="d-flex justify-content-between align-items-center mb-2">
-
-            <div class="metric-label mb-0">
-                Zašto se RUC promenio?
-            </div>
-
-            <small class="text-secondary">
-                RSD
-            </small>
-
-        </div>
-
-        <canvas id="rucWaterfall"
-                height="140">
-        </canvas>
-
-        <div class="mt-3 small text-secondary">
-
-            <div>
-                Početni RUC:
-                @Model.RucChange.PocetniRuc.ToString("N0") RSD
-            </div>
-
-            <div>
-                Konačni RUC:
-                @Model.RucChange.KonacniRuc.ToString("N0") RSD
-            </div>
-
-            <div>
-                Ukupna promena:
-                @Model.RucChange.UkupnaPromena.ToString("N0") RSD
-            </div>
-
-        </div>
-
-    </div>
-}
-
-@if (Model.CriticalTop5.Any())
-{
-    <div class="metric-card mb-4">
-
-        <div class="d-flex justify-content-between align-items-center mb-2">
-
-            <div class="metric-label mb-0">
-                Top 5 kritičnih proizvoda
-            </div>
-
-            <small class="text-secondary">
-                Procenjeni uticaj (RSD)
-            </small>
-
-        </div>
-
-        <canvas id="criticalTopChart"
-                height="140">
-        </canvas>
-
-        <div class="mt-3">
-
-            <table class="table table-sm">
-
-                <thead>
-                    <tr class="text-secondary small">
-                        <th>Artikal</th>
-                        <th>Kategorija</th>
-                        <th>Severnost</th>
-                        <th class="text-end">
-                            Uticaj
-                        </th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    @foreach (var item in Model.CriticalTop5)
-                    {
-                        <tr>
-
-                            <td>
-                                @item.NazivArtikla
-                            </td>
-
-                            <td>
-                                @item.Kategorija
-                            </td>
-
-                            <td>
-                                @item.Severnost
-                            </td>
-
-                            <td class="text-end">
-                                @item.ProcenjeniUticaj.ToString("N0") RSD
-                            </td>
-
-                        </tr>
-                    }
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-}
-else
-{
-    <div class="metric-card mb-4">
-
-        <em class="text-secondary">
-            Nema kritičnih proizvoda za izabrani period.
-        </em>
-
-    </div>
-}
-
-@if (Model.PodaciOsvezeni.HasValue)
-{
-    <div class="text-end text-secondary small mb-4">
-
-        Podaci osveženi:
-        @Model.PodaciOsvezeni.Value.ToString("dd.MM.yyyy HH:mm")
-
-    </div>
-}
 
 @section Scripts
 {
-    <script>
-        window.__dashboardData = {
-            criticalTop: @Html.Raw(
-                            System.Text.Json.JsonSerializer.Serialize(
-                            Model.CriticalTop5
-                            )
-                            ),
+    <!-- =================================================
+         DASHBOARD DATA FOR CHART.JS
+         ================================================= -->
 
-            rucChange: @Html.Raw(
-                            System.Text.Json.JsonSerializer.Serialize(
-                            Model.RucChange
-                            )
-                            ),
+    <script>
+
+        window.__dashboardData = {
+
+            criticalTop:
+                @Html.Raw(
+                System.Text.Json.JsonSerializer.Serialize(
+                Model.CriticalTop5
+                )
+                ),
+
+            rucChange:
+                @Html.Raw(
+                System.Text.Json.JsonSerializer.Serialize(
+                Model.RucChange
+                )
+                ),
 
             promet: {
+
                 trenutni:
                     @Model.PrometBezPdv.ToString(
                     System.Globalization.CultureInfo.InvariantCulture
@@ -429,12 +930,169 @@ else
                     @Model.PrometPromenaProcenat.ToString(
                     System.Globalization.CultureInfo.InvariantCulture
                     )
-                    }
+                            }
         };
+
     </script>
+
+
+    <!-- =================================================
+         FILTER SUBMIT
+         ================================================= -->
+
+    <script>
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function () {
+
+                const form =
+                    document.getElementById(
+                        'dashboardFilterForm'
+                    );
+
+                if (!form) {
+                    return;
+                }
+
+
+                form.addEventListener(
+                    'submit',
+                    function (event) {
+
+                        event.preventDefault();
+
+
+                        const params =
+                            new URLSearchParams();
+
+
+                        const datumOd =
+                            document.getElementById(
+                                'datumOd'
+                            )?.value || '';
+
+
+                        const datumDo =
+                            document.getElementById(
+                                'datumDo'
+                            )?.value || '';
+
+
+                        const odeljenjeId =
+                            document.getElementById(
+                                'odeljenjeId'
+                            )?.value || '';
+
+
+                        const kategorijaId =
+                            document.getElementById(
+                                'kategorijaId'
+                            )?.value || '';
+
+
+                        const dobavljacId =
+                            document.getElementById(
+                                'dobavljacId'
+                            )?.value || '';
+
+
+                        const tipProdaje =
+                            document.getElementById(
+                                'tipProdajeId'
+                            );
+
+
+                        const tipProdajeId =
+                            tipProdaje
+                                ? tipProdaje.value
+                                : '';
+
+
+                        if (datumOd) {
+                            params.set(
+                                'datumOd',
+                                datumOd
+                            );
+                        }
+
+
+                        if (datumDo) {
+                            params.set(
+                                'datumDo',
+                                datumDo
+                            );
+                        }
+
+
+                        if (odeljenjeId) {
+                            params.set(
+                                'odeljenjeId',
+                                odeljenjeId
+                            );
+                        }
+
+
+                        if (kategorijaId) {
+                            params.set(
+                                'kategorijaId',
+                                kategorijaId
+                            );
+                        }
+
+
+                        if (dobavljacId) {
+                            params.set(
+                                'dobavljacId',
+                                dobavljacId
+                            );
+                        }
+
+
+                        if (tipProdajeId) {
+                            params.set(
+                                'tipProdajeId',
+                                tipProdajeId
+                            );
+                        }
+
+
+                        const query =
+                            params.toString();
+
+
+                        const destination =
+                            '/Dashboard/Index'
+                            +
+                            (
+                                query
+                                    ? '?' + query
+                                    : ''
+                            );
+
+
+                        window.location.assign(
+                            destination
+                        );
+                    }
+                );
+            }
+        );
+
+    </script>
+
+
+    <!-- =================================================
+         CHART.JS
+         ================================================= -->
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js">
     </script>
+
+
+    <!-- =================================================
+         DASHBOARD JS
+         ================================================= -->
 
     <script src="~/js/Dashboard.js"
             asp-append-version="true">

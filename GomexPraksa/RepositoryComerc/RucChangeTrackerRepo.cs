@@ -16,102 +16,193 @@ public class RucChangeTrackerRepo : IRucChangeTracker
     }
 
     public async Task<RucChangeDTO> CheckInfoForChangesAsync(
-        DateOnly datumOd,
-        DateOnly? datumDo,
-        DateOnly? prethodniDatumOd,
-        DateOnly? prethodniDatumDo,
+        DashboardFilterDTO filter,
+        DateOnly prethodniDatumOd,
+        DateOnly prethodniDatumDo,
         bool canViewAllCategories,
         List<int> kategorijaIds)
     {
-    const string sql = """
-    WITH PrethodniPeriod AS
-    (
-        SELECT
-            COALESCE(SUM(kr.RUC12), 0) AS PocetniRuc
-        FROM dbo.KomercijalniRezultat kr
-        INNER JOIN dbo.Artikal a
-            ON a.ArtikalId = kr.ArtikalId
-        INNER JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId = a.RobnaGrupaId
-        WHERE
-            kr.DatumRezultata >= @PrethodniDatumOd
-            AND kr.DatumRezultata < DATEADD(DAY, 1, @PrethodniDatumDo)
-            AND
-            (
-                @CanViewAllCategories = 1
-                OR rg.KategorijaId IN @KategorijaIds
-            )
-    ),
-    TrenutniPeriod AS
-    (
-        SELECT
-            COALESCE(SUM(kr.RUC12), 0) AS KonacniRuc,
-            COALESCE(SUM(kr.MarginEffect), 0) AS MarginEffect,
-            COALESCE(SUM(kr.VolumeEffect), 0) AS VolumeEffect,
-            COALESCE(SUM(kr.MixEffect), 0) AS MixEffect
-        FROM dbo.KomercijalniRezultat kr
-        INNER JOIN dbo.Artikal a
-            ON a.ArtikalId = kr.ArtikalId
-        INNER JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId = a.RobnaGrupaId
-        WHERE
-            kr.DatumRezultata >= @DatumOd
-            AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
-            AND
-            (
-                @CanViewAllCategories = 1
-                OR rg.KategorijaId IN @KategorijaIds
-            )
-    )
-    SELECT
-        p.PocetniRuc,
-        t.MarginEffect,
-        t.VolumeEffect,
-        t.MixEffect,
+        if (!filter.DatumOd.HasValue)
+        {
+            throw new ArgumentException("Datum od je obavezan.");
+        }
 
-        t.KonacniRuc - p.PocetniRuc
-            AS UkupnaPromena,
+        if (!filter.DatumDo.HasValue)
+        {
+            throw new ArgumentException("Datum do je obavezan.");
+        }
 
-        CASE
-            WHEN p.PocetniRuc = 0 THEN 0
-            ELSE
-                CAST(
-                    t.KonacniRuc - p.PocetniRuc
-                    AS DECIMAL(18, 6)
+        var datumOd = filter.DatumOd.Value;
+        var datumDo = filter.DatumDo.Value;
+
+        const string sql = """
+            WITH PrethodniPeriod AS
+            (
+                SELECT
+                    COALESCE(SUM(kr.RUC12), 0) AS PocetniRuc
+                FROM dbo.KomercijalniRezultat kr
+
+                INNER JOIN dbo.Artikal a
+                    ON a.ArtikalId = kr.ArtikalId
+
+                INNER JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+                INNER JOIN dbo.Kategorija k
+                    ON k.KategorijaId = rg.KategorijaId
+
+                WHERE
+                    kr.DatumRezultata >= @PrethodniDatumOd
+                    AND kr.DatumRezultata < DATEADD(DAY, 1, @PrethodniDatumDo)
+
+                    AND a.Aktivan = 1
+
+                    AND (
+                        @OdeljenjeId IS NULL
+                        OR k.OdeljenjeId = @OdeljenjeId
+                    )
+
+                    AND (
+                        @KategorijaId IS NULL
+                        OR k.KategorijaId = @KategorijaId
+                    )
+
+                    AND (
+                        @DobavljacId IS NULL
+                        OR a.DobavljacId = @DobavljacId
+                    )
+
+                    AND (
+                        @TipProdajeId IS NULL
+                        OR kr.TipProdajeId = @TipProdajeId
+                    )
+
+                    AND (
+                        @CanViewAllCategories = 1
+                        OR k.KategorijaId IN @KategorijaIds
+                    )
+            ),
+
+            TrenutniPeriod AS
+            (
+                SELECT
+                    COALESCE(SUM(kr.RUC12), 0) AS KonacniRuc,
+
+                    COALESCE(
+                        SUM(kr.MarginEffect),
+                        0
+                    ) AS MarginEffect,
+
+                    COALESCE(
+                        SUM(kr.VolumeEffect),
+                        0
+                    ) AS VolumeEffect,
+
+                    COALESCE(
+                        SUM(kr.MixEffect),
+                        0
+                    ) AS MixEffect
+
+                FROM dbo.KomercijalniRezultat kr
+
+                INNER JOIN dbo.Artikal a
+                    ON a.ArtikalId = kr.ArtikalId
+
+                INNER JOIN dbo.RobnaGrupa rg
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+
+                INNER JOIN dbo.Kategorija k
+                    ON k.KategorijaId = rg.KategorijaId
+
+                WHERE
+                    kr.DatumRezultata >= @DatumOd
+                    AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+
+                    AND a.Aktivan = 1
+
+                    AND (
+                        @OdeljenjeId IS NULL
+                        OR k.OdeljenjeId = @OdeljenjeId
+                    )
+
+                    AND (
+                        @KategorijaId IS NULL
+                        OR k.KategorijaId = @KategorijaId
+                    )
+
+                    AND (
+                        @DobavljacId IS NULL
+                        OR a.DobavljacId = @DobavljacId
+                    )
+
+                    AND (
+                        @TipProdajeId IS NULL
+                        OR kr.TipProdajeId = @TipProdajeId
+                    )
+
+                    AND (
+                        @CanViewAllCategories = 1
+                        OR k.KategorijaId IN @KategorijaIds
+                    )
+            )
+
+            SELECT
+                p.PocetniRuc,
+
+                t.MarginEffect,
+
+                t.VolumeEffect,
+
+                t.MixEffect,
+
+                t.KonacniRuc - p.PocetniRuc
+                    AS UkupnaPromena,
+
+                CASE
+                    WHEN p.PocetniRuc = 0
+                        THEN 0
+                    ELSE
+                        CAST(
+                            t.KonacniRuc - p.PocetniRuc
+                            AS DECIMAL(18, 6)
+                        )
+                        /
+                        NULLIF(
+                            p.PocetniRuc,
+                            0
+                        )
+                END
+                    AS UkupnaPromenaProcenat,
+
+                t.KonacniRuc,
+
+                (
+                    t.KonacniRuc
+                    -
+                    p.PocetniRuc
                 )
-                / NULLIF(p.PocetniRuc, 0)
-        END AS UkupnaPromenaProcenat,
+                -
+                (
+                    t.MarginEffect
+                    +
+                    t.VolumeEffect
+                    +
+                    t.MixEffect
+                )
+                    AS KontrolnaRazlika
 
-        t.KonacniRuc,
-
-        (
-            t.KonacniRuc - p.PocetniRuc
-        )
-        -
-        (
-            t.MarginEffect
-            + t.VolumeEffect
-            + t.MixEffect
-        ) AS KontrolnaRazlika
-
-    FROM PrethodniPeriod p
-    CROSS JOIN TrenutniPeriod t;
-    """; 
+            FROM PrethodniPeriod p
+            CROSS JOIN TrenutniPeriod t;
+            """;
 
         using var connection =
             (SqlConnection)_connFactory.CreateConnection();
 
         var total = Stopwatch.StartNew();
 
-        var sw = Stopwatch.StartNew();
-
         await connection.OpenAsync();
 
-        Console.WriteLine(
-            $"RUC OpenConnectionAsync: {sw.ElapsedMilliseconds} ms"
-        );
-
-        sw.Restart();
+        var sw = Stopwatch.StartNew();
 
         var rezultat =
             await connection.QuerySingleAsync<RucChangeDTO>(
@@ -120,19 +211,31 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                 {
                     DatumOd =
                         datumOd.ToDateTime(
-                            TimeOnly.MinValue),
+                            TimeOnly.MinValue
+                        ),
 
                     DatumDo =
-                        datumDo?.ToDateTime(
-                            TimeOnly.MinValue),
+                        datumDo.ToDateTime(
+                            TimeOnly.MinValue
+                        ),
 
                     PrethodniDatumOd =
-                        prethodniDatumOd?.ToDateTime(
-                            TimeOnly.MinValue),
+                        prethodniDatumOd.ToDateTime(
+                            TimeOnly.MinValue
+                        ),
 
                     PrethodniDatumDo =
-                        prethodniDatumDo?.ToDateTime(
-                            TimeOnly.MinValue),
+                        prethodniDatumDo.ToDateTime(
+                            TimeOnly.MinValue
+                        ),
+
+                    filter.OdeljenjeId,
+
+                    filter.KategorijaId,
+
+                    filter.DobavljacId,
+
+                    filter.TipProdajeId,
 
                     CanViewAllCategories =
                         canViewAllCategories,
@@ -143,7 +246,7 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             );
 
         Console.WriteLine(
-            $"RUC QuerySingleAsync: {sw.ElapsedMilliseconds} ms"
+            $"RUC Query: {sw.ElapsedMilliseconds} ms"
         );
 
         Console.WriteLine(

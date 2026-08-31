@@ -30,18 +30,23 @@ namespace GomexPraksaMVC.Controllers
 
             if (!datumOd.HasValue && !datumDo.HasValue)
             {
+                // Default: poslednjih 30 dana.
                 datumEnd = DateOnly.FromDateTime(DateTime.Today);
-                datumStart = new DateOnly(datumEnd.Year, 1, 1);
+                datumStart = datumEnd.AddDays(-29);
             }
             else if (datumOd.HasValue && !datumDo.HasValue)
             {
+                // Ako je unet samo DatumOd,
+                // DatumDo je danas.
                 datumStart = DateOnly.FromDateTime(datumOd.Value);
                 datumEnd = DateOnly.FromDateTime(DateTime.Today);
             }
             else if (!datumOd.HasValue && datumDo.HasValue)
             {
+                // Ako je unet samo DatumDo,
+                // uzimamo 30 dana zakljucno sa tim datumom.
                 datumEnd = DateOnly.FromDateTime(datumDo.Value);
-                datumStart = new DateOnly(datumEnd.Year, 1, 1);
+                datumStart = datumEnd.AddDays(-29);
             }
             else
             {
@@ -55,8 +60,10 @@ namespace GomexPraksaMVC.Controllers
                     string.Empty,
                     "Datum od ne može biti posle datuma do.");
 
+                // Ako je period neispravan,
+                // vrati default poslednjih 30 dana.
                 datumEnd = DateOnly.FromDateTime(DateTime.Today);
-                datumStart = new DateOnly(datumEnd.Year, 1, 1);
+                datumStart = datumEnd.AddDays(-29);
             }
 
             var model = new DashboardViewModel
@@ -82,18 +89,31 @@ namespace GomexPraksaMVC.Controllers
                 };
 
                 if (odeljenjeId.HasValue)
-                    queryParts.Add($"odeljenjeId={odeljenjeId.Value}");
+                {
+                    queryParts.Add(
+                        $"odeljenjeId={odeljenjeId.Value}");
+                }
 
                 if (kategorijaId.HasValue)
-                    queryParts.Add($"kategorijaId={kategorijaId.Value}");
+                {
+                    queryParts.Add(
+                        $"kategorijaId={kategorijaId.Value}");
+                }
 
                 if (dobavljacId.HasValue)
-                    queryParts.Add($"dobavljacId={dobavljacId.Value}");
+                {
+                    queryParts.Add(
+                        $"dobavljacId={dobavljacId.Value}");
+                }
 
                 if (tipProdajeId.HasValue)
-                    queryParts.Add($"tipProdajeId={tipProdajeId.Value}");
+                {
+                    queryParts.Add(
+                        $"tipProdajeId={tipProdajeId.Value}");
+                }
 
-                var query = "?" + string.Join("&", queryParts);
+                var query =
+                    "?" + string.Join("&", queryParts);
 
                 var summary =
                     await client.GetFromJsonAsync<DashboardViewModel>(
@@ -271,11 +291,44 @@ namespace GomexPraksaMVC.Controllers
                         -(brojDana - 1)
                     );
 
+                var rucParts = new List<string>
+                {
+                    $"datumOd={datumStart:yyyy-MM-dd}",
+                    $"datumDo={datumEnd:yyyy-MM-dd}",
+                    $"prethodniDatumOd={prethodniDatumOd:yyyy-MM-dd}",
+                    $"prethodniDatumDo={prethodniDatumDo:yyyy-MM-dd}"
+                };
+
+                if (odeljenjeId.HasValue)
+                {
+                    rucParts.Add(
+                        $"odeljenjeId={odeljenjeId.Value}"
+                    );
+                }
+
+                if (kategorijaId.HasValue)
+                {
+                    rucParts.Add(
+                        $"kategorijaId={kategorijaId.Value}"
+                    );
+                }
+
+                if (dobavljacId.HasValue)
+                {
+                    rucParts.Add(
+                        $"dobavljacId={dobavljacId.Value}"
+                    );
+                }
+
+                if (tipProdajeId.HasValue)
+                {
+                    rucParts.Add(
+                        $"tipProdajeId={tipProdajeId.Value}"
+                    );
+                }
+
                 var rucQuery =
-                    $"?datumOd={datumStart:yyyy-MM-dd}" +
-                    $"&datumDo={datumEnd:yyyy-MM-dd}" +
-                    $"&prethodniDatumOd={prethodniDatumOd:yyyy-MM-dd}" +
-                    $"&prethodniDatumDo={prethodniDatumDo:yyyy-MM-dd}";
+                    "?" + string.Join("&", rucParts);
 
                 model.RucChange =
                     await client.GetFromJsonAsync<

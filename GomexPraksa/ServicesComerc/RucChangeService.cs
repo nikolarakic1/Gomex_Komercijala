@@ -18,58 +18,91 @@ public class RucChangeService : IRucChangeService
     }
 
     public async Task<RucChangeDTO> CheckInfoForChangesAsync(
-        DateOnly datumOd,
-        DateOnly? datumDo,
-        DateOnly? prethodniDatumOd,
-        DateOnly? prethodniDatumDo)
+        DashboardFilterDTO filter,
+        DateOnly prethodniDatumOd,
+        DateOnly prethodniDatumDo)
     {
-        DateOnly danas =
-            DateOnly.FromDateTime(DateTime.Now);
+        if (!filter.DatumOd.HasValue)
+        {
+            throw new ArgumentException(
+                "DatumOd je obavezan.");
+        }
 
-        if (!datumDo.HasValue)
+        if (!filter.DatumDo.HasValue)
         {
             throw new ArgumentException(
                 "DatumDo je obavezan.");
         }
 
-        if (datumOd > datumDo.Value)
+        var datumOd =
+            filter.DatumOd.Value;
+
+        var datumDo =
+            filter.DatumDo.Value;
+
+        var danas =
+            DateOnly.FromDateTime(
+                DateTime.Now);
+
+        if (datumOd > datumDo)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(datumOd),
+                nameof(filter.DatumOd),
                 "DatumOd ne može biti posle DatumDo.");
         }
 
         if (datumOd > danas)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(datumOd),
+                nameof(filter.DatumOd),
                 "DatumOd ne može biti u budućnosti.");
         }
 
-        if (datumDo.Value > danas)
+        if (datumDo > danas)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(datumDo),
+                nameof(filter.DatumDo),
                 "DatumDo ne može biti u budućnosti.");
         }
 
-        if (prethodniDatumOd.HasValue !=
-            prethodniDatumDo.HasValue)
-        {
-            throw new ArgumentException(
-                "Moraju biti uneta oba datuma prethodnog perioda.");
-        }
-
-        if (prethodniDatumOd.HasValue &&
-            prethodniDatumOd.Value >
-            prethodniDatumDo!.Value)
+        if (prethodniDatumOd >
+            prethodniDatumDo)
         {
             throw new ArgumentException(
                 "Početak prethodnog perioda ne može biti posle njegovog kraja.");
         }
 
+        if (filter.OdeljenjeId.HasValue &&
+            filter.OdeljenjeId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "OdeljenjeId nije validan.");
+        }
+
+        if (filter.KategorijaId.HasValue &&
+            filter.KategorijaId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "KategorijaId nije validan.");
+        }
+
+        if (filter.DobavljacId.HasValue &&
+            filter.DobavljacId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "DobavljacId nije validan.");
+        }
+
+        if (filter.TipProdajeId.HasValue &&
+            filter.TipProdajeId.Value <= 0)
+        {
+            throw new ArgumentException(
+                "TipProdajeId nije validan.");
+        }
+
         var access =
-            await _userAccess.GetCurrentUserAccessAsync();
+            await _userAccess
+                .GetCurrentUserAccessAsync();
 
         if (!access.CanViewAllCategories &&
             access.KategorijaIds.Count == 0)
@@ -78,16 +111,13 @@ public class RucChangeService : IRucChangeService
                 "Korisniku nije dodeljena nijedna kategorija.");
         }
 
-        var rezultat =
-            await _repo.CheckInfoForChangesAsync(
-                datumOd,
-                datumDo,
+        return await _repo
+            .CheckInfoForChangesAsync(
+                filter,
                 prethodniDatumOd,
                 prethodniDatumDo,
                 access.CanViewAllCategories,
                 access.KategorijaIds
             );
-
-        return rezultat;
     }
 }

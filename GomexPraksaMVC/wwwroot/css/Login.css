@@ -1,100 +1,255 @@
 ﻿:root {
-    --login-bg: #F6F7F6;
+    --login-bg: #F4F6F5;
     --login-card-bg: #FFFFFF;
-    --login-border: #E3E3DE;
-    --login-text: #1A1A18;
-    --login-text-secondary: #6B6B65;
+    --login-border: #E1E5E3;
+    --login-border-strong: #D3D9D6;
+    --login-text: #202421;
+    --login-text-secondary: #6B706C;
     --login-danger: #C1443B;
-    --login-brand: #41cc41;
-    --login-brand-hover: #35a835;
-    --login-brand-active: #2a852a;
-    --login-brand-soft: rgba(65, 204, 65, 0.2);
+    --login-brand: #3BC135;
+    --login-brand-hover: #31AE2D;
+    --login-brand-active: #278D24;
+    --login-brand-soft: rgba(59, 193, 53, 0.14);
+    --login-shadow: 0 12px 35px rgba(20, 30, 25, 0.08);
 }
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
 
 .login-wrapper {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--login-bg);
+    padding: 32px 20px;
+    background: radial-gradient( circle at top, rgba(59, 193, 53, 0.06), transparent 32% ), var(--login-bg);
 }
+
+
+/* =========================================================
+   CARD
+   ========================================================= */
 
 .login-card {
-    background: var(--login-card-bg);
-    border-radius: 10px;
-    padding: 32px;
     width: 100%;
-    max-width: 380px;
-    border-top: 3px solid var(--login-brand);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    max-width: 430px;
+    background: var(--login-card-bg);
+    border: 1px solid var(--login-border);
+    border-top: 4px solid var(--login-brand);
+    border-radius: 14px;
+    padding: 36px;
+    box-shadow: var(--login-shadow);
 }
 
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
 .login-brand {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 
     .login-brand .brand-title {
-        font-size: 20px;
-        font-weight: 700;
+        font-size: 24px;
+        font-weight: 800;
         color: var(--login-brand);
-        letter-spacing: 0.5px;
+        letter-spacing: 0.7px;
+        line-height: 1.1;
     }
 
     .login-brand .brand-sub {
+        margin-top: 4px;
         font-size: 11px;
+        font-weight: 600;
         color: var(--login-text-secondary);
-        letter-spacing: 1px;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
     }
 
+
+/* =========================================================
+   TITLE / TEXT
+   ========================================================= */
+
 .login-card h5 {
+    margin-bottom: 6px;
     color: var(--login-text);
+    font-size: 22px;
+    font-weight: 700;
 }
 
 .login-card p.text-secondary {
+    margin-bottom: 24px;
     color: var(--login-text-secondary) !important;
+    font-size: 14px;
 }
+
+
+/* =========================================================
+   LABELS
+   ========================================================= */
 
 .login-card .form-label {
+    margin-bottom: 7px;
     color: var(--login-text);
+    font-size: 13px;
+    font-weight: 600;
 }
+
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
 
 .login-card .form-control {
-    border-color: var(--login-border);
+    min-height: 44px;
+    padding: 10px 12px;
+    background: #FFFFFF;
+    color: var(--login-text);
+    border: 1px solid var(--login-border);
+    border-radius: 9px;
+    font-size: 14px;
+    transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
 }
 
-    .login-card .form-control:focus {
-        border-color: var(--login-brand);
-        box-shadow: 0 0 0 0.2rem var(--login-brand-soft);
+    .login-card .form-control:hover {
+        border-color: var(--login-border-strong);
     }
 
-.login-card .form-check-input:checked {
-    background-color: var(--login-brand);
-    border-color: var(--login-brand);
+    .login-card .form-control:focus {
+        background: #FFFFFF;
+        border-color: var(--login-brand);
+        box-shadow: 0 0 0 3px var(--login-brand-soft);
+        outline: none;
+    }
+
+    .login-card .form-control::placeholder {
+        color: #A0A5A2;
+        opacity: 1;
+    }
+
+
+/* =========================================================
+   CHECKBOX
+   ========================================================= */
+
+.login-card .form-check {
+    margin-top: 4px;
 }
 
-.login-card .form-check-input:focus {
-    box-shadow: 0 0 0 0.2rem var(--login-brand-soft);
+.login-card .form-check-label {
+    color: var(--login-text-secondary);
+    font-size: 13px;
 }
+
+.login-card .form-check-input {
+    border-color: var(--login-border-strong);
+}
+
+    .login-card .form-check-input:checked {
+        background-color: var(--login-brand);
+        border-color: var(--login-brand);
+    }
+
+    .login-card .form-check-input:focus {
+        border-color: var(--login-brand);
+        box-shadow: 0 0 0 3px var(--login-brand-soft);
+    }
+
+
+/* =========================================================
+   LOGIN BUTTON
+   ========================================================= */
 
 .login-card button[type="submit"] {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
     background: var(--login-brand);
-    border: none;
+    border: 1px solid var(--login-brand);
+    border-radius: 9px;
     color: #FFFFFF;
-    transition: background-color .15s ease;
+    font-size: 14px;
+    font-weight: 650;
+    transition: background-color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease;
 }
 
     .login-card button[type="submit"]:hover {
         background: var(--login-brand-hover);
+        border-color: var(--login-brand-hover);
+        box-shadow: 0 5px 14px rgba(59, 193, 53, 0.18);
+        transform: translateY(-1px);
     }
 
     .login-card button[type="submit"]:active {
         background: var(--login-brand-active);
+        border-color: var(--login-brand-active);
+        box-shadow: none;
+        transform: translateY(0);
     }
+
+    .login-card button[type="submit"]:focus {
+        box-shadow: 0 0 0 3px var(--login-brand-soft);
+    }
+
+
+/* =========================================================
+   VALIDATION
+   ========================================================= */
 
 .login-card .text-danger {
     color: var(--login-danger) !important;
+    font-size: 12px;
 }
 
 .login-card .form-control.is-invalid {
     border-color: var(--login-danger);
+}
+
+    .login-card .form-control.is-invalid:focus {
+        box-shadow: 0 0 0 3px rgba(193, 68, 59, 0.12);
+    }
+
+.login-card .validation-summary-errors {
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    background: rgba(193, 68, 59, 0.06);
+    border: 1px solid rgba(193, 68, 59, 0.18);
+    border-radius: 8px;
+    color: var(--login-danger);
+    font-size: 13px;
+}
+
+    .login-card .validation-summary-errors ul {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 576px) {
+
+    .login-wrapper {
+        padding: 20px 14px;
+    }
+
+    .login-card {
+        max-width: 100%;
+        padding: 28px 22px;
+        border-radius: 12px;
+    }
+
+    .login-brand .brand-title {
+        font-size: 22px;
+    }
+
+    .login-card h5 {
+        font-size: 20px;
+    }
 }

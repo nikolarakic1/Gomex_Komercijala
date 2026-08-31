@@ -1,42 +1,116 @@
-﻿
+﻿@{
+    var controller =
+        ViewContext.RouteData.Values["controller"]?
+            .ToString();
+
+    var action =
+        ViewContext.RouteData.Values["action"]?
+            .ToString();
+}
+
 <div class="app-sidebar">
+
     <div class="brand">
-        <div class="brand-title">GOMEX</div>
-        <div class="brand-sub">ANALITIKA</div>
+        <div class="brand-title">
+            GOMEX
+        </div>
+
+        <div class="brand-sub">
+            ANALITIKA
+        </div>
     </div>
 
-    <a asp-controller="Dashboard" asp-action="Index" class="nav-item active">
-        <i class="bi bi-grid"></i> Dashboard
+    <a asp-controller="Dashboard"
+       asp-action="Index"
+       class="nav-item @(controller == "Dashboard" ? "active" : "")">
+
+        <i class="bi bi-grid"></i>
+
+        Dashboard
     </a>
-    <a asp-controller="Artikal" asp-action="Index" class="nav-item">
-        <i class="bi bi-box-seam"></i> Artikli
+
+    <a asp-controller="Artikal"
+       asp-action="Index"
+       class="nav-item @(controller == "Artikal" && action == "Index" ? "active" : "")">
+
+        <i class="bi bi-box-seam"></i>
+
+        Artikli
     </a>
-    <a asp-controller="Dobavljac" asp-action="Index" class="nav-item">
-        <i class="bi bi-truck"></i> Dobavljači
+
+    <a asp-controller="Artikal"
+       asp-action="Kriticni"
+       class="nav-item @(controller == "Artikal" && action == "Kriticni" ? "active" : "")">
+
+        <i class="bi bi-exclamation-triangle"></i>
+
+        Kritični artikli
     </a>
-    <a asp-controller="Akcija" asp-action="Index" class="nav-item">
-        <i class="bi bi-megaphone"></i> Akcije
+
+    <a asp-controller="Dobavljac"
+       asp-action="Index"
+       class="nav-item @(controller == "Dobavljac" ? "active" : "")">
+
+        <i class="bi bi-truck"></i>
+
+        Dobavljači
     </a>
-    <a>
-        <i class="bi bi-bell"></i> Alert
+
+    <a asp-controller="Akcija"
+       asp-action="Index"
+       class="nav-item @(controller == "Akcija" ? "active" : "")">
+
+        <i class="bi bi-megaphone"></i>
+
+        Akcije
     </a>
-    <a>
-        <i class="bi bi-print"></i> Štampa izveštaja
+
+    <a href="#"
+       class="nav-item">
+
+        <i class="bi bi-bell"></i>
+
+        Alert
+    </a>
+
+    <a href="#"
+       class="nav-item">
+
+        <i class="bi bi-print"></i>
+
+        Štampa izveštaja
     </a>
 
     <div class="sidebar-user mt-auto">
+
         <div class="sidebar-user-info">
+
             <div class="sidebar-user-avatar">
                 <i class="bi bi-person-fill"></i>
             </div>
+
             <div class="sidebar-user-name">
-                @(ViewContext.HttpContext.Session.GetString("user_name") ?? "Nepoznat korisnik")
+                @(ViewContext.HttpContext.Session
+                    .GetString("user_name")
+                    ?? "Nepoznat korisnik")
             </div>
+
         </div>
-        <form asp-controller="Account" asp-action="Logout" method="post">
-            <button type="submit" class="sidebar-logout-btn" title="Odjavi se">
+
+        <form asp-controller="Account"
+              asp-action="Logout"
+              method="post">
+
+            <button type="submit"
+                    class="sidebar-logout-btn"
+                    title="Odjavi se">
+
                 <i class="bi bi-box-arrow-right"></i>
+
             </button>
+
         </form>
+
     </div>
+
 </div>

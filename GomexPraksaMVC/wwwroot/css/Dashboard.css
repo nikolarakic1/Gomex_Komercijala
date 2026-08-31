@@ -1,108 +1,431 @@
 ﻿:root {
     --color-primary: #1F4E5C;
-    --color-bg: #F6F7F6;
+    --color-primary-dark: #173D48;
+    --color-primary-soft: #EAF1F3;
+    --color-brand: #3BC135;
+    --color-brand-dark: #2EA52A;
+    --color-bg: #F4F6F5;
     --color-card: #FFFFFF;
-    --color-border: #E3E3DE;
+    --color-border: #E1E5E3;
+    --color-border-light: #EDF0EE;
     --color-success: #2E7D5B;
+    --color-success-soft: #EAF5EF;
     --color-danger: #C1443B;
-    --color-text-secondary: #6B6B65;
-    --color-row-hover: #F2F4F3;
-    --color-brand: #7EBEOO;
+    --color-danger-soft: #FAECEB;
+    --color-warning: #B7791F;
+    --color-text: #202421;
+    --color-text-secondary: #6B706C;
+    --color-row-hover: #F7F9F8;
+    --sidebar-width: 220px;
+    --shadow-sm: 0 2px 8px rgba(20, 30, 25, 0.04);
+    --shadow-md: 0 8px 24px rgba(20, 30, 25, 0.08);
+}
+
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+html,
+body {
+    min-height: 100%;
 }
 
 body {
     background: var(--color-bg);
+    color: var(--color-text);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* === Sidebar === */
-.app-sidebar .brand {
-    padding: 0 8px 20px 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
-    margin-bottom: 16px;
+a {
+    transition: all .15s ease;
 }
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.app-sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: linear-gradient( 180deg, var(--color-brand) 0%, var(--color-brand-dark) 100% );
+    color: #FFFFFF;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-shadow: 4px 0 18px rgba(0, 0, 0, .05);
+    z-index: 1000;
+}
+
+
+    /* =========================================================
+   SIDEBAR BRAND
+   ========================================================= */
+
+    .app-sidebar .brand {
+        padding: 4px 10px 20px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, .18);
+        margin-bottom: 18px;
+    }
 
     .app-sidebar .brand-title {
-        font-size: 18px;
-        font-weight: 700;
+        font-size: 21px;
+        font-weight: 800;
         color: #FFFFFF;
-        letter-spacing: 0.5px;
+        letter-spacing: .7px;
     }
 
     .app-sidebar .brand-sub {
-        font-size: 11px;
-        color: rgba(255,255,255,0.6);
-        letter-spacing: 1px;
+        font-size: 10px;
+        color: rgba(255, 255, 255, .68);
+        letter-spacing: 1.6px;
+        margin-top: 1px;
     }
+
+
+    /* =========================================================
+   SIDEBAR NAVIGATION
+   ========================================================= */
 
     .app-sidebar .nav-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 9px 12px;
-        border-radius: 6px;
-        color: rgba(255,255,255,0.85);
+        gap: 11px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        color: rgba(255, 255, 255, .9);
         font-size: 13.5px;
+        font-weight: 500;
         text-decoration: none;
-        margin-bottom: 2px;
+        margin-bottom: 4px;
+        transition: background-color .15s ease, color .15s ease, transform .15s ease;
     }
 
+        .app-sidebar .nav-item i {
+            width: 18px;
+            font-size: 16px;
+            text-align: center;
+            opacity: .9;
+        }
+
         .app-sidebar .nav-item:hover {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, .11);
             color: #FFFFFF;
+            transform: translateX(2px);
         }
 
         .app-sidebar .nav-item.active {
             background: #FFFFFF;
-            color: #7A1B1B;
-            font-weight: 500;
+            color: var(--color-primary-dark);
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, .08);
         }
 
-/* === Header filter bar === */
+            .app-sidebar .nav-item.active i {
+                color: var(--color-brand-dark);
+            }
 
-/* === Metric card === */
-.metric-card{
-    background:#fff;
-    border:1px solid var(--color-border);
-    border-radius:12px;
-    padding:22px;
-    min-height:130px;
-    transition:.2s;
-    box-shadow:0 2px 6px rgba(0,0,0,.04);
+
+/* =========================================================
+   SIDEBAR USER
+   ========================================================= */
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 8px 4px 8px;
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, .17);
 }
 
-.metric-card:hover{
-    box-shadow:0 6px 16px rgba(0,0,0,.08);
+.sidebar-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
 }
 
-.metric-label{
-    font-size:13px;
-    color:var(--color-text-secondary);
-    text-transform:uppercase;
+.sidebar-user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .16);
+    border: 1px solid rgba(255, 255, 255, .18);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
 }
 
-.metric-value{
-    font-size:32px;
-    font-weight:700;
-    margin:8px 0;
+.sidebar-user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, .95);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 115px;
 }
 
-.metric-yoy{
-    font-size:12px;
-    color:var(--color-text-secondary);
-    margin-top:4px;
+.sidebar-logout-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, .75);
+    font-size: 17px;
+    padding: 7px;
+    border-radius: 7px;
+    transition: background-color .15s ease, color .15s ease;
 }
 
-.metric-yoy.positive{color:var(--color-success);} 
-.metric-yoy.negative{color:var(--color-danger);} 
+    .sidebar-logout-btn:hover {
+        background: rgba(255, 255, 255, .13);
+        color: #FFFFFF;
+    }
 
-/* === Redovi odeljenja u tabeli === */
+
+/* =========================================================
+   DASHBOARD HEADER
+   ========================================================= */
+
+.dashboard-header {
+    margin-bottom: 24px;
+}
+
+    .dashboard-header h2 {
+        font-size: 26px;
+        font-weight: 750;
+        color: var(--color-text);
+        margin-bottom: 4px;
+    }
+
+    .dashboard-header p {
+        font-size: 14px;
+    }
+
+
+/* =========================================================
+   FILTER CARD
+   ========================================================= */
+
+.filter-card {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-bar {
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+    flex-wrap: nowrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 130px;
+}
+
+    .filter-group label {
+        display: block;
+        font-size: 11px;
+        font-weight: 650;
+        color: var(--color-text-secondary);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: .45px;
+    }
+
+
+/* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+
+.form-control,
+.form-select {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    min-height: 38px;
+    font-size: 13px;
+    background: #FFFFFF;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: rgba(31, 78, 92, .6);
+        box-shadow: 0 0 0 3px rgba(31, 78, 92, .10);
+    }
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn {
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+        background: var(--color-primary-dark);
+        border-color: var(--color-primary-dark);
+    }
+
+.btn-outline-primary {
+    color: var(--color-primary);
+    border-color: rgba(31, 78, 92, .5);
+}
+
+    .btn-outline-primary:hover {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #FFFFFF;
+    }
+
+.btn-secondary {
+    background: #EEF0EF;
+    color: #4F5652;
+    border-color: #E0E4E2;
+}
+
+    .btn-secondary:hover {
+        background: #E2E6E4;
+        color: #303532;
+        border-color: #D7DCDA;
+    }
+
+
+/* =========================================================
+   METRIC CARDS
+   ========================================================= */
+
+.metric-card {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 125px;
+    box-shadow: var(--shadow-sm);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+    .metric-card:hover {
+        transform: translateY(-1px);
+        border-color: #D7DDDA;
+        box-shadow: var(--shadow-md);
+    }
+
+.metric-label {
+    font-size: 11px;
+    font-weight: 650;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .45px;
+}
+
+.metric-value {
+    font-size: 29px;
+    line-height: 1.15;
+    font-weight: 750;
+    color: var(--color-text);
+    margin: 9px 0 6px 0;
+}
+
+.metric-yoy {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+    .metric-yoy.positive {
+        color: var(--color-success);
+    }
+
+    .metric-yoy.negative {
+        color: var(--color-danger);
+    }
+
+
+/* =========================================================
+   BOJE
+   ========================================================= */
+
+.text-success {
+    color: var(--color-success) !important;
+}
+
+.text-danger {
+    color: var(--color-danger) !important;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.table {
+    margin-bottom: 0;
+    color: var(--color-text);
+}
+
+    .table thead th {
+        background: #FAFBFA;
+        color: var(--color-text-secondary);
+        font-size: 11px;
+        font-weight: 650;
+        text-transform: uppercase;
+        letter-spacing: .35px;
+        border-bottom: 1px solid var(--color-border);
+        padding: 11px 10px;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        font-size: 13px;
+        padding: 11px 10px;
+        border-bottom: 1px solid var(--color-border-light);
+        vertical-align: middle;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+.table-hover tbody tr:hover {
+    background: var(--color-row-hover);
+}
+
+
+/* =========================================================
+   DEPARTMENT ROW
+   ========================================================= */
+
 .dept-row {
     cursor: pointer;
     transition: background-color .15s ease;
 }
 
     .dept-row:hover {
-        background-color: var(--color-row-hover);
+        background: var(--color-row-hover);
     }
 
     .dept-row .bi-chevron-down {
@@ -111,43 +434,54 @@ body {
         color: var(--color-text-secondary);
     }
 
-    .dept-row[aria-expanded="true"] .bi-chevron-down {
+    .dept-row[aria-expanded="true"]
+    .bi-chevron-down {
         transform: rotate(180deg);
     }
 
-/* === Tabela "Najveći padovi" === */
+
+/* =========================================================
+   DECLINE TABLE
+   ========================================================= */
+
 .decline-table th {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--color-text-secondary);
-    font-weight: 500;
+    font-weight: 600;
     border-bottom: 1px solid var(--color-border);
-    padding: 8px 6px;
+    padding: 9px 7px;
 }
 
 .decline-table td {
     font-size: 13px;
-    padding: 8px 6px;
-    border-bottom: 1px solid var(--color-border);
+    padding: 9px 7px;
+    border-bottom: 1px solid var(--color-border-light);
     vertical-align: middle;
 }
 
 .decline-table .rank {
     color: var(--color-text-secondary);
-    width: 24px;
-}
-.filter-bar .choices {
-    min-width: 160px;
-    font-size: 12px;
+    width: 28px;
 }
 
+
+/* =========================================================
+   CHOICES.JS
+   ========================================================= */
+
+.filter-bar .choices {
+    min-width: 150px;
+    font-size: 12px;
+    margin-bottom: 0;
+}
 
 .filter-bar .choices__inner {
     display: flex;
     align-items: center;
-    height: 34px;
-    min-height: 34px;
+    min-height: 38px;
+    height: 38px;
     padding: 0 10px;
-    background: #fff;
+    background: #FFFFFF;
     border: 1px solid var(--color-border);
     border-radius: 8px;
     font-size: 13px;
@@ -162,127 +496,130 @@ body {
 
 .filter-bar .choices__item {
     white-space: nowrap;
-    color: #212529;
+    color: var(--color-text);
 }
 
 .filter-bar .choices__placeholder,
 .filter-bar .choices__item--placeholder {
-    color: #6c757d;
+    color: #7B817D;
     opacity: 1;
 }
 
-.filter-bar .choices__list--dropdown {
+.filter-bar .choices__list--dropdown,
+.choices__list--dropdown {
+    background: #FFFFFF;
     border: 1px solid var(--color-border);
     border-radius: 8px;
     overflow: hidden;
-    z-index: 1000;
+    z-index: 1050;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
 }
 
 .filter-bar .choices__input {
     background: transparent;
-    font-size: 14px;
-}
-
-.dashboard-header h2{
-    font-weight:700;
-}
-
-.filter-card{
-    background:#fff;
-    border:1px solid var(--color-border);
-    border-radius:12px;
-    padding:20px;
-    box-shadow:0 2px 6px rgba(0,0,0,.04);
-}
-
-.filter-bar{
-    display:flex;
-    gap:16px;
-    align-items:flex-end;
-    flex-wrap:nowrap;
-}
-
-.filter-group{
-    flex:1;
-}
-
-.filter-group label{
-    display:block;
-    font-size:12px;
-    font-weight:600;
-    color:var(--color-text-secondary);
-    margin-bottom:6px;
-    text-transform:uppercase;
-    letter-spacing:.4px;
-}
-
-.choices__list--dropdown {
-    background: #FFFFFF;
-    border: 1px solid var(--color-border);
-    z-index: 1000;
-}
-.app-sidebar {
-    width: 220px;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    background: #3bc135;
-    color: #F2E6E6;
-    padding: 20px 12px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-}
-
-.sidebar-user {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 10px;
-    margin-top: 12px;
-    border-top: 1px solid rgba(255,255,255,0.15);
-}
-
-.sidebar-user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-}
-
-.sidebar-user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    color: #FFFFFF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    flex-shrink: 0;
-}
-
-.sidebar-user-name {
     font-size: 13px;
-    color: rgba(255,255,255,0.9);
-    white-space: nowrap;
+}
+
+
+/* =========================================================
+   CHARTS
+   ========================================================= */
+
+canvas {
+    max-width: 100%;
+}
+
+.metric-card canvas {
+    margin-top: 4px;
+}
+
+
+/* =========================================================
+   CRITICAL PRODUCTS
+   ========================================================= */
+
+.metric-card .table-responsive {
+    border-radius: 8px;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-.sidebar-logout-btn {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.7);
-    font-size: 16px;
-    padding: 6px;
-    border-radius: 6px;
-    transition: background-color .15s ease, color .15s ease;
+.metric-card .btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
 }
 
-    .sidebar-logout-btn:hover {
-        background: rgba(255,255,255,0.1);
-        color: #FFFFFF;
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+.app-sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.app-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .2);
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .filter-bar {
+        flex-wrap: wrap;
     }
+
+    .filter-group {
+        flex: 1 1 30%;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .app-sidebar {
+        width: 190px;
+    }
+
+    .filter-group {
+        flex: 1 1 45%;
+    }
+
+    .metric-value {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .app-sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-height: auto;
+    }
+
+    .filter-bar {
+        display: block;
+    }
+
+    .filter-group {
+        margin-bottom: 14px;
+    }
+
+    .metric-card {
+        padding: 16px;
+    }
+
+    .metric-value {
+        font-size: 24px;
+    }
+
+}

@@ -1,8 +1,6 @@
 ﻿using GomexPraksa.ServicesComerc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Razor.TagHelpers;
-using Models.Dtos;
 using Models.DtosComerc;
 
 namespace GomexPraksa.Controllers
@@ -10,25 +8,49 @@ namespace GomexPraksa.Controllers
     [Authorize(Roles = "Menadzer,SefMenadzera")]
     [ApiController]
     [Route("api/RucChangeTracker")]
-    public class RucChangeTrackerController : Controller
+    public class RucChangeTrackerController : ControllerBase
     {
-        private readonly IRucChangeService _serivce;
-        public RucChangeTrackerController(IRucChangeService service)
+        private readonly IRucChangeService _service;
+
+        public RucChangeTrackerController(
+            IRucChangeService service)
         {
-            _serivce = service;
+            _service = service;
         }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RucChangeDTO>>> CheckInfoForChangesAsync(DateOnly datumOd,
-        DateOnly? datumDo,
-        DateOnly? prethodniDatumOd,
-        DateOnly? prethodniDatumDo)
+        public async Task<ActionResult<RucChangeDTO>> CheckInfoForChangesAsync(
+            [FromQuery] DashboardFilterDTO filter,
+            [FromQuery] DateOnly prethodniDatumOd,
+            [FromQuery] DateOnly prethodniDatumDo)
         {
-            var checkinfo = await _serivce.CheckInfoForChangesAsync(datumOd, datumDo, prethodniDatumOd, prethodniDatumDo);
-            if(checkinfo is null)
+            try
             {
-                return BadRequest();
+                var rezultat =
+                    await _service.CheckInfoForChangesAsync(
+                        filter,
+                        prethodniDatumOd,
+                        prethodniDatumDo
+                    );
+
+                return Ok(rezultat);
             }
-            return Ok(checkinfo);
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+           
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    500,
+                    "Greška prilikom obrade RUC podataka."
+                );
+            }
         }
     }
 }

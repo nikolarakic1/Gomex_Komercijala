@@ -1,0 +1,254 @@
+﻿@model List<GomexPraksaMVC.Models.CriticalProductPageViewItem>
+
+@{
+    ViewData["Title"] = "Kritični artikli";
+
+    DateOnly datumOd =
+        ViewData["DatumOd"] is DateOnly start
+            ? start
+            : DateOnly.FromDateTime(DateTime.Today).AddDays(-29);
+
+    DateOnly datumDo =
+        ViewData["DatumDo"] is DateOnly end
+            ? end
+            : DateOnly.FromDateTime(DateTime.Today);
+
+    int? odeljenjeId =
+        ViewData["OdeljenjeId"] as int?;
+
+    int? kategorijaId =
+        ViewData["KategorijaId"] as int?;
+
+    int? dobavljacId =
+        ViewData["DobavljacId"] as int?;
+
+    int? tipProdajeId =
+        ViewData["TipProdajeId"] as int?;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">
+            Kritični artikli
+        </h2>
+
+        <p class="text-secondary mb-0">
+            Pregled artikala sa problematičnim RUC12
+            ili nedostatkom margine
+        </p>
+    </div>
+
+    <a asp-controller="Dashboard"
+       asp-action="Index"
+       asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
+       asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
+       asp-route-odeljenjeId="@odeljenjeId"
+       asp-route-kategorijaId="@kategorijaId"
+       asp-route-dobavljacId="@dobavljacId"
+       asp-route-tipProdajeId="@tipProdajeId"
+       class="btn btn-outline-secondary">
+
+        Nazad na Dashboard
+    </a>
+</div>
+
+<div class="filter-card mb-4">
+    <form method="get"
+          asp-controller="Artikal"
+          asp-action="Kriticni"
+          class="row g-3 align-items-end">
+
+        <div class="col-md-3">
+            <label class="form-label">
+                Datum od
+            </label>
+
+            <input type="date"
+                   name="datumOd"
+                   class="form-control"
+                   value="@datumOd.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">
+                Datum do
+            </label>
+
+            <input type="date"
+                   name="datumDo"
+                   class="form-control"
+                   value="@datumDo.ToString("yyyy-MM-dd")" />
+        </div>
+
+        @if (odeljenjeId.HasValue)
+        {
+            <input type="hidden"
+                   name="odeljenjeId"
+                   value="@odeljenjeId.Value" />
+        }
+
+        @if (kategorijaId.HasValue)
+        {
+            <input type="hidden"
+                   name="kategorijaId"
+                   value="@kategorijaId.Value" />
+        }
+
+        @if (dobavljacId.HasValue)
+        {
+            <input type="hidden"
+                   name="dobavljacId"
+                   value="@dobavljacId.Value" />
+        }
+
+        @if (tipProdajeId.HasValue)
+        {
+            <input type="hidden"
+                   name="tipProdajeId"
+                   value="@tipProdajeId.Value" />
+        }
+
+        <div class="col-md-3">
+            <button type="submit"
+                    class="btn btn-primary">
+
+                Primeni
+            </button>
+
+            <a asp-controller="Artikal"
+               asp-action="Kriticni"
+               class="btn btn-secondary ms-2">
+
+                Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="metric-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <div class="metric-label mb-0">
+                Svi kritični artikli
+            </div>
+
+            <small class="text-secondary">
+                Ukupno: @Model.Count
+            </small>
+        </div>
+
+        <div class="text-secondary small">
+            @datumOd.ToString("dd.MM.yyyy")
+            -
+            @datumDo.ToString("dd.MM.yyyy")
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>
+                            Šifra
+                        </th>
+
+                        <th>
+                            Artikal
+                        </th>
+
+                        <th>
+                            Dobavljač
+                        </th>
+
+                        <th class="text-end">
+                            Promet
+                        </th>
+
+                        <th class="text-end">
+                            RUC12
+                        </th>
+
+                        <th class="text-end">
+                            RUC12%
+                        </th>
+
+                        <th class="text-end">
+                            Nedostatak margine
+                        </th>
+
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @item.Sifra
+                            </td>
+
+                            <td>
+                                <strong>
+                                    @item.Naziv
+                                </strong>
+                            </td>
+
+                            <td>
+                                @(item.Dobavljac ?? "-")
+                            </td>
+
+                            <td class="text-end">
+                                @item.Promet.ToString("N0") RSD
+                            </td>
+
+                            <td class="text-end
+                                @(item.RUC12 < 0
+                                    ? "text-danger"
+                                    : "text-success")">
+
+                                @item.RUC12.ToString("N0") RSD
+                            </td>
+
+                            <td class="text-end
+                                @(item.RUC12Procenat < 0
+                                    ? "text-danger"
+                                    : "text-success")">
+
+                                @((item.RUC12Procenat * 100m)
+                                    .ToString("0.0"))%
+                            </td>
+
+                            <td class="text-end
+                                @(item.NedostatakMargine < 0
+                                    ? "text-danger"
+                                    : "text-success")">
+
+                                @item.NedostatakMargine.ToString("N0") RSD
+                            </td>
+
+                            <td class="text-end">
+                                <a asp-controller="Artikal"
+                                   asp-action="Detalji"
+                                   asp-route-sifra="@item.Sifra"
+                                   class="btn btn-sm btn-outline-primary">
+
+                                    Detalji
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-secondary py-5">
+            Nema kritičnih artikala za izabrani period.
+        </div>
+    }
+</div>
