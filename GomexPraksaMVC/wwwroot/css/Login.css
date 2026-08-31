@@ -1,6 +1,6 @@
 ﻿:root {
     --login-bg: #edf3ef;
-    --login-card-bg: rgba(255, 255, 255, 0.96);
+    --login-card-bg: rgba(255, 255, 255, 0.97);
     --login-border: #dfe7e1;
     --login-border-strong: #cfd9d2;
     --login-text: #1f2722;
@@ -17,12 +17,7 @@
 /* =========================================================
    PAGE
    ========================================================= */
-.login-card {
-    max-width: 600px !important;
-    width: 600px !important;
-    padding: 60px !important;
-    background: yellow !important;
-}
+
 html,
 body {
     min-height: 100%;
@@ -30,7 +25,10 @@ body {
 
 body {
     margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--login-bg);
 }
+
 
 .login-wrapper {
     position: relative;
@@ -44,8 +42,6 @@ body {
 }
 
 
-    /* dekoracija pozadine */
-
     .login-wrapper::before {
         content: "";
         position: absolute;
@@ -55,8 +51,9 @@ body {
         right: -120px;
         border-radius: 50%;
         background: rgba(59, 193, 53, 0.07);
-        filter: blur(2px);
+        pointer-events: none;
     }
+
 
     .login-wrapper::after {
         content: "";
@@ -67,6 +64,7 @@ body {
         left: -100px;
         border-radius: 50%;
         background: rgba(31, 78, 92, 0.05);
+        pointer-events: none;
     }
 
 
@@ -88,8 +86,6 @@ body {
 }
 
 
-    /* gornji brand akcenat */
-
     .login-card::before {
         content: "";
         position: absolute;
@@ -110,14 +106,16 @@ body {
     margin-bottom: 38px;
 }
 
+
     .login-brand .brand-title {
         margin: 0;
         color: var(--login-brand);
         font-size: 34px;
-        font-weight: 850;
+        font-weight: 800;
         line-height: 1;
         letter-spacing: 1.5px;
     }
+
 
     .login-brand .brand-sub {
         margin-top: 8px;
@@ -137,6 +135,7 @@ body {
     margin-bottom: 32px;
 }
 
+
     .login-heading h2,
     .login-card h5 {
         margin: 0 0 8px;
@@ -145,6 +144,7 @@ body {
         font-weight: 750;
         line-height: 1.2;
     }
+
 
     .login-heading p,
     .login-card p.text-secondary {
@@ -184,9 +184,11 @@ body {
     transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
 }
 
+
     .login-card .form-control:hover {
         border-color: var(--login-border-strong);
     }
+
 
     .login-card .form-control:focus {
         background: #ffffff;
@@ -195,6 +197,7 @@ body {
         outline: none;
     }
 
+
     .login-card .form-control::placeholder {
         color: #a0a7a2;
         opacity: 1;
@@ -202,7 +205,7 @@ body {
 
 
 /* =========================================================
-   SPACING
+   FORM SPACING
    ========================================================= */
 
 .login-card .mb-3 {
@@ -221,14 +224,17 @@ body {
     margin: 8px 0 28px;
 }
 
+
 .login-card .form-check {
     margin: 0;
 }
+
 
 .login-card .form-check-label {
     color: var(--login-text-secondary);
     font-size: 13px;
 }
+
 
 .login-card .form-check-input {
     width: 17px;
@@ -238,10 +244,12 @@ body {
     cursor: pointer;
 }
 
+
     .login-card .form-check-input:checked {
         background-color: var(--login-brand);
         border-color: var(--login-brand);
     }
+
 
     .login-card .form-check-input:focus {
         border-color: var(--login-brand);
@@ -272,6 +280,7 @@ body {
     transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
 
+
     .login-button:hover,
     .login-card button[type="submit"]:hover {
         background: var(--login-brand-hover);
@@ -280,12 +289,14 @@ body {
         box-shadow: 0 10px 23px rgba(59, 193, 53, 0.25);
     }
 
+
     .login-button:active,
     .login-card button[type="submit"]:active {
         background: var(--login-brand-active);
         border-color: var(--login-brand-active);
         box-shadow: 0 5px 12px rgba(59, 193, 53, 0.17);
     }
+
 
     .login-button:focus,
     .login-card button[type="submit"]:focus {
@@ -302,6 +313,7 @@ body {
     font-size: 12px;
 }
 
+
 .login-card .validation-summary-errors {
     padding: 11px 13px;
     margin-bottom: 18px;
@@ -311,6 +323,7 @@ body {
     color: var(--login-danger);
     font-size: 13px;
 }
+
 
     .login-card .validation-summary-errors ul {
         margin: 0;
@@ -328,19 +341,23 @@ body {
         padding: 28px 18px;
     }
 
+
     .login-card {
         max-width: 100%;
         padding: 40px 32px;
         border-radius: 18px;
     }
 
+
     .login-brand {
         margin-bottom: 32px;
     }
 
+
         .login-brand .brand-title {
             font-size: 30px;
         }
+
 
     .login-heading h2,
     .login-card h5 {
@@ -355,27 +372,33 @@ body {
         padding: 18px 12px;
     }
 
+
     .login-card {
         padding: 32px 22px;
         border-radius: 15px;
     }
 
+
     .login-brand .brand-title {
         font-size: 27px;
     }
 
+
     .login-brand .brand-sub {
         letter-spacing: 2.3px;
     }
+
 
     .login-heading h2,
     .login-card h5 {
         font-size: 23px;
     }
 
+
     .login-card .form-control {
         min-height: 49px;
     }
+
 
     .login-button,
     .login-card button[type="submit"] {
