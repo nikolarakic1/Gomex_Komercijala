@@ -9,6 +9,7 @@ namespace GomexPraksa.Repository
         Task<IEnumerable<Dobavljac>> SearchAsync(
        string? naziv,
        bool? aktivan,bool CanViewAllCategories,List<int>KategorijaIds);
+        Task<IEnumerable<Dobavljac>> CriticalDobavljaciAsync(bool canViewAllCategories,List<int>KategorijaIds);
         
     }
 }

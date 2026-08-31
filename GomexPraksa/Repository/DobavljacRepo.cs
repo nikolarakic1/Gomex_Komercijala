@@ -148,5 +148,12 @@ namespace GomexPraksa.Repository
                 }
             );
         }
+        public async Task<IEnumerable<Dobavljac>> CriticalDobavljaciAsync(bool canViewAllCategories, List<int> KategorijaIds)
+        {
+            const string sql = """
+                
+                """;
+            throw new ArgumentException();
+        }
     }
 }
