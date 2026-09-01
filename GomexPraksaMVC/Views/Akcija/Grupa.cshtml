@@ -18,12 +18,22 @@
     </div>
 </div>
 
+    <form method="get" class="mb-3">
+        <input type="hidden" name="tipAkcije" value="@Model.TipAkcije" />
+        <input type="hidden" name="tab" value="@tab" />
+        <div class="input-group input-group-sm" style="max-width:360px">
+            <input name="filter" value="@Context.Request.Query["filter"]" type="text" class="form-control" placeholder="Pretraži po nazivu ili šifri..." />
+            <button class="btn btn-outline-secondary" type="submit">Traži</button>
+        </div>
+    </form>
+
 <div class="metric-card">
     <div class="table-responsive">
         <table class="table table-sm table-striped">
             <thead>
                 <tr>
                     <th>Artikal</th>
+                    <th>Period akcije</th>
                     <th>Šifra</th>
                     <th class="text-end">Redovna cena</th>
                     <th class="text-end">Akcijska cena</th>
@@ -36,6 +46,7 @@
                 {
                     <tr>
                         <td>@(a.ArtikalNaziv ?? $"Artikal #{a.ArtikalId}")</td>
+                        <td class="text-nowrap">@a.DatumOd.ToString("dd.MM.yyyy.") &ndash; @a.DatumDo.ToString("dd.MM.yyyy.")</td>
                         <td>@a.ArtikalSifra</td>
                         <td class="text-end">@(a.RedovnaCena.HasValue ? a.RedovnaCena.Value.ToString("N2") + " RSD" : "-")</td>
                         <td class="text-end">@a.AkcijskaCena.ToString("N2") RSD</td>

@@ -1,0 +1,39 @@
+@model List<GomexPraksaMVC.Models.AkcijaPeriodViewItem>
+@{
+    ViewData["Title"] = "Periody akcije";
+    var tip = Context.Request.Query["tipAkcije"].ToString();
+    var tab = Context.Request.Query["tab"].ToString() ?? "trenutne";
+}
+
+<a asp-action="Index" asp-route-tab="@tab" class="text-decoration-none text-secondary small mb-3 d-inline-block">&larr; Nazad</a>
+
+<div class="mb-3">
+    <h4 class="mb-1">@tip</h4>
+    <p class="text-secondary small">Izaberite period(e) koji želite da prikažete</p>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="metric-card text-center py-5 text-secondary">Nema perioda za ovu akciju.</div>
+}
+else
+{
+    <form method="get" asp-action="Grupa">
+        <input type="hidden" name="tipAkcije" value="@tip" />
+        <input type="hidden" name="tab" value="@tab" />
+        <div class="list-group mb-3">
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                var p = Model[i];
+                <label class="list-group-item">
+                    <input type="checkbox" name="datumOd" value="@p.DatumOd.ToString("yyyy-MM-dd")" />
+                    <input type="hidden" name="datumDo" value="@p.DatumDo.ToString("yyyy-MM-dd")" />
+                    <strong>@p.DatumOd.ToString("dd.MM.yyyy.") &ndash; @p.DatumDo.ToString("dd.MM.yyyy.")</strong>
+                    <span class="text-secondary small"> &middot; @p.BrojArtikala artikala</span>
+                </label>
+            }
+        </div>
+        <button class="btn btn-primary">Prikaži izabrane</button>
+        <a asp-action="Grupa" asp-route-tipAkcije="@tip" asp-route-tab="@tab" class="btn btn-link">Prikaži sve periode</a>
+    </form>
+}

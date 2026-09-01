@@ -41,17 +41,12 @@ else
                             </span>
                             <span class="text-secondary small">@grupa.BrojArtikala artikala</span>
                         </div>
-                        <div class="text-secondary small mb-3">
-                            @grupa.DatumOd.ToString("dd.MM.yyyy.") &ndash; @grupa.DatumDo.ToString("dd.MM.yyyy.")
-                        </div>
                     </div>
-                    <a asp-action="Grupa"
+                    <a asp-action="Periods"
                        asp-route-tipAkcije="@grupa.TipAkcije"
-                       asp-route-datumOd="@grupa.DatumOd.ToString("yyyy-MM-dd")"
-                       asp-route-datumDo="@grupa.DatumDo.ToString("yyyy-MM-dd")"
                        asp-route-tab="@activeTab"
                        class="btn btn-outline-secondary btn-sm w-100">
-                        Prikaži proizvode
+                        Prikaži periode
                     </a>
                 </div>
             </div>

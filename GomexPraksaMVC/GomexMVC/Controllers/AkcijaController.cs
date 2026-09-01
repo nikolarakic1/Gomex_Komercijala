@@ -17,15 +17,16 @@ namespace GomexPraksaMVC.Controllers
         {
             var akcije = await UcitajIPopuniAkcije(tab);
 
+            // Grupisemo po tipu akcije (ime akcije). Datum opsega grupe je min/max datuma iz svih stavki
             var grupe = akcije
-                .GroupBy(a => new { a.TipAkcije, a.DatumOd, a.DatumDo })
+                .GroupBy(a => a.TipAkcije)
                 .Select(g => new AkcijaGrupaViewItem
                 {
-                    TipAkcije = g.Key.TipAkcije,
-                    DatumOd = g.Key.DatumOd,
-                    DatumDo = g.Key.DatumDo,
+                    TipAkcije = g.Key,
+                    DatumOd = g.Min(x => x.DatumOd),
+                    DatumDo = g.Max(x => x.DatumDo),
                     BrojArtikala = g.Count(),
-                    Artikli = g.ToList()
+                    Artikli = g.OrderByDescending(x => x.DatumOd).ToList()
                 })
                 .OrderByDescending(g => g.DatumOd)
                 .ToList();
@@ -34,32 +35,70 @@ namespace GomexPraksaMVC.Controllers
             return View(grupe);
         }
 
-        public async Task<IActionResult> Grupa(string tipAkcije, DateTime datumOd, DateTime datumDo, string tab = "trenutne")
+        public async Task<IActionResult> Grupa(string tipAkcije, DateTime[]? datumOd, DateTime[]? datumDo, string? filter, string tab = "trenutne")
         {
             var akcije = await UcitajIPopuniAkcije(tab);
 
             var artikliUGrupi = akcije
-                .Where(a => a.TipAkcije == tipAkcije
-                    && a.DatumOd.Date == datumOd.Date
-                    && a.DatumDo.Date == datumDo.Date)
+                .Where(a => a.TipAkcije == tipAkcije)
                 .ToList();
 
-            if (!artikliUGrupi.Any())
+            // If specific periods were provided, filter to only those periods (matching by Date)
+            if (datumOd != null && datumDo != null && datumOd.Length > 0 && datumDo.Length > 0)
             {
-                return NotFound();
+                var pairs = new HashSet<string>();
+                var len = Math.Min(datumOd.Length, datumDo.Length);
+                for (int i = 0; i < len; i++)
+                {
+                    pairs.Add(datumOd[i].Date.ToString("yyyy-MM-dd") + "_" + datumDo[i].Date.ToString("yyyy-MM-dd"));
+                }
+
+                artikliUGrupi = artikliUGrupi
+                    .Where(a => pairs.Contains(a.DatumOd.Date.ToString("yyyy-MM-dd") + "_" + a.DatumDo.Date.ToString("yyyy-MM-dd")))
+                    .ToList();
             }
 
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                var f = filter.Trim();
+                artikliUGrupi = artikliUGrupi
+                    .Where(a => (!string.IsNullOrWhiteSpace(a.ArtikalNaziv) && a.ArtikalNaziv!.Contains(f, StringComparison.OrdinalIgnoreCase))
+                                || (!string.IsNullOrWhiteSpace(a.ArtikalSifra) && a.ArtikalSifra!.Contains(f, StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+            }
+
+            // If there are no items after filtering, return an empty group instead of 404 to avoid crashes
             var grupa = new AkcijaGrupaViewItem
             {
                 TipAkcije = tipAkcije,
-                DatumOd = datumOd,
-                DatumDo = datumDo,
+                DatumOd = artikliUGrupi.Any() ? artikliUGrupi.Min(a => a.DatumOd) : DateTime.Today,
+                DatumDo = artikliUGrupi.Any() ? artikliUGrupi.Max(a => a.DatumDo) : DateTime.Today,
                 BrojArtikala = artikliUGrupi.Count,
                 Artikli = artikliUGrupi
             };
 
             ViewData["Tab"] = tab;
             return View(grupa);
+        }
+
+        public async Task<IActionResult> Periods(string tipAkcije, string tab = "trenutne")
+        {
+            var akcije = await UcitajIPopuniAkcije(tab);
+
+            var periods = akcije
+                .Where(a => a.TipAkcije == tipAkcije)
+                .GroupBy(a => new { Od = a.DatumOd.Date, Do = a.DatumDo.Date })
+                .Select(g => new AkcijaPeriodViewItem
+                {
+                    DatumOd = g.Key.Od,
+                    DatumDo = g.Key.Do,
+                    BrojArtikala = g.Count()
+                })
+                .OrderByDescending(p => p.DatumOd)
+                .ToList();
+
+            ViewData["Tab"] = tab;
+            return View(periods);
         }
 
         private async Task<List<AkcijaViewItem>> UcitajIPopuniAkcije(string tab)
@@ -106,7 +145,11 @@ namespace GomexPraksaMVC.Controllers
                 sviArtikli = new List<ArtikalViewItem>();
             }
 
-            var artikalCache = sviArtikli.ToDictionary(a => a.ArtikalId);
+            // Avoid exceptions if API returns duplicates or zero ids: group and pick first
+            var artikalCache = sviArtikli
+                .Where(a => a != null)
+                .GroupBy(a => a.ArtikalId)
+                .ToDictionary(g => g.Key, g => g.First());
 
             foreach (var akcija in akcije)
             {
@@ -115,6 +158,44 @@ namespace GomexPraksaMVC.Controllers
                     akcija.ArtikalNaziv = artikal.Naziv;
                     akcija.ArtikalSifra = artikal.Sifra;
                     akcija.RedovnaCena = artikal.RedovnaCena;
+                }
+            }
+
+            // If some artikli still have no naziv (possible JSON mismatch or filtered list),
+            // attempt per-id fetch for missing ArtikalId values (skip zeros)
+            var missingIds = akcije
+                .Where(a => string.IsNullOrWhiteSpace(a.ArtikalNaziv) && a.ArtikalId > 0)
+                .Select(a => a.ArtikalId)
+                .Distinct()
+                .ToList();
+
+            if (missingIds.Any())
+            {
+                foreach (var id in missingIds)
+                {
+                    try
+                    {
+                        var single = await client.GetFromJsonAsync<ArtikalViewItem>($"api/artikli/{id}");
+                        if (single != null)
+                        {
+                            artikalCache[id] = single;
+                        }
+                    }
+                    catch
+                    {
+                        // ignore individual failures
+                    }
+                }
+
+                // apply any newly fetched values
+                foreach (var akcija in akcije)
+                {
+                    if (string.IsNullOrWhiteSpace(akcija.ArtikalNaziv) && artikalCache.TryGetValue(akcija.ArtikalId, out var art))
+                    {
+                        akcija.ArtikalNaziv = art.Naziv;
+                        akcija.ArtikalSifra = art.Sifra;
+                        akcija.RedovnaCena = art.RedovnaCena;
+                    }
                 }
             }
 
