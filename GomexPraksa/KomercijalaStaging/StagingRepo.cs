@@ -22,7 +22,7 @@ namespace GomexPraksa.KomercijalaStaging
             bulkCopy.DestinationTableName =
             "dbo.KomercijalaImportStaging";
             bulkCopy.BatchSize = 10000;
-            bulkCopy.BulkCopyTimeout = 120;
+            bulkCopy.BulkCopyTimeout = default;
             bulkCopy.ColumnMappings.Add("Tip", "Tip");
             bulkCopy.ColumnMappings.Add("Godina", "Godina");
             bulkCopy.ColumnMappings.Add("Mesec", "Mesec");
@@ -67,7 +67,7 @@ namespace GomexPraksa.KomercijalaStaging
             bulkCopy.ColumnMappings.Add(
                 "RUC2",
                 "RUC2");
-
+            
             bulkCopy.ColumnMappings.Add(
                 "RUC12",
                 "RUC12");

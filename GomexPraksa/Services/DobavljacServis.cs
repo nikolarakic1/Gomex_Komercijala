@@ -1,4 +1,5 @@
-﻿using GomexPraksa.JWTInfo;
+﻿using GomexPraksa.AddedFunctions;
+using GomexPraksa.JWTInfo;
 using GomexPraksa.Repository;
 using Models.Dtos;
 using Models.ModelsDash;
@@ -18,7 +19,9 @@ public class DobavljacServis : IDobavljacServis
         _userAccess = userAccess;
     }
 
-    public async Task<IEnumerable<DobavljacDTO>> GetAllDobavljaceAsync()
+    public async Task<PaginationGeneric<DobavljacDTO>>
+        GetAllDobavljaceAsync(
+            PaginationParams pagination)
     {
         var access =
             await _userAccess.GetCurrentUserAccessAsync();
@@ -31,15 +34,33 @@ public class DobavljacServis : IDobavljacServis
             );
         }
 
-        var dobavljaci = await _repo.GetAllDobavljace(
-            access.CanViewAllCategories,
-            access.KategorijaIds
-        );
+        var dobavljaci =
+            await _repo.GetAllDobavljace(
+                access.CanViewAllCategories,
+                access.KategorijaIds,
+                pagination
+            );
 
-        return dobavljaci.Select(MapToDto);
+        return new PaginationGeneric<DobavljacDTO>
+        {
+            Items =
+                dobavljaci.Items
+                    .Select(MapToDto)
+                    .ToList(),
+
+            Page =
+                dobavljaci.Page,
+
+            PageSize =
+                dobavljaci.PageSize,
+
+            TotalCount =
+                dobavljaci.TotalCount
+        };
     }
 
-    public async Task<DobavljacDTO?> GetByIdAsync(int id)
+    public async Task<DobavljacDTO?> GetByIdAsync(
+        int id)
     {
         if (id <= 0)
         {
@@ -59,21 +80,26 @@ public class DobavljacServis : IDobavljacServis
             );
         }
 
-        var dobavljac = await _repo.GetByIdAsync(
-            id,
-            access.CanViewAllCategories,
-            access.KategorijaIds
-        );
+        var dobavljac =
+            await _repo.GetByIdAsync(
+                id,
+                access.CanViewAllCategories,
+                access.KategorijaIds
+            );
 
         if (dobavljac is null)
+        {
             return null;
+        }
 
         return MapToDto(dobavljac);
     }
 
-    public async Task<IEnumerable<DobavljacDTO>> SearchAsync(
-        string? naziv,
-        bool? aktivan)
+    public async Task<PaginationGeneric<DobavljacDTO>>
+        SearchAsync(
+            string? naziv,
+            bool? aktivan,
+            PaginationParams pagination)
     {
         var access =
             await _userAccess.GetCurrentUserAccessAsync();
@@ -86,21 +112,46 @@ public class DobavljacServis : IDobavljacServis
             );
         }
 
-        var dobavljaci = await _repo.SearchAsync(
-            naziv,
-            aktivan,
-            access.CanViewAllCategories,
-            access.KategorijaIds
-        );
+        var dobavljaci =
+            await _repo.SearchAsync(
+                naziv,
+                aktivan,
+                access.CanViewAllCategories,
+                access.KategorijaIds,
+                pagination
+            );
 
-        return dobavljaci.Select(MapToDto);
+        return new PaginationGeneric<DobavljacDTO>
+        {
+            Items =
+                dobavljaci.Items
+                    .Select(MapToDto)
+                    .ToList(),
+
+            Page =
+                dobavljaci.Page,
+
+            PageSize =
+                dobavljaci.PageSize,
+
+            TotalCount =
+                dobavljaci.TotalCount
+        };
     }
 
-    private static DobavljacDTO MapToDto(Dobavljac dobavljac) =>
-        new()
+    private static DobavljacDTO MapToDto(
+        Dobavljac dobavljac)
+    {
+        return new DobavljacDTO
         {
-            DobavljacId = dobavljac.DobavljacId,
-            Naziv = dobavljac.Naziv,
-            Aktivan = dobavljac.Aktivan
+            DobavljacId =
+                dobavljac.DobavljacId,
+
+            Naziv =
+                dobavljac.Naziv,
+
+            Aktivan =
+                dobavljac.Aktivan
         };
+    }
 }

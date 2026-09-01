@@ -1,15 +1,30 @@
-﻿using Models.ModelsDash;
+﻿using GomexPraksa.AddedFunctions;
+using Models.ModelsDash;
 
 namespace GomexPraksa.Repository
 {
     public interface IDobavljacRepo
     {
-        public Task<IEnumerable<Dobavljac>> GetAllDobavljace(bool CanViewAllCategories,List<int> KategorijaIds);
-        public Task<Dobavljac?> GetByIdAsync(int id, bool CanViewAllCategories , List<int>KategorijaIds);
-        Task<IEnumerable<Dobavljac>> SearchAsync(
-       string? naziv,
-       bool? aktivan,bool CanViewAllCategories,List<int>KategorijaIds);
-        Task<IEnumerable<Dobavljac>> CriticalDobavljaciAsync(bool canViewAllCategories,List<int>KategorijaIds);
-        
+        Task<PaginationGeneric<Dobavljac>> GetAllDobavljace(
+            bool canViewAllCategories,
+            List<int> kategorijaIds,
+            PaginationParams pagination);
+
+        Task<Dobavljac?> GetByIdAsync(
+            int id,
+            bool canViewAllCategories,
+            List<int> kategorijaIds);
+
+        Task<PaginationGeneric<Dobavljac>> SearchAsync(
+            string? naziv,
+            bool? aktivan,
+            bool canViewAllCategories,
+            List<int> kategorijaIds,
+            PaginationParams pagination);
+
+        Task<PaginationGeneric<Dobavljac>> CriticalDobavljaciAsync(
+            bool canViewAllCategories,
+            List<int> kategorijaIds,
+            PaginationParams pagination);
     }
 }

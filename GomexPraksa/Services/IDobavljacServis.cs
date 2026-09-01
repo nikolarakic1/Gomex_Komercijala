@@ -1,14 +1,21 @@
-﻿using Models.Dtos;
+﻿using GomexPraksa.AddedFunctions;
+using Models.Dtos;
 
 namespace GomexPraksa.Services;
 
 public interface IDobavljacServis
 {
-    Task<IEnumerable<DobavljacDTO>> GetAllDobavljaceAsync();
+    Task<PaginationGeneric<DobavljacDTO>>
+        GetAllDobavljaceAsync(
+            PaginationParams pagination);
 
-    Task<DobavljacDTO?> GetByIdAsync(int id);
+    Task<DobavljacDTO?>
+        GetByIdAsync(
+            int id);
 
-    Task<IEnumerable<DobavljacDTO>> SearchAsync(
-        string? naziv,
-        bool? aktivan);
+    Task<PaginationGeneric<DobavljacDTO>>
+        SearchAsync(
+            string? naziv,
+            bool? aktivan,
+            PaginationParams pagination);
 }

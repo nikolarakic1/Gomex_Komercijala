@@ -2,6 +2,7 @@ using GomexPraksa.ApplicationUserSecurity;
 using GomexPraksa.Auth;
 using GomexPraksa.ConnectionFactory;
 using GomexPraksa.JWTInfo;
+using GomexPraksa.KomercijalaStaging;
 using GomexPraksa.Repository;
 using GomexPraksa.RepositoryComerc;
 using GomexPraksa.Services;
@@ -139,6 +140,9 @@ builder.Services.AddScoped<ICriticalProductsService, CriticalProductsService>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAccess, UserAccess>();
+
+builder.Services.AddScoped<IStagingRepo, StagingRepo>();
+builder.Services.AddScoped<IStagingService, StagingService>();
 
 // =========================
 // APP
