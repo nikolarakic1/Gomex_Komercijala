@@ -1,0 +1,44 @@
+@model GomexPraksaMVC.Models.RucChangeViewItem?
+@{
+    ViewData["Title"] = "Štampa - Komercijalni";
+    var datum = ViewData["Datum"] as DateTime?;
+}
+
+<style>
+    @@media print { .no-print { display:none; } .app-sidebar { display:none !important; } .flex-grow-1 { margin-left:0 !important; } }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-0">Komercijalni rezultati</h4>
+        <div class="text-secondary small">Datum: @(datum?.ToString("dd.MM.yyyy.") ?? "-")</div>
+    </div>
+    <div class="no-print">
+        <button class="btn btn-primary" onclick="window.print()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="bi bi-printer me-1" aria-hidden="true">
+                <path d="M2 7a1 1 0 0 0-1 1v3.5A1.5 1.5 0 0 0 2.5 13H3v1.5A1.5 1.5 0 0 0 4.5 16h7A1.5 1.5 0 0 0 13 14.5V13h.5A1.5 1.5 0 0 0 15 11.5V8a1 1 0 0 0-1-1H2zm1 1h10v3.5a.5.5 0 0 1-.5.5H13v1H3v-1h-.5a.5.5 0 0 1-.5-.5V8z"/>
+                <path d="M5 1a2 2 0 0 0-2 2v2h10V3a2 2 0 0 0-2-2H5z"/>
+            </svg>
+            Print
+        </button>
+    </div>
+</div>
+
+@if (Model == null)
+{
+    <div class="text-center text-secondary">Nema dostupnih podataka za izabrani datum ili API nije dostupan.</div>
+}
+else
+{
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr><th>Pocetni RUC</th><td>@Model.PocetniRuc.ToString("N2")</td></tr>
+            <tr><th>Margin effect</th><td>@Model.MarginEffect.ToString("N2")</td></tr>
+            <tr><th>Volume effect</th><td>@Model.VolumeEffect.ToString("N2")</td></tr>
+            <tr><th>Mix effect</th><td>@Model.MixEffect.ToString("N2")</td></tr>
+            <tr><th>Ukupna promena</th><td>@Model.UkupnaPromena.ToString("N2")</td></tr>
+            <tr><th>Ukupna promena (%)</th><td>@Model.UkupnaPromenaProcenat.ToString("P2")</td></tr>
+            <tr><th>Konacni RUC</th><td>@Model.KonacniRuc.ToString("N2")</td></tr>
+        </tbody>
+    </table>
+}

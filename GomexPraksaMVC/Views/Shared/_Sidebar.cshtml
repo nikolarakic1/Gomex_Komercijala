@@ -73,10 +73,11 @@
         Alert
     </a>
 
-    <a href="#"
-       class="nav-item">
+    <a asp-controller="Stampanje"
+       asp-action="Index"
+       class="nav-item @(controller == "Stampanje" ? "active" : "")">
 
-        <i class="bi bi-print"></i>
+        <i class="bi bi-printer"></i>
 
         Štampa izveštaja
     </a>
