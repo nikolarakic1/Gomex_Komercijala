@@ -19,6 +19,8 @@ public interface IArtikalRepo
         string? naziv,
         int? dobavljacId,
         int? robnaGrupaId,
+        int? odeljenjeId,
+        string? sifra,
         bool? aktivan,
         bool CanViewAllCategories,
         List<int> kategorijaIds,

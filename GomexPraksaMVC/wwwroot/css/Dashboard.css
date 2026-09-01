@@ -21,6 +21,21 @@
     --shadow-md: 0 8px 24px rgba(20, 30, 25, 0.08);
 }
 
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.main-content {
+    margin-left: var(--sidebar-width);
+    transition: margin-left .15s ease;
+}
+
+@media (max-width: 991.98px) {
+    .main-content {
+        margin-left: 0;
+    }
+}
+
 
 /* =========================================================
    GLOBAL
@@ -227,12 +242,37 @@ a {
     display: flex;
     gap: 14px;
     align-items: flex-end;
-    flex-wrap: nowrap;
+    flex-wrap: nowrap; /* keep filters on one row when space permits */
+    overflow-x: auto; /* allow horizontal scroll on narrow screens */
+    -webkit-overflow-scrolling: touch;
 }
 
 .filter-group {
-    flex: 1;
-    min-width: 130px;
+    flex: 0 0 220px; /* fixed base width to keep filters aligned */
+    min-width: 160px;
+}
+
+@media (max-width: 991.98px) {
+    .filter-bar {
+        flex-wrap: nowrap;
+    }
+
+    .filter-group {
+        flex: 0 0 180px;
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* small screens: allow wrapping to a couple rows for usability */
+    .filter-bar {
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
 }
 
     .filter-group label {

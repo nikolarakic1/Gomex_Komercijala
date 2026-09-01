@@ -33,7 +33,8 @@
 
         <form asp-controller="Account"
               asp-action="Login"
-              method="post">
+              method="post"
+              id="loginForm">
 
             <input type="hidden"
                    asp-for="ReturnUrl" />
@@ -93,10 +94,10 @@
             </div>
 
             <button type="submit"
-                    class="btn login-button">
-
+                    class="btn login-button"
+                    id="loginBtn">
+                <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true" id="loginSpinner"></span>
                 Prijavi se
-
             </button>
 
         </form>

@@ -13,7 +13,7 @@
 
 <div class="filter-card mb-4">
 
-    <form method="get" class="filter-bar">
+    <form method="get" class="filter-bar d-flex align-items-end">
 
         <input type="hidden"
                name="page"
@@ -23,7 +23,7 @@
                name="pageSize"
                value="@Model.PageSize" />
 
-        <div class="filter-group">
+        <div class="filter-group mb-0">
             <label>Naziv</label>
 
             <input type="text"
@@ -33,7 +33,17 @@
                    placeholder="Pretraži po nazivu" />
         </div>
 
-        <div class="filter-group">
+        <div class="filter-group mb-0">
+            <label>Šifra</label>
+
+            <input type="text"
+                   name="sifra"
+                   class="form-control"
+                   value="@Model.Sifra"
+                   placeholder="Pretraži po šifri" />
+        </div>
+
+        <div class="filter-group mb-0">
             <label>Dobavljač</label>
 
             <select class="form-select"
@@ -54,8 +64,28 @@
             </select>
         </div>
 
-        <div class="filter-group align-self-end d-flex">
+        <div class="filter-group mb-0">
+            <label>Odeljenje</label>
 
+            <select class="form-select"
+                    name="odeljenjeId">
+
+                <option value="">
+                    Sva odeljenja
+                </option>
+
+                @foreach (var o in Model.Odeljenja)
+                {
+                    <option value="@o.OdeljenjeId"
+                            selected="@(Model.SelectedOdeljenjeId == o.OdeljenjeId ? "selected" : null)">
+                        @o.Naziv
+                    </option>
+                }
+
+            </select>
+        </div>
+
+        <div class="filter-group d-flex align-items-end mb-0">
             <button type="submit"
                     class="btn btn-primary">
                 Primeni filtere
@@ -66,7 +96,6 @@
                class="btn btn-secondary ms-2">
                 Poništi
             </a>
-
         </div>
 
     </form>
@@ -163,7 +192,9 @@
                        asp-route-page="@(Model.Page - 1)"
                        asp-route-pageSize="@Model.PageSize"
                        asp-route-naziv="@Model.Naziv"
+                       asp-route-sifra="@Model.Sifra"
                        asp-route-dobavljacId="@Model.SelectedDobavljacId"
+                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
                        asp-route-robnaGrupaId="@Model.SelectedRobnaGrupaId"
                        class="btn btn-sm btn-outline-secondary">
 
@@ -179,7 +210,9 @@
                        asp-route-page="@(Model.Page + 1)"
                        asp-route-pageSize="@Model.PageSize"
                        asp-route-naziv="@Model.Naziv"
+                       asp-route-sifra="@Model.Sifra"
                        asp-route-dobavljacId="@Model.SelectedDobavljacId"
+                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
                        asp-route-robnaGrupaId="@Model.SelectedRobnaGrupaId"
                        class="btn btn-sm btn-outline-primary">
 

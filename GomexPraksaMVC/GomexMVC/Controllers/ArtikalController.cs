@@ -25,6 +25,7 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
             int? odeljenjeId,
             int? kategorijaId,
             string? naziv,
+            string? sifra,
             int page = 1,
             int pageSize = 10)
         {
@@ -97,6 +98,18 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                     );
                 }
 
+                if (odeljenjeId.HasValue)
+                {
+                    queryParts.Add(
+                        $"odeljenjeId={odeljenjeId.Value}"
+                    );
+                }
+
+                if (!string.IsNullOrWhiteSpace(sifra))
+                {
+                    queryParts.Add($"sifra={Uri.EscapeDataString(sifra)}");
+                }
+
                 var query =
                     "?" + string.Join(
                         "&",
@@ -160,16 +173,8 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
 
             try
             {
-                var dobavljaci =
-                    await client.GetFromJsonAsync<
-                        List<DobavljacViewItem>
-                    >(
-                        "api/dobavljaci"
-                    );
-
-                model.Dobavljaci =
-                    dobavljaci
-                    ?? new List<DobavljacViewItem>();
+                var paged = await client.GetFromJsonAsync<PaginationResponse<DobavljacViewItem>>("api/dobavljaci");
+                model.Dobavljaci = paged?.Items ?? new List<DobavljacViewItem>();
             }
             catch (Exception ex)
             {

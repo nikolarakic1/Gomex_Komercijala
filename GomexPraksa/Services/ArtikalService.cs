@@ -136,6 +136,8 @@ namespace GomexPraksa.Services
                     filter.Naziv,
                     filter.DobavljacId,
                     filter.RobnaGrupaId,
+                    filter.OdeljenjeId,
+                    filter.Sifra,
                     filter.Aktivan,
                     access.CanViewAllCategories,
                     access.KategorijaIds,

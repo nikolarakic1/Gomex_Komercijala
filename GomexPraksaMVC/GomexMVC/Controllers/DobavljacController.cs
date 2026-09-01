@@ -24,8 +24,9 @@ namespace GomexPraksaMVC.Controllers
             List<DobavljacViewItem> dobavljaci;
             try
             {
-                dobavljaci = await client.GetFromJsonAsync<List<DobavljacViewItem>>(query)
-                    ?? new List<DobavljacViewItem>();
+                // API now returns a paginated response. Deserialize to PaginationResponse and extract items.
+                var paged = await client.GetFromJsonAsync<PaginationResponse<DobavljacViewItem>>(query);
+                dobavljaci = paged?.Items ?? new List<DobavljacViewItem>();
             }
             catch
             {
