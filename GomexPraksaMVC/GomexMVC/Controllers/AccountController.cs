@@ -53,9 +53,46 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                 return View(model);
             }        
 
-        var json = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            var token = doc.RootElement.GetProperty("token").GetString();
+            if (!response.IsSuccessStatusCode)
+            {
+                // Try to read error message from API, but fall back to a generic message
+                string error = "Prijava nije uspela.";
+                try
+                {
+                    var errJson = await response.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrWhiteSpace(errJson))
+                    {
+                        using var errDoc = JsonDocument.Parse(errJson);
+                        if (errDoc.RootElement.TryGetProperty("message", out var msg))
+                        {
+                            error = msg.GetString() ?? error;
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore parse errors and use generic message
+                }
+
+                ModelState.AddModelError(string.Empty, error);
+                return View(model);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            string? token = null;
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("token", out var tok))
+                {
+                    token = tok.GetString();
+                }
+            }
+            catch
+            {
+                ModelState.AddModelError(string.Empty, "Neispravan odgovor sa servera.");
+                return View(model);
+            }
 
             if (string.IsNullOrWhiteSpace(token))
             {
