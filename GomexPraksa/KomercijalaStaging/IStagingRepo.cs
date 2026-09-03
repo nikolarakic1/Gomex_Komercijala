@@ -4,6 +4,15 @@ namespace GomexPraksa.KomercijalaStaging
 {
     public interface IStagingRepo
     {
-        Task BulkInsertStagingAsync( DataTable table);
+        Task<int> CreateImportBatchAsync(
+            string fileName);
+
+        Task BulkInsertStagingAsync(
+            int importBatchId,
+            DataTable table);
+
+        Task MarkImportFailedAsync(
+            int importBatchId,
+            string errorMessage);
     }
 }

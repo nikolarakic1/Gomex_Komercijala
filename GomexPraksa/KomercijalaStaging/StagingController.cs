@@ -1,8 +1,7 @@
-﻿using GomexPraksa.KomercijalaStaging;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GomexPraksa.Controllers
+namespace GomexPraksa.KomercijalaStaging
 {
     [Authorize(Roles = "Menadzer,SefMenadzera")]
     [ApiController]
@@ -24,53 +23,55 @@ namespace GomexPraksa.Controllers
         {
             if (file == null)
             {
-                return BadRequest(
-                    "Excel fajl nije prosleđen.");
+                return BadRequest(new
+                {
+                    Message = "Excel fajl nije prosleđen."
+                });
             }
 
             if (file.Length == 0)
             {
-                return BadRequest(
-                    "Excel fajl je prazan.");
+                return BadRequest(new
+                {
+                    Message = "Excel fajl je prazan."
+                });
             }
 
             try
             {
-                var insertedRows =
+                var result =
                     await _stagingService
                         .ImportExcelAsync(file);
 
                 return Ok(new
                 {
                     Message = "Import uspešno završen.",
-                    InsertedRows = insertedRows
+                    result.ImportBatchId,
+                    result.InsertedRows,
+                    result.Status
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = ex.Message
+                    Message = ex.Message,
+                    InnerMessage =
+                        ex.InnerException?.Message
                 });
             }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new
-                {
-                    Message = ex.Message
-                });
-            }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(
-                    StatusCodes
-                        .Status500InternalServerError,
+                    StatusCodes.Status500InternalServerError,
                     new
                     {
-                        Message =
-                            "Došlo je do greške prilikom importa Excel fajla."
-                    }
-                );
+                        Message = ex.Message,
+                        InnerMessage =
+                            ex.InnerException?.Message,
+                        ExceptionType =
+                            ex.GetType().Name
+                    });
             }
         }
     }

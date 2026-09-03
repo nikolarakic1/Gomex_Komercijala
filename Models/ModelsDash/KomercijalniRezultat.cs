@@ -1,9 +1,12 @@
-﻿namespace Models.ModelsDash;
+﻿namespace Models.ModelsDash
+{
     public class KomercijalniRezultat
     {
         public long KomercijalniRezultatId { get; set; }
 
         public int ArtikalId { get; set; }
+
+        public int? DobavljacId { get; set; }
 
         public int TipProdajeId { get; set; }
 
@@ -14,9 +17,10 @@
         public bool CMUtice { get; set; }
 
         public bool PlusIzvoz { get; set; }
+        public string? PliUzvoz { get; set; }
 
         public decimal Kolicina { get; set; }
-
+        public int? ImportBatchId { get; set; }
         public decimal MPBezPDV { get; set; }
 
         public decimal NabavnaVrednostBezPDV { get; set; }
@@ -41,5 +45,8 @@
 
         public Artikal? Artikal { get; set; }
 
+        public Dobavljac? Dobavljac { get; set; }
+
         public TipProdaje? TipProdaje { get; set; }
     }
+}
