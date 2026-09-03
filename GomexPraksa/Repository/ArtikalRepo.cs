@@ -189,6 +189,8 @@ namespace GomexPraksa.Repository
     string? naziv,
     int? dobavljacId,
     int? robnaGrupaId,
+    int? odeljenjeId,
+    string? sifra,
     bool? aktivan,
     bool canViewAllCategories,
     List<int> kategorijaIds,
@@ -207,6 +209,8 @@ namespace GomexPraksa.Repository
 
         INNER JOIN dbo.RobnaGrupa rg
             ON rg.RobnaGrupaId = a.RobnaGrupaId
+        INNER JOIN dbo.Kategorija k
+            ON k.KategorijaId = rg.KategorijaId
 
         WHERE
             (@Naziv IS NULL
@@ -219,6 +223,14 @@ namespace GomexPraksa.Repository
             AND
             (@RobnaGrupaId IS NULL
                 OR a.RobnaGrupaId = @RobnaGrupaId)
+
+            AND
+            (@OdeljenjeId IS NULL
+                OR k.OdeljenjeId = @OdeljenjeId)
+
+            AND
+            (@Sifra IS NULL
+                OR a.Sifra LIKE '%' + @Sifra + '%')
 
             AND
             (@Aktivan IS NULL
@@ -241,6 +253,8 @@ namespace GomexPraksa.Repository
 
         INNER JOIN dbo.RobnaGrupa rg
             ON rg.RobnaGrupaId = a.RobnaGrupaId
+        INNER JOIN dbo.Kategorija k
+            ON k.KategorijaId = rg.KategorijaId
 
         WHERE
             (@Naziv IS NULL
@@ -253,6 +267,14 @@ namespace GomexPraksa.Repository
             AND
             (@RobnaGrupaId IS NULL
                 OR a.RobnaGrupaId = @RobnaGrupaId)
+
+            AND
+            (@OdeljenjeId IS NULL
+                OR k.OdeljenjeId = @OdeljenjeId)
+
+            AND
+            (@Sifra IS NULL
+                OR a.Sifra LIKE '%' + @Sifra + '%')
 
             AND
             (@Aktivan IS NULL
@@ -282,6 +304,8 @@ namespace GomexPraksa.Repository
                 DobavljacId = dobavljacId,
 
                 RobnaGrupaId = robnaGrupaId,
+                OdeljenjeId = odeljenjeId,
+                Sifra = string.IsNullOrWhiteSpace(sifra) ? null : sifra.Trim(),
 
                 Aktivan = aktivan,
 

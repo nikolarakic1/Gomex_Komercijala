@@ -12,6 +12,10 @@ namespace Models.Dtos
 
         public int? RobnaGrupaId { get; set; }
 
+        public int? OdeljenjeId { get; set; }
+
+        public string? Sifra { get; set; }
+
         public bool? Aktivan { get; set; }
     }
 }

@@ -167,11 +167,8 @@ namespace GomexPraksaMVC.Controllers
 
             try
             {
-                model.Dobavljaci =
-                    await client.GetFromJsonAsync<
-                        List<DobavljacViewItem>
-                    >("api/dobavljaci")
-                    ?? new List<DobavljacViewItem>();
+                var pagedDob = await client.GetFromJsonAsync<PaginationResponse<DobavljacViewItem>>("api/dobavljaci");
+                model.Dobavljaci = pagedDob?.Items ?? new List<DobavljacViewItem>();
             }
             catch (Exception ex)
             {

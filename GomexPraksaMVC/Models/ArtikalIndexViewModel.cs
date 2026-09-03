@@ -24,6 +24,7 @@ namespace GomexPraksaMVC.Models
         public int? SelectedKategorijaId { get; set; }
 
         public string? Naziv { get; set; }
+        public string? Sifra { get; set; }
 
 
         // PAGINATION
