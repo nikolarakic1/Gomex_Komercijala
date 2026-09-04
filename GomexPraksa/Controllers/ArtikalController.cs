@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
 using Models.DtosComerc;
-using System.Security.Claims;
 
 namespace GomexPraksa.Controllers
 {
@@ -17,73 +16,132 @@ namespace GomexPraksa.Controllers
         private readonly IArtikalService _artikalService;
         private readonly ICriticalProductsService _productsService;
 
-        public ArtikliController(IArtikalService artikalService, ICriticalProductsService productsService)
+        public ArtikliController(
+            IArtikalService artikalService,
+            ICriticalProductsService productsService)
         {
             _artikalService = artikalService;
             _productsService = productsService;
         }
 
+        // =============================================
+        // SVI ARTIKLI
+        // =============================================
+
         [HttpGet]
-        public async Task<ActionResult<PaginationGeneric<ArtikalDto>>> GetAll(
-    [FromQuery] PaginationParams pagination)
+        public async Task<
+            ActionResult<PaginationGeneric<ArtikalDto>>>
+            GetAll(
+                [FromQuery] PaginationParams pagination)
         {
             var artikli =
-                await _artikalService.GetAllAsync(
-                    pagination
-                );
+                await _artikalService
+                    .GetAllAsync(
+                        pagination
+                    );
 
             return Ok(artikli);
         }
+
+        // =============================================
+        // ARTIKAL PO ID
+        // =============================================
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<ArtikalDto>> GetById(int id)
-        {
-            var artikal = await _artikalService.GetByIdAsync(id);
-
-            return Ok(artikal);
-        }
-
-        [HttpGet("sifra/{sifra}")]
-        public async Task<ActionResult<ArtikalDto>> GetBySifra(
-            string sifra)
+        public async Task<
+            ActionResult<ArtikalDto>>
+            GetById(
+                int id)
         {
             var artikal =
-                await _artikalService.GetBySifraAsync(sifra);
+                await _artikalService
+                    .GetByIdAsync(
+                        id
+                    );
 
             return Ok(artikal);
         }
 
+        // =============================================
+        // ARTIKAL PO SIFRI
+        // =============================================
+
+        [HttpGet("sifra/{sifra}")]
+        public async Task<
+            ActionResult<ArtikalDto>>
+            GetBySifra(
+                string sifra)
+        {
+            var artikal =
+                await _artikalService
+                    .GetBySifraAsync(
+                        sifra
+                    );
+
+            return Ok(artikal);
+        }
+
+        // =============================================
+        // PRETRAGA ARTIKALA
+        // =============================================
+
         [HttpGet("search")]
-        public async Task<ActionResult<PaginationGeneric<ArtikalDto>>> Search(
-    [FromQuery] ArtikalFilterDto filter,
-    [FromQuery] PaginationParams pagination)
+        public async Task<
+            ActionResult<PaginationGeneric<ArtikalDto>>>
+            Search(
+                [FromQuery] ArtikalFilterDto filter,
+                [FromQuery] PaginationParams pagination)
         {
             var artikli =
-                await _artikalService.SearchAsync(
-                    filter,
-                    pagination
-                );
+                await _artikalService
+                    .SearchAsync(
+                        filter,
+                        pagination
+                    );
 
             return Ok(artikli);
         }
+
+        // =============================================
+        // TOP 5 KRITICNIH ARTIKALA
+        // =============================================
+
         [HttpGet("criticalProductsTop")]
-        public async Task<ActionResult<IEnumerable<CriticalProductsDTO>>> Top5CriticalProducts(
-    [FromQuery] DashboardFilterDTO filter)
+        public async Task<
+            ActionResult<
+                IEnumerable<CriticalProductsDTO>>>
+            Top5CriticalProducts(
+                [FromQuery] DashboardFilterDTO filter)
         {
             var proizvodi =
-                await _productsService.CriticalProductsTop(filter);
+                await _productsService
+                    .CriticalProductsTop(
+                        filter
+                    );
 
             return Ok(proizvodi);
         }
+
+        // =============================================
+        // SVI KRITICNI ARTIKLI - PAGINACIJA
+        // =============================================
+
         [HttpGet("CriticalPage")]
-        public async Task<ActionResult<IEnumerable<CriticalProductsPageDTO>>> CriticalProductsPage(
-        [FromQuery] FilterSharedPages filter)
+        public async Task<
+            ActionResult<
+                PaginationGeneric<CriticalProductsPageDTO>>>
+            CriticalProductsPage(
+                [FromQuery] FilterSharedPages filter,
+                [FromQuery] PaginationParams pagination)
         {
-            var proizvodi = await _productsService.CriticalProductsPage(filter);
+            var proizvodi =
+                await _productsService
+                    .CriticalProductsPage(
+                        filter,
+                        pagination
+                    );
 
             return Ok(proizvodi);
         }
     }
-
-
 }

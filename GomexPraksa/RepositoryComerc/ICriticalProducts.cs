@@ -1,4 +1,5 @@
-﻿using Models.Dtos;
+﻿using GomexPraksa.AddedFunctions;
+using Models.Dtos;
 using Models.DtosComerc;
 
 namespace GomexPraksa.RepositoryComerc
@@ -12,8 +13,11 @@ namespace GomexPraksa.RepositoryComerc
             bool CanAllViewCategories,
             List<int> KategorijaIds);
 
-        Task<IEnumerable<CriticalProductsPageDTO>> ShowCriticalProductsAsync(
-            FilterSharedPages filter , bool CanViewAllCategories,List<int> KategorijaIds);
-        
+        Task<PaginationGeneric<CriticalProductsPageDTO>>
+            ShowCriticalProductsAsync(
+                FilterSharedPages filter,
+                PaginationParams pagination,
+                bool CanViewAllCategories,
+                List<int> KategorijaIds);
     }
 }

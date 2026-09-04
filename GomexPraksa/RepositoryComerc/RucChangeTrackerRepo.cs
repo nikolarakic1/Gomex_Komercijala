@@ -10,7 +10,8 @@ public class RucChangeTrackerRepo : IRucChangeTracker
 {
     private readonly IConnFactory _connFactory;
 
-    public RucChangeTrackerRepo(IConnFactory connFactory)
+    public RucChangeTrackerRepo(
+        IConnFactory connFactory)
     {
         _connFactory = connFactory;
     }
@@ -24,293 +25,293 @@ public class RucChangeTrackerRepo : IRucChangeTracker
     {
         if (!filter.DatumOd.HasValue)
         {
-            throw new ArgumentException("Datum od je obavezan.");
+            throw new ArgumentException(
+                "Datum od je obavezan."
+            );
         }
 
         if (!filter.DatumDo.HasValue)
         {
-            throw new ArgumentException("Datum do je obavezan.");
+            throw new ArgumentException(
+                "Datum do je obavezan."
+            );
         }
 
-        var datumOd = filter.DatumOd.Value;
-        var datumDo = filter.DatumDo.Value;
+        var datumOd =
+            filter.DatumOd.Value;
+
+        var datumDo =
+            filter.DatumDo.Value;
 
         const string sql = """
-    WITH PrethodniPeriod AS
-    (
-        SELECT
-            COALESCE(
-                SUM(kr.RUC12),
-                0
-            ) AS PocetniRuc
+        WITH Podaci AS
+        (
+            SELECT
+                SUM(
+                    CASE
+                        WHEN kr.TipProdajeId = 7
+                            THEN kr.RUC12
+                        ELSE 0
+                    END
+                ) AS PlanRuc,
 
-        FROM dbo.KomercijalniRezultat kr
+                SUM(
+                    CASE
+                        WHEN kr.TipProdajeId = 6
+                            THEN kr.RUC12
+                        ELSE 0
+                    END
+                ) AS ActualRuc,
 
-        INNER JOIN dbo.Artikal a
-            ON a.ArtikalId =
-               kr.ArtikalId
+                SUM(
+                    CASE
+                        WHEN kr.TipProdajeId = 7
+                            THEN kr.Kolicina
+                        ELSE 0
+                    END
+                ) AS PlanKolicina,
 
-        INNER JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId =
-               a.RobnaGrupaId
+                SUM(
+                    CASE
+                        WHEN kr.TipProdajeId = 6
+                            THEN kr.Kolicina
+                        ELSE 0
+                    END
+                ) AS ActualKolicina
 
-        INNER JOIN dbo.Kategorija k
-            ON k.KategorijaId =
-               rg.KategorijaId
+            FROM dbo.KomercijalniRezultat kr
 
-        WHERE
-            kr.DatumRezultata >=
-                @PrethodniDatumOd
+            INNER JOIN dbo.Artikal a
+                ON a.ArtikalId =
+                   kr.ArtikalId
 
-            AND kr.DatumRezultata
-                < DATEADD(
-                    DAY,
-                    1,
-                    @PrethodniDatumDo
+            INNER JOIN dbo.RobnaGrupa rg
+                ON rg.RobnaGrupaId =
+                   a.RobnaGrupaId
+
+            INNER JOIN dbo.Kategorija k
+                ON k.KategorijaId =
+                   rg.KategorijaId
+
+            WHERE
+                kr.DatumRezultata >=
+                    @DatumOd
+
+                AND kr.DatumRezultata <
+                    DATEADD(
+                        DAY,
+                        1,
+                        @DatumDo
+                    )
+
+                AND kr.TipProdajeId
+                    IN (6, 7)
+
+                AND a.Aktivan = 1
+
+                AND
+                (
+                    @OdeljenjeId IS NULL
+                    OR k.OdeljenjeId =
+                       @OdeljenjeId
                 )
 
-            AND a.Aktivan = 1
-
-            AND
-            (
-                @OdeljenjeId IS NULL
-                OR k.OdeljenjeId =
-                   @OdeljenjeId
-            )
-
-            AND
-            (
-                @KategorijaId IS NULL
-                OR k.KategorijaId =
-                   @KategorijaId
-            )
-
-            -- Novi podaci koriste DobavljacId
-            -- sa KomercijalniRezultat.
-            -- Stari podaci padaju nazad na Artikal.
-            AND
-            (
-                @DobavljacId IS NULL
-                OR COALESCE(
-                    kr.DobavljacId,
-                    a.DobavljacId
-                ) = @DobavljacId
-            )
-
-            AND
-            (
-                @TipProdajeId IS NULL
-                OR kr.TipProdajeId =
-                   @TipProdajeId
-            )
-
-            AND
-            (
-                @CanViewAllCategories = 1
-                OR k.KategorijaId
-                   IN @KategorijaIds
-            )
-    ),
-
-    TrenutniPeriod AS
-    (
-        SELECT
-            COALESCE(
-                SUM(kr.RUC12),
-                0
-            ) AS KonacniRuc,
-
-            COALESCE(
-                SUM(kr.MarginEffect),
-                0
-            ) AS MarginEffect,
-
-            COALESCE(
-                SUM(kr.VolumeEffect),
-                0
-            ) AS VolumeEffect,
-
-            COALESCE(
-                SUM(kr.MixEffect),
-                0
-            ) AS MixEffect
-
-        FROM dbo.KomercijalniRezultat kr
-
-        INNER JOIN dbo.Artikal a
-            ON a.ArtikalId =
-               kr.ArtikalId
-
-        INNER JOIN dbo.RobnaGrupa rg
-            ON rg.RobnaGrupaId =
-               a.RobnaGrupaId
-
-        INNER JOIN dbo.Kategorija k
-            ON k.KategorijaId =
-               rg.KategorijaId
-
-        WHERE
-            kr.DatumRezultata >=
-                @DatumOd
-
-            AND kr.DatumRezultata
-                < DATEADD(
-                    DAY,
-                    1,
-                    @DatumDo
+                AND
+                (
+                    @KategorijaId IS NULL
+                    OR k.KategorijaId =
+                       @KategorijaId
                 )
 
-            AND a.Aktivan = 1
+                AND
+                (
+                    @DobavljacId IS NULL
+                    OR COALESCE(
+                        kr.DobavljacId,
+                        a.DobavljacId
+                    ) = @DobavljacId
+                )
 
-            AND
-            (
-                @OdeljenjeId IS NULL
-                OR k.OdeljenjeId =
-                   @OdeljenjeId
-            )
+                AND
+                (
+                    @CanViewAllCategories = 1
+                    OR k.KategorijaId
+                       IN @KategorijaIds
+                )
+        ),
 
-            AND
-            (
-                @KategorijaId IS NULL
-                OR k.KategorijaId =
-                   @KategorijaId
-            )
+        Racun AS
+        (
+            SELECT
+                COALESCE(
+                    PlanRuc,
+                    0
+                ) AS PlanRuc,
 
-            -- Novi podaci koriste DobavljacId
-            -- sa KomercijalniRezultat.
-            -- Stari podaci padaju nazad na Artikal.
-            AND
-            (
-                @DobavljacId IS NULL
-                OR COALESCE(
-                    kr.DobavljacId,
-                    a.DobavljacId
-                ) = @DobavljacId
-            )
+                COALESCE(
+                    ActualRuc,
+                    0
+                ) AS ActualRuc,
 
-            AND
-            (
-                @TipProdajeId IS NULL
-                OR kr.TipProdajeId =
-                   @TipProdajeId
-            )
+                COALESCE(
+                    PlanKolicina,
+                    0
+                ) AS PlanKolicina,
 
-            AND
-            (
-                @CanViewAllCategories = 1
-                OR k.KategorijaId
-                   IN @KategorijaIds
-            )
-    )
+                COALESCE(
+                    ActualKolicina,
+                    0
+                ) AS ActualKolicina,
 
-    SELECT
-        p.PocetniRuc,
+                CASE
+                    WHEN COALESCE(
+                        PlanKolicina,
+                        0
+                    ) = 0
+                        THEN 0
 
-        t.MarginEffect,
+                    ELSE
+                        COALESCE(
+                            PlanRuc,
+                            0
+                        )
+                        /
+                        NULLIF(
+                            PlanKolicina,
+                            0
+                        )
+                END
+                    AS PlanRucPoJedinici
 
-        t.VolumeEffect,
+            FROM Podaci
+        ),
 
-        t.MixEffect,
+        Efekti AS
+        (
+            SELECT
+                PlanRuc,
+                ActualRuc,
 
-        t.KonacniRuc
-        - p.PocetniRuc
-            AS UkupnaPromena,
+                (
+                    ActualKolicina
+                    -
+                    PlanKolicina
+                )
+                *
+                PlanRucPoJedinici
+                    AS VolumeEffect,
 
-        CASE
-            WHEN p.PocetniRuc = 0
-                THEN 0
-            ELSE
                 CAST(
-                    t.KonacniRuc
-                    - p.PocetniRuc
+                    0
                     AS DECIMAL(18, 6)
                 )
-                /
-                NULLIF(
-                    p.PocetniRuc,
-                    0
-                )
-        END
-            AS UkupnaPromenaProcenat,
+                    AS MixEffect
 
-        t.KonacniRuc,
+            FROM Racun
+        )
 
-        (
-            t.KonacniRuc
+        SELECT
+            PlanRuc
+                AS PocetniRuc,
+
+            (
+                ActualRuc
+                -
+                PlanRuc
+                -
+                VolumeEffect
+            )
+                AS MarginEffect,
+
+            VolumeEffect,
+
+            MixEffect,
+
+            ActualRuc
             -
-            p.PocetniRuc
-        )
-        -
-        (
-            t.MarginEffect
-            +
-            t.VolumeEffect
-            +
-            t.MixEffect
-        )
-            AS KontrolnaRazlika
+            PlanRuc
+                AS UkupnaPromena,
 
-    FROM PrethodniPeriod p
+            CASE
+                WHEN PlanRuc = 0
+                    THEN 0
 
-    CROSS JOIN TrenutniPeriod t;
-    """;
+                ELSE
+                    (
+                        ActualRuc
+                        -
+                        PlanRuc
+                    )
+                    /
+                    NULLIF(
+                        PlanRuc,
+                        0
+                    )
+            END
+                AS UkupnaPromenaProcenat,
+
+            ActualRuc
+                AS KonacniRuc,
+
+            CAST(
+                0
+                AS DECIMAL(18, 6)
+            )
+                AS KontrolnaRazlika
+
+        FROM Efekti;
+        """;
 
         using var connection =
-            (SqlConnection)_connFactory.CreateConnection();
+            (SqlConnection)
+            _connFactory.CreateConnection();
 
-        var total = Stopwatch.StartNew();
+        var total =
+            Stopwatch.StartNew();
 
         await connection.OpenAsync();
 
-        var sw = Stopwatch.StartNew();
+        var sw =
+            Stopwatch.StartNew();
 
         var rezultat =
-            await connection.QuerySingleAsync<RucChangeDTO>(
-                sql,
-                new
-                {
-                    DatumOd =
-                        datumOd.ToDateTime(
-                            TimeOnly.MinValue
-                        ),
+            await connection
+                .QuerySingleAsync<RucChangeDTO>(
+                    sql,
+                    new
+                    {
+                        DatumOd =
+                            datumOd.ToDateTime(
+                                TimeOnly.MinValue
+                            ),
 
-                    DatumDo =
-                        datumDo.ToDateTime(
-                            TimeOnly.MinValue
-                        ),
+                        DatumDo =
+                            datumDo.ToDateTime(
+                                TimeOnly.MinValue
+                            ),
 
-                    PrethodniDatumOd =
-                        prethodniDatumOd.ToDateTime(
-                            TimeOnly.MinValue
-                        ),
+                        filter.OdeljenjeId,
 
-                    PrethodniDatumDo =
-                        prethodniDatumDo.ToDateTime(
-                            TimeOnly.MinValue
-                        ),
+                        filter.KategorijaId,
 
-                    filter.OdeljenjeId,
+                        filter.DobavljacId,
 
-                    filter.KategorijaId,
+                        CanViewAllCategories =
+                            canViewAllCategories,
 
-                    filter.DobavljacId,
-
-                    filter.TipProdajeId,
-
-                    CanViewAllCategories =
-                        canViewAllCategories,
-
-                    KategorijaIds =
-                        kategorijaIds
-                }
-            );
+                        KategorijaIds =
+                            kategorijaIds
+                    }
+                );
 
         Console.WriteLine(
-            $"RUC Query: {sw.ElapsedMilliseconds} ms"
+            $"RUC Query: " +
+            $"{sw.ElapsedMilliseconds} ms"
         );
 
         Console.WriteLine(
-            $"RUC TOTAL: {total.ElapsedMilliseconds} ms"
+            $"RUC TOTAL: " +
+            $"{total.ElapsedMilliseconds} ms"
         );
 
         return rezultat;

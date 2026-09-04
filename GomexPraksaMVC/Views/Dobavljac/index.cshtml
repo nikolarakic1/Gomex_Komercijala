@@ -1,48 +1,411 @@
-﻿@model List<GomexPraksaMVC.Models.DobavljacViewItem>
+﻿@model GomexPraksaMVC.Models.DobavljacIndexViewModel
+
 @{
     ViewData["Title"] = "Dobavljači";
+
+    int startPage = Math.Max(1, Model.Page - 2);
+    int endPage = Math.Min(Model.TotalPages, Model.Page + 2);
 }
 
 <div class="dashboard-header mb-4">
     <h2 class="mb-1">Dobavljači</h2>
-    <p class="text-secondary mb-0">Lista dobavljača i pretraga</p>
+
+    <p class="text-secondary mb-0">
+        Pregled i pretraga dobavljača
+    </p>
 </div>
+
+
+<!-- =====================================================
+     FILTER
+===================================================== -->
 
 <div class="filter-card mb-4">
-    <form method="get" class="filter-bar">
+
+    <form method="get"
+          asp-controller="Dobavljac"
+          asp-action="Index"
+          class="filter-bar">
+
         <div class="filter-group">
+
             <label>Naziv</label>
-            <input type="text" name="naziv" class="form-control" value="@ViewData["Naziv"]" placeholder="Pretraži po nazivu" />
+
+            <input type="text"
+                   name="naziv"
+                   class="form-control"
+                   value="@Model.Naziv"
+                   placeholder="Pretraži po nazivu" />
+
         </div>
+
+
+        <div class="filter-group">
+
+            <label>Po strani</label>
+
+            <select name="pageSize"
+                    class="form-select">
+
+                <option value="10"
+                        selected="@(Model.PageSize == 10)">
+                    10
+                </option>
+
+                <option value="25"
+                        selected="@(Model.PageSize == 25)">
+                    25
+                </option>
+
+                <option value="50"
+                        selected="@(Model.PageSize == 50)">
+                    50
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <input type="hidden"
+               name="page"
+               value="1" />
+
+
         <div class="filter-group align-self-end d-flex">
-            <button type="submit" class="btn btn-primary">Pretraži</button>
-            <a href="@Url.Action("Index", "Dobavljac")" class="btn btn-secondary ms-2">Poništi</a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                Pretraži
+
+            </button>
+
+
+            <a asp-controller="Dobavljac"
+               asp-action="Index"
+               class="btn btn-secondary ms-2">
+
+                Poništi
+
+            </a>
+
         </div>
+
     </form>
+
 </div>
 
+
+<!-- =====================================================
+     INFO
+===================================================== -->
+
+<div class="d-flex justify-content-between
+    align-items-center
+    mb-3">
+
+    <div class="text-secondary small">
+
+        Ukupno:
+
+        <strong class="text-dark">
+            @Model.TotalCount
+        </strong>
+
+        dobavljača
+
+    </div>
+
+
+    @if (Model.TotalPages > 0)
+    {
+        <div class="text-secondary small">
+
+            Strana
+
+            <strong class="text-dark">
+                @Model.Page
+            </strong>
+
+            od
+
+            <strong class="text-dark">
+                @Model.TotalPages
+            </strong>
+
+        </div>
+    }
+
+</div>
+
+
+<!-- =====================================================
+     TABELA
+===================================================== -->
+
 <div class="metric-card">
+
     <div class="table-responsive">
-        <table class="table table-sm table-striped">
+
+        <table class="table
+            table-sm
+            table-striped
+            align-middle">
+
             <thead>
+
                 <tr>
-                    <th>Naziv</th>
-                    <th>Status</th>
-                    <th></th>
+
+                    <th style="width: 90px;">
+                        ID
+                    </th>
+
+                    <th>
+                        Naziv
+                    </th>
+
+                    <th style="width: 140px;">
+                        Status
+                    </th>
+
+                    <th style="width: 120px;">
+                    </th>
+
                 </tr>
+
             </thead>
+
+
             <tbody>
-                @foreach (var d in Model)
+
+                @if (Model.Dobavljaci.Count == 0)
                 {
                     <tr>
-                        <td>@d.Naziv</td>
-                        <td>@(d.Aktivan ? "Aktivan" : "Neaktivan")</td>
-                        <td class="text-end">
-                            <a asp-controller="Dobavljac" asp-action="Detalji" asp-route-id="@d.DobavljacId" class="btn btn-sm btn-outline-secondary">Detalji</a>
+
+                        <td colspan="4"
+                            class="text-center
+                            text-secondary
+                            py-4">
+
+                            Nema pronađenih dobavljača.
+
                         </td>
+
                     </tr>
                 }
+                else
+                {
+                    @foreach (var d in Model.Dobavljaci)
+                    {
+                        <tr>
+
+                            <td class="text-secondary">
+
+                                @d.DobavljacId
+
+                            </td>
+
+
+                            <td>
+
+                                <strong>
+                                    @d.Naziv
+                                </strong>
+
+                            </td>
+
+
+                            <td>
+
+                                @if (d.Aktivan)
+                                {
+                                    <span class="badge
+                                        bg-success-subtle
+                                        text-success">
+
+                                        Aktivan
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge
+                                        bg-secondary-subtle
+                                        text-secondary">
+
+                                        Neaktivan
+
+                                    </span>
+                                }
+
+                            </td>
+
+
+                            <td class="text-end">
+
+                                <a asp-controller="Dobavljac"
+                                   asp-action="Detalji"
+                                   asp-route-id="@d.DobavljacId"
+                                   class="btn
+                                    btn-sm
+                                    btn-outline-secondary">
+
+                                    Detalji
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>
+
+
+<!-- =====================================================
+     PAGINACIJA
+===================================================== -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+
+        <ul class="pagination
+            justify-content-center">
+
+            <!-- PRETHODNA -->
+
+            <li class="page-item
+                @(!Model.HasPreviousPage ? "disabled" : "")">
+
+                <a class="page-link"
+                   asp-controller="Dobavljac"
+                   asp-action="Index"
+                   asp-route-page="@(Model.Page - 1)"
+                   asp-route-pageSize="@Model.PageSize"
+                   asp-route-naziv="@Model.Naziv">
+
+                    Prethodna
+
+                </a>
+
+            </li>
+
+
+            <!-- PRVA STRANA -->
+            @if (startPage > 1)
+            {
+                <li class="page-item">
+
+                    <a class="page-link"
+                       asp-controller="Dobavljac"
+                       asp-action="Index"
+                       asp-route-page="1"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-naziv="@Model.Naziv">
+
+                        1
+
+                    </a>
+
+                </li>
+
+
+                @if (startPage > 2)
+                {
+                    <li class="page-item disabled">
+
+                        <span class="page-link">
+                            ...
+                        </span>
+
+                    </li>
+                }
+            }
+
+
+            <!-- STRANE OKO TRENUTNE -->
+            @for (int i = startPage;
+                                   i <= endPage;
+                                   i++)
+            {
+                <li class="page-item
+                    @(i == Model.Page ? "active" : "")">
+
+                    <a class="page-link"
+                       asp-controller="Dobavljac"
+                       asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-naziv="@Model.Naziv">
+
+                        @i
+
+                    </a>
+
+                </li>
+            }
+
+
+            <!-- POSLEDNJA STRANA -->
+            @if (endPage < Model.TotalPages)
+            {
+                @if (endPage <
+                     Model.TotalPages - 1)
+                {
+                    <li class="page-item disabled">
+
+                        <span class="page-link">
+                            ...
+                        </span>
+
+                    </li>
+                }
+
+
+                <li class="page-item">
+
+                    <a class="page-link"
+                       asp-controller="Dobavljac"
+                       asp-action="Index"
+                       asp-route-page="@Model.TotalPages"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-naziv="@Model.Naziv">
+
+                        @Model.TotalPages
+
+                    </a>
+
+                </li>
+            }
+
+
+            <!-- SLEDECA -->
+
+            <li class="page-item
+                @(!Model.HasNextPage ? "disabled" : "")">
+
+                <a class="page-link"
+                   asp-controller="Dobavljac"
+                   asp-action="Index"
+                   asp-route-page="@(Model.Page + 1)"
+                   asp-route-pageSize="@Model.PageSize"
+                   asp-route-naziv="@Model.Naziv">
+
+                    Sledeća
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </nav>
+}

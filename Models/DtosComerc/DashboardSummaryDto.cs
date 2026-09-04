@@ -1,9 +1,11 @@
 ﻿public class DashboardSummaryDTO
 {
     public decimal PrometBezPdv { get; set; }
+    public decimal PrethodniPrometBezPdv { get; set; }
     public decimal PrometPromenaProcenat { get; set; }
 
     public decimal Ruc12 { get; set; }
+    public decimal PrethodniRuc12 { get; set; }
     public decimal Ruc12PromenaProcenat { get; set; }
 
     public decimal Ruc12Procenat { get; set; }
@@ -14,6 +16,10 @@
 
     public decimal NedostatakMarze { get; set; }
     public decimal NedostatakMarzePromenaProcenat { get; set; }
+
+    public bool ImaTrenutniPeriod { get; set; }
+    public bool ImaPrethodniPeriod { get; set; }
+    public bool ImaEfekte { get; set; }
 
     public DateTime? PodaciOsvezeni { get; set; }
 }

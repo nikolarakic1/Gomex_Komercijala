@@ -1,6 +1,7 @@
 ﻿using GomexPraksa.Auth;
 using Microsoft.EntityFrameworkCore;
 using Models.AuthenticationDtos;
+using System.Diagnostics;
 using System.Security.Claims;
 
 namespace GomexPraksa.JWTInfo
@@ -20,28 +21,40 @@ namespace GomexPraksa.JWTInfo
 
         public async Task<AccesDto> GetCurrentUserAccessAsync()
         {
-            var currentUser = _httpContext.HttpContext?.User;
+            var totalSw = Stopwatch.StartNew();
+
+            var currentUser =
+                _httpContext.HttpContext?.User;
 
             if (currentUser == null)
             {
                 throw new UnauthorizedAccessException();
             }
 
-            var userId = currentUser.FindFirstValue(
-                ClaimTypes.NameIdentifier
-            );
+            var userId =
+                currentUser.FindFirstValue(
+                    ClaimTypes.NameIdentifier
+                );
 
             if (string.IsNullOrWhiteSpace(userId))
             {
                 throw new UnauthorizedAccessException();
             }
 
-            var isSef = currentUser.IsInRole(
-                "SefMenadzera"
-            );
+            var isSef =
+                currentUser.IsInRole(
+                    "SefMenadzera"
+                );
 
             if (isSef)
             {
+                totalSw.Stop();
+
+                Console.WriteLine(
+                    $"USER ACCESS SEF: " +
+                    $"{totalSw.ElapsedMilliseconds} ms"
+                );
+
                 return new AccesDto
                 {
                     UserId = userId,
@@ -50,10 +63,33 @@ namespace GomexPraksa.JWTInfo
                 };
             }
 
-            var kategorije = await _auth.UserKategorije
-                .Where(uk => uk.UserId == userId)
-                .Select(uk => uk.KategorijaId)
-                .ToListAsync();
+            var querySw =
+                Stopwatch.StartNew();
+
+            var kategorije =
+                await _auth.UserKategorije
+                    .AsNoTracking()
+                    .Where(
+                        uk => uk.UserId == userId
+                    )
+                    .Select(
+                        uk => uk.KategorijaId
+                    )
+                    .ToListAsync();
+
+            querySw.Stop();
+
+            Console.WriteLine(
+                $"USER ACCESS DB QUERY: " +
+                $"{querySw.ElapsedMilliseconds} ms"
+            );
+
+            totalSw.Stop();
+
+            Console.WriteLine(
+                $"USER ACCESS TOTAL: " +
+                $"{totalSw.ElapsedMilliseconds} ms"
+            );
 
             return new AccesDto
             {
