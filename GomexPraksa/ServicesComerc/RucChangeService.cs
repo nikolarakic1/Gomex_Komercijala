@@ -18,20 +18,24 @@ public class RucChangeService : IRucChangeService
     }
 
     public async Task<RucChangeDTO> CheckInfoForChangesAsync(
-        DashboardFilterDTO filter,
-        DateOnly prethodniDatumOd,
-        DateOnly prethodniDatumDo)
+        DashboardFilterDTO filter)
     {
+        // =============================================
+        // DATUMI
+        // =============================================
+
         if (!filter.DatumOd.HasValue)
         {
             throw new ArgumentException(
-                "DatumOd je obavezan.");
+                "DatumOd je obavezan."
+            );
         }
 
         if (!filter.DatumDo.HasValue)
         {
             throw new ArgumentException(
-                "DatumDo je obavezan.");
+                "DatumDo je obavezan."
+            );
         }
 
         var datumOd =
@@ -42,80 +46,97 @@ public class RucChangeService : IRucChangeService
 
         var danas =
             DateOnly.FromDateTime(
-                DateTime.Now);
+                DateTime.Today
+            );
 
         if (datumOd > datumDo)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(filter.DatumOd),
-                "DatumOd ne može biti posle DatumDo.");
+            throw new ArgumentException(
+                "DatumOd ne može biti posle DatumDo."
+            );
         }
 
         if (datumOd > danas)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(filter.DatumOd),
-                "DatumOd ne može biti u budućnosti.");
+            throw new ArgumentException(
+                "DatumOd ne može biti u budućnosti."
+            );
         }
 
         if (datumDo > danas)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(filter.DatumDo),
-                "DatumDo ne može biti u budućnosti.");
+            throw new ArgumentException(
+                "DatumDo ne može biti u budućnosti."
+            );
         }
 
-        if (prethodniDatumOd >
-            prethodniDatumDo)
-        {
-            throw new ArgumentException(
-                "Početak prethodnog perioda ne može biti posle njegovog kraja.");
-        }
+        // =============================================
+        // FILTER VALIDACIJA
+        // =============================================
 
         if (filter.OdeljenjeId.HasValue &&
             filter.OdeljenjeId.Value <= 0)
         {
             throw new ArgumentException(
-                "OdeljenjeId nije validan.");
+                "OdeljenjeId nije validan."
+            );
         }
 
         if (filter.KategorijaId.HasValue &&
             filter.KategorijaId.Value <= 0)
         {
             throw new ArgumentException(
-                "KategorijaId nije validan.");
+                "KategorijaId nije validan."
+            );
         }
 
         if (filter.DobavljacId.HasValue &&
             filter.DobavljacId.Value <= 0)
         {
             throw new ArgumentException(
-                "DobavljacId nije validan.");
+                "DobavljacId nije validan."
+            );
         }
 
-        if (filter.TipProdajeId.HasValue &&
-            filter.TipProdajeId.Value <= 0)
-        {
-            throw new ArgumentException(
-                "TipProdajeId nije validan.");
-        }
+        // =============================================
+        // NAPOMENA:
+        //
+        // TipProdajeId se ovde NAMERNO ne validira.
+        //
+        // RUC waterfall interno koristi:
+        // 6 = ACTUAL
+        // 7 = PLAN
+        //
+        // Zato eksterni TipProdaje filter nema smisla
+        // za ovaj endpoint.
+        // =============================================
+
+        // =============================================
+        // USER ACCESS
+        // =============================================
 
         var access =
             await _userAccess
                 .GetCurrentUserAccessAsync();
 
         if (!access.CanViewAllCategories &&
-            access.KategorijaIds.Count == 0)
+            (
+                access.KategorijaIds == null ||
+                access.KategorijaIds.Count == 0
+            ))
         {
             throw new UnauthorizedAccessException(
-                "Korisniku nije dodeljena nijedna kategorija.");
+                "Korisniku nije dodeljena nijedna kategorija."
+            );
         }
+
+        // =============================================
+        // REPOSITORY
+        // =============================================
 
         return await _repo
             .CheckInfoForChangesAsync(
                 filter,
-                prethodniDatumOd,
-                prethodniDatumDo,
                 access.CanViewAllCategories,
                 access.KategorijaIds
             );

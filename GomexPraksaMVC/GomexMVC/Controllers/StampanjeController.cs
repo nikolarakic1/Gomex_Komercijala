@@ -8,56 +8,105 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
     {
         private readonly IHttpClientFactory _httpFactory;
 
-        public StampanjeController(IHttpClientFactory httpFactory)
+        public StampanjeController(
+            IHttpClientFactory httpFactory)
         {
             _httpFactory = httpFactory;
         }
 
         public IActionResult Index()
         {
-            return View();
+            return RedirectToAction(nameof(Komercijalni));
         }
 
         public IActionResult Komercijalni()
         {
+            var danas = DateTime.Today;
+
+            ViewData["DatumOd"] =
+                danas.AddDays(-29)
+                    .ToString("yyyy-MM-dd");
+
+            ViewData["DatumDo"] =
+                danas.ToString("yyyy-MM-dd");
+
             return View();
         }
 
-        public async Task<IActionResult> PrintKomercijalni(DateTime? datum)
+        public async Task<IActionResult> PrintKomercijalni(
+            DateTime datumOd,
+            DateTime datumDo)
         {
-            var client = _httpFactory.CreateClient("GomexApi");
-            Models.RucChangeViewItem? results = null;
-
-            if (datum.HasValue)
+            if (datumOd.Date > datumDo.Date)
             {
-                try
-                {
-                    var datumOd = datum.Value.Date;
-                    var datumDo = datum.Value.Date;
-                    var prethodniDatumDo = datumOd.AddDays(-1);
-                    var brojDana = (datumDo - datumOd).Days + 1;
-                    var prethodniDatumOd = prethodniDatumDo.AddDays(-(brojDana - 1));
+                TempData["PrintError"] =
+                    "Datum od ne može biti posle datuma do.";
 
-                    var parts = new List<string>
-                    {
-                        $"datumOd={datumOd:yyyy-MM-dd}",
-                        $"datumDo={datumDo:yyyy-MM-dd}",
-                        $"prethodniDatumOd={prethodniDatumOd:yyyy-MM-dd}",
-                        $"prethodniDatumDo={prethodniDatumDo:yyyy-MM-dd}"
-                    };
-
-                    var query = "?" + string.Join("&", parts);
-
-                    results = await client.GetFromJsonAsync<Models.RucChangeViewItem>($"api/RucChangeTracker{query}");
-                }
-                catch
-                {
-                    results = null;
-                }
+                return RedirectToAction(
+                    nameof(Komercijalni)
+                );
             }
 
-            ViewData["Datum"] = datum;
-            return View(model: results);
+            if (datumDo.Date > DateTime.Today)
+            {
+                TempData["PrintError"] =
+                    "Datum do ne može biti u budućnosti.";
+
+                return RedirectToAction(
+                    nameof(Komercijalni)
+                );
+            }
+
+            var client =
+                _httpFactory.CreateClient(
+                    "GomexApi"
+                );
+
+            RucChangeViewItem? results = null;
+
+            try
+            {
+                var query =
+                    $"?datumOd={datumOd:yyyy-MM-dd}" +
+                    $"&datumDo={datumDo:yyyy-MM-dd}";
+
+                results =
+                    await client
+                        .GetFromJsonAsync<RucChangeViewItem>(
+                            $"api/RucChangeTracker{query}"
+                        );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"PRINT KOMERCIJALNI ERROR: {ex}"
+                );
+
+                TempData["PrintError"] =
+                    "Nije moguće učitati podatke za izabrani period.";
+
+                return RedirectToAction(
+                    nameof(Komercijalni)
+                );
+            }
+
+            if (results == null)
+            {
+                TempData["PrintError"] =
+                    "Za izabrani period nema dostupnih podataka.";
+
+                return RedirectToAction(
+                    nameof(Komercijalni)
+                );
+            }
+
+            ViewData["DatumOd"] =
+                datumOd.ToString("dd.MM.yyyy");
+
+            ViewData["DatumDo"] =
+                datumDo.ToString("dd.MM.yyyy");
+
+            return View(results);
         }
     }
 }

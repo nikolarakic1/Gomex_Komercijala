@@ -23,10 +23,6 @@ namespace GomexPraksa.RepositoryComerc
         {
             ArgumentNullException.ThrowIfNull(filterDTO);
 
-            // =============================================
-            // DATUMI
-            // =============================================
-
             bool imaDatumOd =
                 filterDTO.DatumOd.HasValue;
 
@@ -70,13 +66,6 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // PRETHODNI PERIOD
-            //
-            // Ako je trenutni period 30 dana,
-            // prethodni period je prethodnih 30 dana.
-            // =============================================
-
             int brojDana =
                 datumDo.DayNumber
                 -
@@ -91,36 +80,6 @@ namespace GomexPraksa.RepositoryComerc
                 prethodniDatumDo.AddDays(
                     -(brojDana - 1)
                 );
-
-            // =============================================
-            // DINAMICKI WHERE
-            //
-            // Dodajemo samo filtere koji postoje.
-            // Nema:
-            //
-            // @X IS NULL OR Kolona = @X
-            //
-            // SQL Server dobija mnogo cistiji query.
-            // =============================================
-
-            var where =
-                new StringBuilder();
-
-            where.AppendLine(
-                """
-                WHERE
-                    kr.DatumRezultata >= @PrethodniDatumOd
-
-                    AND kr.DatumRezultata <
-                        DATEADD(
-                            DAY,
-                            1,
-                            @DatumDo
-                        )
-
-                    AND a.Aktivan = 1
-                """
-            );
 
             var parametri =
                 new DynamicParameters();
@@ -153,13 +112,26 @@ namespace GomexPraksa.RepositoryComerc
                 )
             );
 
-            // =============================================
-            // ODELJENJE
-            // =============================================
+            var baseWhere =
+                new StringBuilder();
+
+            baseWhere.AppendLine(
+                """
+                WHERE
+                    kr.DatumRezultata >= @PrethodniDatumOd
+                    AND kr.DatumRezultata <
+                        DATEADD(
+                            DAY,
+                            1,
+                            @DatumDo
+                        )
+                    AND a.Aktivan = 1
+                """
+            );
 
             if (filterDTO.OdeljenjeId.HasValue)
             {
-                where.AppendLine(
+                baseWhere.AppendLine(
                     """
                     AND k.OdeljenjeId =
                         @OdeljenjeId
@@ -172,13 +144,9 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // KATEGORIJA
-            // =============================================
-
             if (filterDTO.KategorijaId.HasValue)
             {
-                where.AppendLine(
+                baseWhere.AppendLine(
                     """
                     AND k.KategorijaId =
                         @KategorijaId
@@ -191,13 +159,9 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // DOBAVLJAC
-            // =============================================
-
             if (filterDTO.DobavljacId.HasValue)
             {
-                where.AppendLine(
+                baseWhere.AppendLine(
                     """
                     AND COALESCE(
                         kr.DobavljacId,
@@ -212,31 +176,6 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // TIP PRODAJE
-            // =============================================
-
-            if (filterDTO.TipProdajeId.HasValue)
-            {
-                where.AppendLine(
-                    """
-                    AND kr.TipProdajeId =
-                        @TipProdajeId
-                    """
-                );
-
-                parametri.Add(
-                    "TipProdajeId",
-                    filterDTO.TipProdajeId.Value
-                );
-            }
-
-            // =============================================
-            // MENADZEROVE KATEGORIJE
-            //
-            // Sef nema IN listu u SQL-u uopste.
-            // =============================================
-
             if (!canViewAllCategories)
             {
                 if (kategorijaIds is null ||
@@ -247,7 +186,7 @@ namespace GomexPraksa.RepositoryComerc
                     );
                 }
 
-                where.AppendLine(
+                baseWhere.AppendLine(
                     """
                     AND k.KategorijaId
                         IN @KategorijaIds
@@ -260,9 +199,25 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // SQL
-            // =============================================
+            var dashboardWhere =
+                new StringBuilder(
+                    baseWhere.ToString()
+                );
+
+            if (filterDTO.TipProdajeId.HasValue)
+            {
+                dashboardWhere.AppendLine(
+                    """
+                    AND kr.TipProdajeId =
+                        @TipProdajeId
+                    """
+                );
+
+                parametri.Add(
+                    "TipProdajeId",
+                    filterDTO.TipProdajeId.Value
+                );
+            }
 
             string sql =
                 $"""
@@ -271,204 +226,118 @@ namespace GomexPraksa.RepositoryComerc
                     SELECT
                         kr.ArtikalId,
 
-                        -- =================================
-                        -- TRENUTNI PERIOD
-                        -- =================================
-
                         SUM(
                             CASE
                                 WHEN
                                     kr.DatumRezultata >= @DatumOd
-
                                     AND kr.DatumRezultata <
                                         DATEADD(
                                             DAY,
                                             1,
                                             @DatumDo
                                         )
-
-                                THEN kr.MPBezPDV
-                                ELSE 0
-                            END
-                        )
-                            AS TrenutniPromet,
-
-                        SUM(
-                            CASE
-                                WHEN
-                                    kr.DatumRezultata >= @DatumOd
-
-                                    AND kr.DatumRezultata <
-                                        DATEADD(
-                                            DAY,
-                                            1,
-                                            @DatumDo
-                                        )
-
-                                THEN kr.RUC12
-                                ELSE 0
-                            END
-                        )
-                            AS TrenutniRuc,
-
-                        SUM(
-                            CASE
-                                WHEN
-                                    kr.DatumRezultata >= @DatumOd
-
-                                    AND kr.DatumRezultata <
-                                        DATEADD(
-                                            DAY,
-                                            1,
-                                            @DatumDo
-                                        )
-
                                 THEN
-                                    COALESCE(
-                                        kr.MarginEffect,
-                                        0
-                                    )
-                                    +
-                                    COALESCE(
-                                        kr.MixEffect,
-                                        0
-                                    )
-
+                                    kr.MPBezPDV
                                 ELSE 0
                             END
-                        )
-                            AS TrenutniNedostatak,
+                        ) AS TrenutniPromet,
 
                         SUM(
                             CASE
                                 WHEN
                                     kr.DatumRezultata >= @DatumOd
-
                                     AND kr.DatumRezultata <
                                         DATEADD(
                                             DAY,
                                             1,
                                             @DatumDo
                                         )
+                                THEN
+                                    kr.RUC12
+                                ELSE 0
+                            END
+                        ) AS TrenutniRuc,
 
+                        SUM(
+                            CASE
+                                WHEN
+                                    kr.DatumRezultata >= @DatumOd
+                                    AND kr.DatumRezultata <
+                                        DATEADD(
+                                            DAY,
+                                            1,
+                                            @DatumDo
+                                        )
                                 THEN 1
                                 ELSE 0
                             END
-                        )
-                            AS TrenutniBrojRedova,
-
-                        -- =================================
-                        -- PRETHODNI PERIOD
-                        -- =================================
+                        ) AS TrenutniBrojRedova,
 
                         SUM(
                             CASE
                                 WHEN
                                     kr.DatumRezultata >=
                                         @PrethodniDatumOd
-
                                     AND kr.DatumRezultata <
                                         DATEADD(
                                             DAY,
                                             1,
                                             @PrethodniDatumDo
                                         )
-
-                                THEN kr.MPBezPDV
-                                ELSE 0
-                            END
-                        )
-                            AS PrethodniPromet,
-
-                        SUM(
-                            CASE
-                                WHEN
-                                    kr.DatumRezultata >=
-                                        @PrethodniDatumOd
-
-                                    AND kr.DatumRezultata <
-                                        DATEADD(
-                                            DAY,
-                                            1,
-                                            @PrethodniDatumDo
-                                        )
-
-                                THEN kr.RUC12
-                                ELSE 0
-                            END
-                        )
-                            AS PrethodniRuc,
-
-                        SUM(
-                            CASE
-                                WHEN
-                                    kr.DatumRezultata >=
-                                        @PrethodniDatumOd
-
-                                    AND kr.DatumRezultata <
-                                        DATEADD(
-                                            DAY,
-                                            1,
-                                            @PrethodniDatumDo
-                                        )
-
                                 THEN
-                                    COALESCE(
-                                        kr.MarginEffect,
-                                        0
-                                    )
-                                    +
-                                    COALESCE(
-                                        kr.MixEffect,
-                                        0
-                                    )
-
+                                    kr.MPBezPDV
                                 ELSE 0
                             END
-                        )
-                            AS PrethodniNedostatak,
+                        ) AS PrethodniPromet,
 
                         SUM(
                             CASE
                                 WHEN
                                     kr.DatumRezultata >=
                                         @PrethodniDatumOd
-
                                     AND kr.DatumRezultata <
                                         DATEADD(
                                             DAY,
                                             1,
                                             @PrethodniDatumDo
                                         )
+                                THEN
+                                    kr.RUC12
+                                ELSE 0
+                            END
+                        ) AS PrethodniRuc,
 
+                        SUM(
+                            CASE
+                                WHEN
+                                    kr.DatumRezultata >=
+                                        @PrethodniDatumOd
+                                    AND kr.DatumRezultata <
+                                        DATEADD(
+                                            DAY,
+                                            1,
+                                            @PrethodniDatumDo
+                                        )
                                 THEN 1
                                 ELSE 0
                             END
-                        )
-                            AS PrethodniBrojRedova,
-
-                        -- =================================
-                        -- POSLEDNJI IMPORT
-                        -- samo trenutni period
-                        -- =================================
+                        ) AS PrethodniBrojRedova,
 
                         MAX(
                             CASE
                                 WHEN
                                     kr.DatumRezultata >= @DatumOd
-
                                     AND kr.DatumRezultata <
                                         DATEADD(
                                             DAY,
                                             1,
                                             @DatumDo
                                         )
-
-                                THEN kr.DatumUnosa
+                                THEN
+                                    kr.DatumUnosa
                                 ELSE NULL
                             END
-                        )
-                            AS PodaciOsvezeni
+                        ) AS PodaciOsvezeni
 
                     FROM
                         dbo.KomercijalniRezultat kr
@@ -488,7 +357,7 @@ namespace GomexPraksa.RepositoryComerc
                             ON k.KategorijaId =
                                rg.KategorijaId
 
-                    {where}
+                    {dashboardWhere}
 
                     GROUP BY
                         kr.ArtikalId
@@ -497,215 +366,441 @@ namespace GomexPraksa.RepositoryComerc
                 Ukupno AS
                 (
                     SELECT
-
                         COALESCE(
                             SUM(
                                 TrenutniPromet
                             ),
                             0
-                        )
-                            AS TrenutniPromet,
+                        ) AS TrenutniPromet,
 
                         COALESCE(
                             SUM(
                                 TrenutniRuc
                             ),
                             0
-                        )
-                            AS TrenutniRuc,
-
-                        COALESCE(
-                            SUM(
-                                TrenutniNedostatak
-                            ),
-                            0
-                        )
-                            AS TrenutniNedostatak,
+                        ) AS TrenutniRuc,
 
                         COALESCE(
                             SUM(
                                 CASE
                                     WHEN
                                         TrenutniBrojRedova > 0
-
-                                        AND
-                                        (
-                                            TrenutniRuc <= 0
-
-                                            OR
-
-                                            TrenutniNedostatak < 0
-                                        )
-
+                                        AND TrenutniRuc <= 0
                                     THEN 1
                                     ELSE 0
                                 END
                             ),
                             0
-                        )
-                            AS TrenutniKriticni,
+                        ) AS TrenutniKriticni,
 
                         COALESCE(
                             SUM(
                                 PrethodniPromet
                             ),
                             0
-                        )
-                            AS PrethodniPromet,
+                        ) AS PrethodniPromet,
 
                         COALESCE(
                             SUM(
                                 PrethodniRuc
                             ),
                             0
-                        )
-                            AS PrethodniRuc,
-
-                        COALESCE(
-                            SUM(
-                                PrethodniNedostatak
-                            ),
-                            0
-                        )
-                            AS PrethodniNedostatak,
+                        ) AS PrethodniRuc,
 
                         COALESCE(
                             SUM(
                                 CASE
                                     WHEN
                                         PrethodniBrojRedova > 0
-
-                                        AND
-                                        (
-                                            PrethodniRuc <= 0
-
-                                            OR
-
-                                            PrethodniNedostatak < 0
-                                        )
-
+                                        AND PrethodniRuc <= 0
                                     THEN 1
                                     ELSE 0
                                 END
                             ),
                             0
-                        )
-                            AS PrethodniKriticni,
+                        ) AS PrethodniKriticni,
 
                         MAX(
                             PodaciOsvezeni
-                        )
-                            AS PodaciOsvezeni
+                        ) AS PodaciOsvezeni
 
                     FROM
                         PoArtiklu
+                ),
+
+                MarzaPodaci AS
+                (
+                    SELECT
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN
+                                        kr.DatumRezultata >= @DatumOd
+                                        AND kr.DatumRezultata <
+                                            DATEADD(
+                                                DAY,
+                                                1,
+                                                @DatumDo
+                                            )
+                                        AND kr.TipProdajeId = 6
+                                    THEN
+                                        kr.MPBezPDV
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        ) AS ActualPromet,
+
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN
+                                        kr.DatumRezultata >= @DatumOd
+                                        AND kr.DatumRezultata <
+                                            DATEADD(
+                                                DAY,
+                                                1,
+                                                @DatumDo
+                                            )
+                                        AND kr.TipProdajeId = 7
+                                    THEN
+                                        kr.MPBezPDV
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        ) AS PlanPromet,
+
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN
+                                        kr.DatumRezultata >= @DatumOd
+                                        AND kr.DatumRezultata <
+                                            DATEADD(
+                                                DAY,
+                                                1,
+                                                @DatumDo
+                                            )
+                                        AND kr.TipProdajeId = 6
+                                    THEN
+                                        kr.RUC12
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        ) AS ActualRuc,
+
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN
+                                        kr.DatumRezultata >= @DatumOd
+                                        AND kr.DatumRezultata <
+                                            DATEADD(
+                                                DAY,
+                                                1,
+                                                @DatumDo
+                                            )
+                                        AND kr.TipProdajeId = 7
+                                    THEN
+                                        kr.RUC12
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        ) AS PlanRuc,
+
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN
+                                        kr.DatumRezultata >=
+                                            @PrethodniDatumOd
+                                        AND kr.DatumRezultata <
+                                            DATEADD(
+                                                DAY,
+                                                1,
+                                                @PrethodniDatumDo
+                                            )
+                                        AND kr.TipProdajeId = 6
+                                    THEN
+                                        kr.MPBezPDV
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        ) AS PrethodniActualPromet,
+
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN
+                                        kr.DatumRezultata >=
+                                            @PrethodniDatumOd
+                                        AND kr.DatumRezultata <
+                                            DATEADD(
+                                                DAY,
+                                                1,
+                                                @PrethodniDatumDo
+                                            )
+                                        AND kr.TipProdajeId = 7
+                                    THEN
+                                        kr.MPBezPDV
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        ) AS PrethodniPlanPromet,
+
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN
+                                        kr.DatumRezultata >=
+                                            @PrethodniDatumOd
+                                        AND kr.DatumRezultata <
+                                            DATEADD(
+                                                DAY,
+                                                1,
+                                                @PrethodniDatumDo
+                                            )
+                                        AND kr.TipProdajeId = 6
+                                    THEN
+                                        kr.RUC12
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        ) AS PrethodniActualRuc,
+
+                        COALESCE(
+                            SUM(
+                                CASE
+                                    WHEN
+                                        kr.DatumRezultata >=
+                                            @PrethodniDatumOd
+                                        AND kr.DatumRezultata <
+                                            DATEADD(
+                                                DAY,
+                                                1,
+                                                @PrethodniDatumDo
+                                            )
+                                        AND kr.TipProdajeId = 7
+                                    THEN
+                                        kr.RUC12
+                                    ELSE 0
+                                END
+                            ),
+                            0
+                        ) AS PrethodniPlanRuc
+
+                    FROM
+                        dbo.KomercijalniRezultat kr
+
+                    INNER JOIN
+                        dbo.Artikal a
+                            ON a.ArtikalId =
+                               kr.ArtikalId
+
+                    LEFT JOIN
+                        dbo.RobnaGrupa rg
+                            ON rg.RobnaGrupaId =
+                               a.RobnaGrupaId
+
+                    LEFT JOIN
+                        dbo.Kategorija k
+                            ON k.KategorijaId =
+                               rg.KategorijaId
+
+                    {baseWhere}
+
+                    AND kr.TipProdajeId IN (6, 7)
+                ),
+
+                MarzaProcenti AS
+                (
+                    SELECT
+                        ActualPromet,
+                        PlanPromet,
+                        ActualRuc,
+                        PlanRuc,
+                        PrethodniActualPromet,
+                        PrethodniPlanPromet,
+                        PrethodniActualRuc,
+                        PrethodniPlanRuc,
+
+                        CASE
+                            WHEN ActualPromet = 0
+                                THEN 0
+                            ELSE
+                                CAST(
+                                    ActualRuc
+                                    AS DECIMAL(28, 10)
+                                )
+                                /
+                                NULLIF(
+                                    ActualPromet,
+                                    0
+                                )
+                        END AS ActualRucProcenat,
+
+                        CASE
+                            WHEN PlanPromet = 0
+                                THEN 0
+                            ELSE
+                                CAST(
+                                    PlanRuc
+                                    AS DECIMAL(28, 10)
+                                )
+                                /
+                                NULLIF(
+                                    PlanPromet,
+                                    0
+                                )
+                        END AS PlanRucProcenat,
+
+                        CASE
+                            WHEN PrethodniActualPromet = 0
+                                THEN 0
+                            ELSE
+                                CAST(
+                                    PrethodniActualRuc
+                                    AS DECIMAL(28, 10)
+                                )
+                                /
+                                NULLIF(
+                                    PrethodniActualPromet,
+                                    0
+                                )
+                        END AS PrethodniActualRucProcenat,
+
+                        CASE
+                            WHEN PrethodniPlanPromet = 0
+                                THEN 0
+                            ELSE
+                                CAST(
+                                    PrethodniPlanRuc
+                                    AS DECIMAL(28, 10)
+                                )
+                                /
+                                NULLIF(
+                                    PrethodniPlanPromet,
+                                    0
+                                )
+                        END AS PrethodniPlanRucProcenat
+
+                    FROM
+                        MarzaPodaci
+                ),
+
+                MarzaEfekat AS
+                (
+                    SELECT
+                        CAST(
+                            (
+                                ActualRucProcenat
+                                -
+                                PlanRucProcenat
+                            )
+                            *
+                            PlanPromet
+                            AS DECIMAL(28, 6)
+                        ) AS TrenutnoOdstupanjeMarze,
+
+                        CAST(
+                            (
+                                PrethodniActualRucProcenat
+                                -
+                                PrethodniPlanRucProcenat
+                            )
+                            *
+                            PrethodniPlanPromet
+                            AS DECIMAL(28, 6)
+                        ) AS PrethodnoOdstupanjeMarze
+
+                    FROM
+                        MarzaProcenti
                 )
 
                 SELECT
-
-                    -- =====================================
-                    -- PROMET
-                    -- =====================================
-
-                    TrenutniPromet
+                    u.TrenutniPromet
                         AS PrometBezPdv,
 
                     CAST(
                         CASE
-                            WHEN PrethodniPromet = 0
+                            WHEN u.PrethodniPromet = 0
                                 THEN 0
-
                             ELSE
                                 CAST(
-                                    TrenutniPromet
+                                    u.TrenutniPromet
                                     -
-                                    PrethodniPromet
+                                    u.PrethodniPromet
                                     AS DECIMAL(28, 6)
                                 )
                                 /
                                 NULLIF(
-                                    PrethodniPromet,
+                                    u.PrethodniPromet,
                                     0
                                 )
                         END
-
                         AS DECIMAL(18, 4)
-                    )
-                        AS PrometPromenaProcenat,
+                    ) AS PrometPromenaProcenat,
 
-                    -- =====================================
-                    -- RUC
-                    -- =====================================
-
-                    TrenutniRuc
+                    u.TrenutniRuc
                         AS Ruc12,
 
                     CAST(
                         CASE
-                            WHEN PrethodniRuc = 0
+                            WHEN u.PrethodniRuc = 0
                                 THEN 0
-
                             ELSE
                                 CAST(
-                                    TrenutniRuc
+                                    u.TrenutniRuc
                                     -
-                                    PrethodniRuc
+                                    u.PrethodniRuc
                                     AS DECIMAL(28, 6)
                                 )
                                 /
                                 NULLIF(
-                                    PrethodniRuc,
+                                    u.PrethodniRuc,
                                     0
                                 )
                         END
-
                         AS DECIMAL(18, 4)
-                    )
-                        AS Ruc12PromenaProcenat,
-
-                    -- =====================================
-                    -- RUC %
-                    -- =====================================
+                    ) AS Ruc12PromenaProcenat,
 
                     CAST(
                         CASE
-                            WHEN TrenutniPromet = 0
+                            WHEN u.TrenutniPromet = 0
                                 THEN 0
-
                             ELSE
                                 CAST(
-                                    TrenutniRuc
+                                    u.TrenutniRuc
                                     AS DECIMAL(28, 6)
                                 )
                                 /
                                 NULLIF(
-                                    TrenutniPromet,
+                                    u.TrenutniPromet,
                                     0
                                 )
                         END
-
                         AS DECIMAL(18, 4)
-                    )
-                        AS Ruc12Procenat,
-
-                    -- =====================================
-                    -- PROMENA RUC % U PROCENTNIM POENIMA
-                    -- =====================================
+                    ) AS Ruc12Procenat,
 
                     CAST(
                         (
                             CASE
-                                WHEN TrenutniPromet = 0
+                                WHEN u.TrenutniPromet = 0
                                     THEN 0
-
                                 ELSE
                                     CAST(
-                                        TrenutniRuc
+                                        u.TrenutniRuc
                                         AS DECIMAL(28, 6)
                                     )
                                     /
                                     NULLIF(
-                                        TrenutniPromet,
+                                        u.TrenutniPromet,
                                         0
                                     )
                             END
@@ -713,85 +808,66 @@ namespace GomexPraksa.RepositoryComerc
                         -
                         (
                             CASE
-                                WHEN PrethodniPromet = 0
+                                WHEN u.PrethodniPromet = 0
                                     THEN 0
-
                                 ELSE
                                     CAST(
-                                        PrethodniRuc
+                                        u.PrethodniRuc
                                         AS DECIMAL(28, 6)
                                     )
                                     /
                                     NULLIF(
-                                        PrethodniPromet,
+                                        u.PrethodniPromet,
                                         0
                                     )
                             END
                         )
-
                         AS DECIMAL(18, 4)
-                    )
-                        AS Ruc12PromenaProcentniPoeni,
+                    ) AS Ruc12PromenaProcentniPoeni,
 
-                    -- =====================================
-                    -- KRITICNI ARTIKLI
-                    -- =====================================
-
-                    TrenutniKriticni
+                    u.TrenutniKriticni
                         AS KriticniArtikli,
 
-                    TrenutniKriticni
+                    u.TrenutniKriticni
                     -
-                    PrethodniKriticni
+                    u.PrethodniKriticni
                         AS KriticniArtikliPromena,
 
-                    -- =====================================
-                    -- NEDOSTATAK MARZE
-                    -- =====================================
-
-                    TrenutniNedostatak
+                    m.TrenutnoOdstupanjeMarze
                         AS NedostatakMarze,
 
                     CAST(
                         CASE
-                            WHEN PrethodniNedostatak = 0
-                                THEN 0
-
+                            WHEN
+                                m.PrethodnoOdstupanjeMarze = 0
+                            THEN 0
                             ELSE
-                                CAST(
-                                    TrenutniNedostatak
+                                (
+                                    m.TrenutnoOdstupanjeMarze
                                     -
-                                    PrethodniNedostatak
-                                    AS DECIMAL(28, 6)
+                                    m.PrethodnoOdstupanjeMarze
                                 )
                                 /
                                 NULLIF(
                                     ABS(
-                                        PrethodniNedostatak
+                                        m.PrethodnoOdstupanjeMarze
                                     ),
                                     0
                                 )
                         END
-
                         AS DECIMAL(18, 4)
-                    )
-                        AS NedostatakMarzePromenaProcenat,
+                    ) AS NedostatakMarzePromenaProcenat,
 
-                    -- =====================================
-                    -- POSLEDNJE OSVEZAVANJE
-                    -- =====================================
-
-                    PodaciOsvezeni
+                    u.PodaciOsvezeni
 
                 FROM
-                    Ukupno
+                    Ukupno u
+
+                CROSS JOIN
+                    MarzaEfekat m
 
                 OPTION (RECOMPILE);
                 """;
-
-            // =============================================
-            // IZVRSAVANJE
-            // =============================================
 
             using var connection =
                 _connFactory.CreateConnection();

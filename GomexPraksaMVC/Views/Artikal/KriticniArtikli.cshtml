@@ -6,16 +6,12 @@
     DateOnly datumOd =
         ViewData["DatumOd"] is DateOnly start
             ? start
-            : DateOnly.FromDateTime(
-                DateTime.Today
-            ).AddDays(-29);
+            : DateOnly.FromDateTime(DateTime.Today).AddDays(-29);
 
     DateOnly datumDo =
         ViewData["DatumDo"] is DateOnly end
             ? end
-            : DateOnly.FromDateTime(
-                DateTime.Today
-            );
+            : DateOnly.FromDateTime(DateTime.Today);
 
     int? odeljenjeId =
         ViewData["OdeljenjeId"] as int?;
@@ -82,7 +78,7 @@
 
 
 <!-- =============================================
-     FILTER
+     FILTERI
      ============================================= -->
 
 <div class="filter-card mb-4">
@@ -127,7 +123,6 @@
                    value="@odeljenjeId.Value" />
         }
 
-
         @if (kategorijaId.HasValue)
         {
             <input type="hidden"
@@ -135,14 +130,12 @@
                    value="@kategorijaId.Value" />
         }
 
-
         @if (dobavljacId.HasValue)
         {
             <input type="hidden"
                    name="dobavljacId"
                    value="@dobavljacId.Value" />
         }
-
 
         @if (tipProdajeId.HasValue)
         {
@@ -153,14 +146,13 @@
 
 
         <!--
-            Kad promenimo filter,
-            uvek se vraćamo na prvu stranu.
+            Kod promene filtera uvek idemo
+            nazad na prvu stranu.
         -->
 
         <input type="hidden"
                name="page"
                value="1" />
-
 
         <input type="hidden"
                name="pageSize"
@@ -173,7 +165,6 @@
                     class="btn btn-primary">
 
                 Primeni
-
             </button>
 
 
@@ -184,7 +175,6 @@
                class="btn btn-secondary ms-2">
 
                 Reset
-
             </a>
 
         </div>
@@ -195,7 +185,7 @@
 
 
 <!-- =============================================
-     GLAVNA KARTICA
+     KRITICNI ARTIKLI
      ============================================= -->
 
 <div class="metric-card">
@@ -218,9 +208,7 @@
         <div class="text-secondary small">
 
             @datumOd.ToString("dd.MM.yyyy")
-
             -
-
             @datumDo.ToString("dd.MM.yyyy")
 
         </div>
@@ -230,10 +218,6 @@
 
     @if (items.Any())
     {
-        <!-- =============================================
-             TABELA
-             ============================================= -->
-
         <div class="table-responsive">
 
             <table class="table table-hover align-middle mb-0">
@@ -270,8 +254,7 @@
                             Nedostatak margine
                         </th>
 
-                        <th>
-                        </th>
+                        <th></th>
 
                     </tr>
 
@@ -290,70 +273,46 @@
 
 
                             <td>
-
                                 <strong>
                                     @item.Naziv
                                 </strong>
-
                             </td>
 
 
                             <td>
-
                                 @(item.Dobavljac ?? "-")
-
                             </td>
 
+
+                            <!-- PROMET -->
 
                             <td class="text-end">
-
-                                @item.Promet.ToString("N0")
-                                RSD
-
+                                @(item.Promet.ToString("N0")) RSD
                             </td>
 
 
-                            <td class="
-                                text-end
-                                @(item.RUC12 < 0
-                                    ? "text-danger"
-                                    : "text-success")
-                                ">
+                            <!-- RUC12 -->
 
-                                @item.RUC12.ToString("N0")
-                                RSD
-
+                            <td class="text-end @(item.RUC12 < 0 ? "text-danger" : "text-success")">
+                                @(item.RUC12.ToString("N0")) RSD
                             </td>
 
 
-                            <td class="
-                                text-end
-                                @(item.RUC12Procenat < 0
-                                    ? "text-danger"
-                                    : "text-success")
-                                ">
+                            <!-- RUC12 PROCENAT -->
 
-                                @(
-                                    (item.RUC12Procenat * 100m)
-                                        .ToString("0.0")
-                                )%
-
+                            <td class="text-end @(item.RUC12Procenat < 0 ? "text-danger" : "text-success")">
+                                @((item.RUC12Procenat * 100m).ToString("0.0"))%
                             </td>
 
 
-                            <td class="
-                                text-end
-                                @(item.NedostatakMargine < 0
-                                    ? "text-danger"
-                                    : "text-success")
-                                ">
+                            <!-- NEDOSTATAK MARGINE -->
 
-                                @item.NedostatakMargine
-                                .ToString("N0")
-                                RSD
-
+                            <td class="text-end @(item.NedostatakMargine < 0 ? "text-danger" : "text-success")">
+                                @(item.NedostatakMargine.ToString("N0")) RSD
                             </td>
 
+
+                            <!-- DETALJI -->
 
                             <td class="text-end">
 
@@ -363,7 +322,6 @@
                                    class="btn btn-sm btn-outline-primary">
 
                                     Detalji
-
                                 </a>
 
                             </td>
@@ -379,7 +337,7 @@
 
 
         <!-- =============================================
-             DONJI DEO - BROJ STRANE
+             INFORMACIJE O PAGINACIJI
              ============================================= -->
 
         <div class="
@@ -389,8 +347,7 @@
             justify-content-between
             align-items-md-center
             gap-3
-            mt-4
-            ">
+            mt-4">
 
             <div class="text-secondary small">
 
@@ -420,7 +377,7 @@
 
 
             <!-- =============================================
-                 PAGINATION BUTTONS
+                 PAGINACIJA
                  ============================================= -->
             @if (totalPages > 1)
             {
@@ -431,14 +388,7 @@
 
                         <!-- PRETHODNA -->
 
-                        <li class="
-                            page-item
-                            @(
-                                Model.HasPreviousPage
-                                    ? ""
-                                    : "disabled"
-                            )
-                            ">
+                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
 
                             <a class="page-link"
                                asp-controller="Artikal"
@@ -453,16 +403,11 @@
                                asp-route-pageSize="@pageSize">
 
                                 Prethodna
-
                             </a>
 
                         </li>
 
 
-                        <!-- =============================================
-                             BROJEVI STRANA
-                             prikazujemo trenutnu +/- 2
-                             ============================================= -->
                         @{
                             int startPage =
                                 Math.Max(
@@ -478,6 +423,7 @@
                         }
 
 
+                        <!-- PRVA STRANA -->
                         @if (startPage > 1)
                         {
                             <li class="page-item">
@@ -495,7 +441,6 @@
                                    asp-route-pageSize="@pageSize">
 
                                     1
-
                                 </a>
 
                             </li>
@@ -514,20 +459,13 @@
                         }
 
 
+                        <!-- STRANE OKO TRENUTNE -->
                         @for (
-                            int i = startPage;
-                            i <= endPage;
-                            i++
-                        )
+                                                    int i = startPage;
+                                                    i <= endPage;
+                                                    i++)
                         {
-                            <li class="
-                                page-item
-                                @(
-                                    i == currentPage
-                                        ? "active"
-                                        : ""
-                                )
-                                ">
+                            <li class="page-item @(i == currentPage ? "active" : "")">
 
                                 <a class="page-link"
                                    asp-controller="Artikal"
@@ -542,17 +480,16 @@
                                    asp-route-pageSize="@pageSize">
 
                                     @i
-
                                 </a>
 
                             </li>
                         }
 
 
+                        <!-- POSLEDNJA STRANA -->
                         @if (endPage < totalPages)
                         {
-                            @if (endPage <
-                                totalPages - 1)
+                            @if (endPage < totalPages - 1)
                             {
                                 <li class="page-item disabled">
 
@@ -579,7 +516,6 @@
                                    asp-route-pageSize="@pageSize">
 
                                     @totalPages
-
                                 </a>
 
                             </li>
@@ -588,14 +524,7 @@
 
                         <!-- SLEDECA -->
 
-                        <li class="
-                            page-item
-                            @(
-                                Model.HasNextPage
-                                    ? ""
-                                    : "disabled"
-                            )
-                            ">
+                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
 
                             <a class="page-link"
                                asp-controller="Artikal"
@@ -610,7 +539,6 @@
                                asp-route-pageSize="@pageSize">
 
                                 Sledeća
-
                             </a>
 
                         </li>
@@ -624,11 +552,7 @@
     }
     else
     {
-        <div class="
-            text-center
-            text-secondary
-            py-5
-            ">
+        <div class="text-center text-secondary py-5">
 
             Nema kritičnih artikala
             za izabrani period.

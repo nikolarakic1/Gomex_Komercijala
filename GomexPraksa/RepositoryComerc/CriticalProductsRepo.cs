@@ -12,15 +12,13 @@ namespace GomexPraksa.RepositoryComerc
     {
         private readonly IConnFactory _connection;
 
+        private const decimal PragOdstupanja = 0.005m;
+
         public CriticalProductsRepo(
             IConnFactory connection)
         {
             _connection = connection;
         }
-
-        // =============================================
-        // TOP 5 KRITICNIH ARTIKALA
-        // =============================================
 
         public async Task<IEnumerable<CriticalProductsDTO>>
             CriticalProductsTop5(
@@ -30,14 +28,19 @@ namespace GomexPraksa.RepositoryComerc
                 bool canViewAllCategories,
                 List<int> kategorijaIds)
         {
-            var requestId = Guid.NewGuid()
-                .ToString("N")[..8];
+            if (!canViewAllCategories &&
+                (kategorijaIds == null ||
+                 kategorijaIds.Count == 0))
+            {
+                return Enumerable.Empty<CriticalProductsDTO>();
+            }
 
-            Console.WriteLine(
-                $"CRITICAL [{requestId}] START " +
-                $"{filter.DatumOd:yyyy-MM-dd} -> " +
-                $"{filter.DatumDo:yyyy-MM-dd}"
-            );
+            var requestId =
+                Guid.NewGuid()
+                    .ToString("N")[..8];
+
+            var sw =
+                Stopwatch.StartNew();
 
             var where =
                 new StringBuilder();
@@ -47,6 +50,7 @@ namespace GomexPraksa.RepositoryComerc
                 WHERE
                     kr.DatumRezultata >= @DatumOd
                     AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+                    AND kr.TipProdajeId IN (6, 7)
                     AND a.Aktivan = 1
                 """
             );
@@ -68,9 +72,10 @@ namespace GomexPraksa.RepositoryComerc
                 )
             );
 
-            // =============================================
-            // ODELJENJE
-            // =============================================
+            parametri.Add(
+                "PragOdstupanja",
+                PragOdstupanja
+            );
 
             if (filter.OdeljenjeId.HasValue)
             {
@@ -86,10 +91,6 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // KATEGORIJA
-            // =============================================
-
             if (filter.KategorijaId.HasValue)
             {
                 where.AppendLine(
@@ -103,10 +104,6 @@ namespace GomexPraksa.RepositoryComerc
                     filter.KategorijaId.Value
                 );
             }
-
-            // =============================================
-            // DOBAVLJAC
-            // =============================================
 
             if (filter.DobavljacId.HasValue)
             {
@@ -125,38 +122,8 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // TIP PRODAJE
-            // =============================================
-
-            if (filter.TipProdajeId.HasValue)
-            {
-                where.AppendLine(
-                    """
-                    AND kr.TipProdajeId = @TipProdajeId
-                    """
-                );
-
-                parametri.Add(
-                    "TipProdajeId",
-                    filter.TipProdajeId.Value
-                );
-            }
-
-            // =============================================
-            // USER ACCESS
-            // =============================================
-
             if (!canViewAllCategories)
             {
-                if (kategorijaIds == null ||
-                    kategorijaIds.Count == 0)
-                {
-                    return Enumerable.Empty<
-                        CriticalProductsDTO
-                    >();
-                }
-
                 where.AppendLine(
                     """
                     AND k.KategorijaId IN @KategorijaIds
@@ -176,35 +143,64 @@ namespace GomexPraksa.RepositoryComerc
                     SELECT
                         kr.ArtikalId,
 
-                        SUM(kr.RUC12)
-                            AS Ruc12,
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 6
+                                    THEN kr.MPBezPDV
+                                ELSE 0
+                            END
+                        ) AS ActualPromet,
 
                         SUM(
-                            COALESCE(
-                                kr.MarginEffect,
-                                0
-                            )
-                            +
-                            COALESCE(
-                                kr.MixEffect,
-                                0
-                            )
-                        )
-                            AS NedostatakMargine
+                            CASE
+                                WHEN kr.TipProdajeId = 7
+                                    THEN kr.MPBezPDV
+                                ELSE 0
+                            END
+                        ) AS PlanPromet,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 6
+                                    THEN kr.RUC12
+                                ELSE 0
+                            END
+                        ) AS ActualRuc,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 7
+                                    THEN kr.RUC12
+                                ELSE 0
+                            END
+                        ) AS PlanRuc,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 6
+                                    THEN 1
+                                ELSE 0
+                            END
+                        ) AS ActualBrojRedova,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 7
+                                    THEN 1
+                                ELSE 0
+                            END
+                        ) AS PlanBrojRedova
 
                     FROM dbo.KomercijalniRezultat kr
 
                     INNER JOIN dbo.Artikal a
-                        ON a.ArtikalId =
-                           kr.ArtikalId
+                        ON a.ArtikalId = kr.ArtikalId
 
                     INNER JOIN dbo.RobnaGrupa rg
-                        ON rg.RobnaGrupaId =
-                           a.RobnaGrupaId
+                        ON rg.RobnaGrupaId = a.RobnaGrupaId
 
                     INNER JOIN dbo.Kategorija k
-                        ON k.KategorijaId =
-                           rg.KategorijaId
+                        ON k.KategorijaId = rg.KategorijaId
 
                     {where}
 
@@ -212,49 +208,130 @@ namespace GomexPraksa.RepositoryComerc
                         kr.ArtikalId
                 ),
 
+                Izracunato AS
+                (
+                    SELECT
+                        ArtikalId,
+                        ActualPromet,
+                        PlanPromet,
+                        ActualRuc,
+                        PlanRuc,
+                        ActualBrojRedova,
+                        PlanBrojRedova,
+
+                        CASE
+                            WHEN ActualPromet = 0
+                                THEN 0
+                            ELSE
+                                CAST(
+                                    ActualRuc
+                                    AS DECIMAL(28, 10)
+                                )
+                                /
+                                NULLIF(
+                                    ActualPromet,
+                                    0
+                                )
+                        END AS ActualRucProcenat,
+
+                        CASE
+                            WHEN PlanPromet = 0
+                                THEN 0
+                            ELSE
+                                CAST(
+                                    PlanRuc
+                                    AS DECIMAL(28, 10)
+                                )
+                                /
+                                NULLIF(
+                                    PlanPromet,
+                                    0
+                                )
+                        END AS PlanRucProcenat
+
+                    FROM Agregirano
+                ),
+
                 Kriticni AS
                 (
                     SELECT
                         ArtikalId,
-                        Ruc12,
-                        NedostatakMargine,
+                        ActualPromet,
+                        PlanPromet,
+                        ActualRuc,
+                        PlanRuc,
+                        ActualBrojRedova,
+                        PlanBrojRedova,
+                        ActualRucProcenat,
+                        PlanRucProcenat,
 
-                        (
-                            CASE
-                                WHEN Ruc12 < 0
-                                    THEN Ruc12
-                                ELSE 0
-                            END
+                        ActualRucProcenat
+                        -
+                        PlanRucProcenat
+                            AS OdstupanjeProcentniPoeni,
 
-                            +
+                        CASE
+                            WHEN
+                                PlanBrojRedova = 0
+                                OR PlanPromet = 0
+                            THEN 0
 
-                            CASE
-                                WHEN NedostatakMargine < 0
-                                    THEN NedostatakMargine
-                                ELSE 0
-                            END
-                        )
-                            AS ProcenjeniUticaj
+                            ELSE
+                                (
+                                    ActualRucProcenat
+                                    -
+                                    PlanRucProcenat
+                                )
+                                *
+                                PlanPromet
+                        END AS MarginEffect
 
-                    FROM Agregirano
+                    FROM Izracunato
 
                     WHERE
-                        Ruc12 <= 0
-                        OR NedostatakMargine < 0
+                        (
+                            ActualBrojRedova > 0
+                            AND ActualRuc <= 0
+                        )
+                        OR
+                        (
+                            ActualBrojRedova > 0
+                            AND PlanBrojRedova > 0
+                            AND PlanPromet <> 0
+                            AND
+                            (
+                                ActualRucProcenat
+                                -
+                                PlanRucProcenat
+                            ) < @PragOdstupanja
+                        )
                 ),
 
                 TopPet AS
                 (
                     SELECT TOP (5)
                         ArtikalId,
-                        Ruc12,
-                        NedostatakMargine,
-                        ProcenjeniUticaj
+                        ActualPromet,
+                        ActualRuc,
+                        ActualRucProcenat,
+                        PlanRucProcenat,
+                        OdstupanjeProcentniPoeni,
+                        MarginEffect
 
                     FROM Kriticni
 
                     ORDER BY
-                        ProcenjeniUticaj ASC
+                        CASE
+                            WHEN ActualRuc <= 0
+                                THEN 0
+                            ELSE 1
+                        END ASC,
+
+                        MarginEffect ASC,
+
+                        OdstupanjeProcentniPoeni ASC,
+
+                        ArtikalId ASC
                 )
 
                 SELECT
@@ -268,39 +345,52 @@ namespace GomexPraksa.RepositoryComerc
 
                     CASE
                         WHEN
-                            ABS(t.Ruc12) >= 5000
-                            OR
-                            ABS(t.NedostatakMargine) >= 5000
+                            t.ActualRuc <= 0
                             THEN 'Visok'
 
                         WHEN
-                            ABS(t.Ruc12) >= 2000
-                            OR
-                            ABS(t.NedostatakMargine) >= 2000
+                            t.OdstupanjeProcentniPoeni <= -0.020
+                            THEN 'Visok'
+
+                        WHEN
+                            t.OdstupanjeProcentniPoeni < 0
                             THEN 'Srednji'
 
                         ELSE 'Nizak'
-                    END
-                        AS Severnost,
+                    END AS Severnost,
 
-                    t.ProcenjeniUticaj
+                    CASE
+                        WHEN
+                            t.ActualRuc <= 0
+                            AND t.MarginEffect = 0
+                            THEN t.ActualRuc
+
+                        ELSE t.MarginEffect
+                    END AS ProcenjeniUticaj
 
                 FROM TopPet t
 
                 INNER JOIN dbo.Artikal a
-                    ON a.ArtikalId =
-                       t.ArtikalId
+                    ON a.ArtikalId = t.ArtikalId
 
                 INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId =
-                       a.RobnaGrupaId
+                    ON rg.RobnaGrupaId = a.RobnaGrupaId
 
                 INNER JOIN dbo.Kategorija k
-                    ON k.KategorijaId =
-                       rg.KategorijaId
+                    ON k.KategorijaId = rg.KategorijaId
 
                 ORDER BY
-                    t.ProcenjeniUticaj ASC
+                    CASE
+                        WHEN t.ActualRuc <= 0
+                            THEN 0
+                        ELSE 1
+                    END ASC,
+
+                    t.MarginEffect ASC,
+
+                    t.OdstupanjeProcentniPoeni ASC,
+
+                    t.ArtikalId ASC
 
                 OPTION (RECOMPILE);
                 """;
@@ -314,16 +404,19 @@ namespace GomexPraksa.RepositoryComerc
                 await connection
                     .QueryAsync<CriticalProductsDTO>(
                         sql,
-                        parametri
+                        parametri,
+                        commandTimeout: 30
                     );
+
+            sw.Stop();
+
+            Console.WriteLine(
+                $"CRITICAL [{requestId}] END " +
+                $"{sw.ElapsedMilliseconds} ms"
+            );
 
             return rezultat;
         }
-
-        // =============================================
-        // CRITICAL PAGE
-        // PAGINACIJA
-        // =============================================
 
         public async Task<
             PaginationGeneric<CriticalProductsPageDTO>>
@@ -333,15 +426,13 @@ namespace GomexPraksa.RepositoryComerc
                 bool canViewAllCategories,
                 List<int> kategorijaIds)
         {
-            // =============================================
-            // USER NEMA NIJEDNU KATEGORIJU
-            // =============================================
+            var requestId =
+                Guid.NewGuid()
+                    .ToString("N")[..8];
 
             if (!canViewAllCategories &&
-                (
-                    kategorijaIds == null ||
-                    kategorijaIds.Count == 0
-                ))
+                (kategorijaIds == null ||
+                 kategorijaIds.Count == 0))
             {
                 return new PaginationGeneric<
                     CriticalProductsPageDTO>
@@ -361,10 +452,6 @@ namespace GomexPraksa.RepositoryComerc
                 };
             }
 
-            // =============================================
-            // FILTERI PRE AGREGACIJE
-            // =============================================
-
             var aggWhere =
                 new StringBuilder();
 
@@ -373,6 +460,7 @@ namespace GomexPraksa.RepositoryComerc
                 WHERE
                     kr.DatumRezultata >= @DatumOd
                     AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
+                    AND kr.TipProdajeId IN (6, 7)
                 """
             );
 
@@ -393,9 +481,10 @@ namespace GomexPraksa.RepositoryComerc
                 )
             );
 
-            // =============================================
-            // DOBAVLJAC
-            // =============================================
+            parametri.Add(
+                "PragOdstupanja",
+                PragOdstupanja
+            );
 
             if (filter.DobavljacId.HasValue)
             {
@@ -414,29 +503,6 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // TIP PRODAJE
-            // =============================================
-
-            if (filter.TipProdajeId.HasValue)
-            {
-                aggWhere.AppendLine(
-                    """
-                    AND kr.TipProdajeId =
-                        @TipProdajeId
-                    """
-                );
-
-                parametri.Add(
-                    "TipProdajeId",
-                    filter.TipProdajeId.Value
-                );
-            }
-
-            // =============================================
-            // FILTERI POSLE AGREGACIJE
-            // =============================================
-
             var outerWhere =
                 new StringBuilder();
 
@@ -447,16 +513,11 @@ namespace GomexPraksa.RepositoryComerc
                 """
             );
 
-            // =============================================
-            // ODELJENJE
-            // =============================================
-
             if (filter.OdeljenjeId.HasValue)
             {
                 outerWhere.AppendLine(
                     """
-                    AND kat.OdeljenjeId =
-                        @OdeljenjeId
+                    AND kat.OdeljenjeId = @OdeljenjeId
                     """
                 );
 
@@ -466,16 +527,11 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // KATEGORIJA
-            // =============================================
-
             if (filter.KategorijaId.HasValue)
             {
                 outerWhere.AppendLine(
                     """
-                    AND kat.KategorijaId =
-                        @KategorijaId
+                    AND kat.KategorijaId = @KategorijaId
                     """
                 );
 
@@ -485,16 +541,11 @@ namespace GomexPraksa.RepositoryComerc
                 );
             }
 
-            // =============================================
-            // MENADZEROVE KATEGORIJE
-            // =============================================
-
             if (!canViewAllCategories)
             {
                 outerWhere.AppendLine(
                     """
-                    AND kat.KategorijaId
-                        IN @KategorijaIds
+                    AND kat.KategorijaId IN @KategorijaIds
                     """
                 );
 
@@ -503,10 +554,6 @@ namespace GomexPraksa.RepositoryComerc
                     kategorijaIds
                 );
             }
-
-            // =============================================
-            // PAGINACIJA
-            // =============================================
 
             var offset =
                 (pagination.Page - 1)
@@ -523,255 +570,341 @@ namespace GomexPraksa.RepositoryComerc
                 pagination.PageSize
             );
 
-            // =============================================
-            // ZAJEDNICKI SQL
-            // =============================================
-
-            string cte =
+            string buildTempTableSql =
                 $"""
+                IF OBJECT_ID('tempdb..#Kriticni') IS NOT NULL
+                    DROP TABLE #Kriticni;
+
                 WITH Agregirano AS
                 (
                     SELECT
                         kr.ArtikalId,
 
-                        COALESCE(
-                            kr.DobavljacId,
-                            a.DobavljacId
-                        )
-                            AS DobavljacId,
-
-                        SUM(
-                            kr.MPBezPDV
-                        )
-                            AS Promet,
-
-                        SUM(
-                            kr.RUC12
-                        )
-                            AS RUC12,
-
-                        SUM(
+                        MAX(
                             COALESCE(
-                                kr.MarginEffect,
-                                0
+                                kr.DobavljacId,
+                                a.DobavljacId
                             )
-                            +
-                            COALESCE(
-                                kr.MixEffect,
-                                0
-                            )
-                        )
-                            AS NedostatakMargine
+                        ) AS DobavljacId,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 6
+                                    THEN kr.MPBezPDV
+                                ELSE 0
+                            END
+                        ) AS ActualPromet,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 7
+                                    THEN kr.MPBezPDV
+                                ELSE 0
+                            END
+                        ) AS PlanPromet,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 6
+                                    THEN kr.RUC12
+                                ELSE 0
+                            END
+                        ) AS ActualRuc,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 7
+                                    THEN kr.RUC12
+                                ELSE 0
+                            END
+                        ) AS PlanRuc,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 6
+                                    THEN 1
+                                ELSE 0
+                            END
+                        ) AS ActualBrojRedova,
+
+                        SUM(
+                            CASE
+                                WHEN kr.TipProdajeId = 7
+                                    THEN 1
+                                ELSE 0
+                            END
+                        ) AS PlanBrojRedova
 
                     FROM dbo.KomercijalniRezultat kr
 
                     INNER JOIN dbo.Artikal a
-                        ON a.ArtikalId =
-                           kr.ArtikalId
+                        ON a.ArtikalId = kr.ArtikalId
 
                     {aggWhere}
 
                     GROUP BY
-                        kr.ArtikalId,
-
-                        COALESCE(
-                            kr.DobavljacId,
-                            a.DobavljacId
-                        )
+                        kr.ArtikalId
                 ),
 
-                Kriticni AS
+                Izracunato AS
                 (
                     SELECT
                         ArtikalId,
                         DobavljacId,
-                        Promet,
-                        RUC12,
-                        NedostatakMargine
+                        ActualPromet,
+                        PlanPromet,
+                        ActualRuc,
+                        PlanRuc,
+                        ActualBrojRedova,
+                        PlanBrojRedova,
+
+                        CASE
+                            WHEN ActualPromet = 0
+                                THEN 0
+                            ELSE
+                                CAST(
+                                    ActualRuc
+                                    AS DECIMAL(28, 10)
+                                )
+                                /
+                                NULLIF(
+                                    ActualPromet,
+                                    0
+                                )
+                        END AS ActualRucProcenat,
+
+                        CASE
+                            WHEN PlanPromet = 0
+                                THEN 0
+                            ELSE
+                                CAST(
+                                    PlanRuc
+                                    AS DECIMAL(28, 10)
+                                )
+                                /
+                                NULLIF(
+                                    PlanPromet,
+                                    0
+                                )
+                        END AS PlanRucProcenat
 
                     FROM Agregirano
+                ),
 
-                    WHERE
-                        RUC12 <= 0
-                        OR NedostatakMargine < 0
+                Finalno AS
+                (
+                    SELECT
+                        ArtikalId,
+                        DobavljacId,
+                        ActualPromet,
+                        PlanPromet,
+                        ActualRuc,
+                        PlanRuc,
+                        ActualBrojRedova,
+                        PlanBrojRedova,
+                        ActualRucProcenat,
+                        PlanRucProcenat,
+
+                        ActualRucProcenat
+                        -
+                        PlanRucProcenat
+                            AS OdstupanjeProcentniPoeni,
+
+                        CASE
+                            WHEN
+                                PlanBrojRedova = 0
+                                OR PlanPromet = 0
+                            THEN 0
+
+                            ELSE
+                                (
+                                    ActualRucProcenat
+                                    -
+                                    PlanRucProcenat
+                                )
+                                *
+                                PlanPromet
+                        END AS MarginEffect
+
+                    FROM Izracunato
                 )
-                """;
 
-            // =============================================
-            // COUNT QUERY
-            // =============================================
+                SELECT
+                    ArtikalId,
+                    DobavljacId,
+
+                    ActualPromet
+                        AS Promet,
+
+                    ActualRuc
+                        AS RUC12,
+
+                    ActualRucProcenat
+                        AS RUC12Procenat,
+
+                    MarginEffect
+                        AS NedostatakMargine,
+
+                    OdstupanjeProcentniPoeni,
+
+                    PlanRucProcenat,
+
+                    CASE
+                        WHEN
+                            ActualRuc <= 0
+                            AND MarginEffect = 0
+                            THEN ActualRuc
+
+                        ELSE MarginEffect
+                    END AS ProcenjeniUticaj
+
+                INTO #Kriticni
+
+                FROM Finalno
+
+                WHERE
+                    (
+                        ActualBrojRedova > 0
+                        AND ActualRuc <= 0
+                    )
+                    OR
+                    (
+                        ActualBrojRedova > 0
+                        AND PlanBrojRedova > 0
+                        AND PlanPromet <> 0
+                        AND OdstupanjeProcentniPoeni
+                            < @PragOdstupanja
+                    );
+
+                CREATE CLUSTERED INDEX IX_Temp_Kriticni_ArtikalId
+                    ON #Kriticni (ArtikalId);
+
+                CREATE NONCLUSTERED INDEX IX_Temp_Kriticni_Uticaj
+                    ON #Kriticni (
+                        ProcenjeniUticaj,
+                        OdstupanjeProcentniPoeni,
+                        ArtikalId
+                    );
+                """;
 
             string countSql =
                 $"""
-                {cte}
-
                 SELECT
                     COUNT(*)
 
-                FROM Kriticni k
+                FROM #Kriticni k
 
                 INNER JOIN dbo.Artikal ar
-                    ON ar.ArtikalId =
-                       k.ArtikalId
+                    ON ar.ArtikalId = k.ArtikalId
 
                 INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId =
-                       ar.RobnaGrupaId
+                    ON rg.RobnaGrupaId = ar.RobnaGrupaId
 
                 INNER JOIN dbo.Kategorija kat
-                    ON kat.KategorijaId =
-                       rg.KategorijaId
+                    ON kat.KategorijaId = rg.KategorijaId
 
-                {outerWhere}
-
-                OPTION (RECOMPILE);
+                {outerWhere};
                 """;
-
-            // =============================================
-            // PAGE QUERY
-            // =============================================
 
             string pageSql =
                 $"""
-                {cte}
-
                 SELECT
                     ar.ArtikalId,
-
                     ar.Sifra,
-
                     ar.Naziv,
 
                     d.Naziv
                         AS Dobavljac,
 
                     k.Promet,
-
                     k.RUC12,
-
-                    CASE
-                        WHEN k.Promet = 0
-                            THEN 0
-
-                        ELSE
-                            CAST(
-                                k.RUC12
-                                AS DECIMAL(18, 6)
-                            )
-                            /
-                            NULLIF(
-                                k.Promet,
-                                0
-                            )
-                    END
-                        AS RUC12Procenat,
-
+                    k.RUC12Procenat,
                     k.NedostatakMargine
 
-                FROM Kriticni k
+                FROM #Kriticni k
 
                 INNER JOIN dbo.Artikal ar
-                    ON ar.ArtikalId =
-                       k.ArtikalId
+                    ON ar.ArtikalId = k.ArtikalId
 
                 LEFT JOIN dbo.Dobavljac d
-                    ON d.DobavljacId =
-                       k.DobavljacId
+                    ON d.DobavljacId = k.DobavljacId
 
                 INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId =
-                       ar.RobnaGrupaId
+                    ON rg.RobnaGrupaId = ar.RobnaGrupaId
 
                 INNER JOIN dbo.Kategorija kat
-                    ON kat.KategorijaId =
-                       rg.KategorijaId
+                    ON kat.KategorijaId = rg.KategorijaId
 
                 {outerWhere}
 
                 ORDER BY
-                    k.NedostatakMargine ASC,
+                    k.ProcenjeniUticaj ASC,
+                    k.OdstupanjeProcentniPoeni ASC,
                     ar.ArtikalId ASC
 
                 OFFSET @Offset ROWS
-
-                FETCH NEXT
-                    @PageSize ROWS ONLY
-
-                OPTION (RECOMPILE);
+                FETCH NEXT @PageSize ROWS ONLY;
                 """;
 
-            // =============================================
-            // CONNECTION
-            // =============================================
+            string dropTempTableSql =
+                """
+                IF OBJECT_ID('tempdb..#Kriticni') IS NOT NULL
+                    DROP TABLE #Kriticni;
+                """;
+
+            string combinedSql =
+                buildTempTableSql
+                + Environment.NewLine
+                + countSql
+                + Environment.NewLine
+                + pageSql
+                + Environment.NewLine
+                + dropTempTableSql;
 
             using var connection =
                 _connection.CreateConnection();
 
-            var openSw =
+            var sw =
                 Stopwatch.StartNew();
 
             connection.Open();
 
-            openSw.Stop();
+            int totalCount;
+            List<CriticalProductsPageDTO> items;
 
-            Console.WriteLine(
-                $"CRITICAL PAGE CONNECTION OPEN: " +
-                $"{openSw.ElapsedMilliseconds} ms"
-            );
-
-            // =============================================
-            // COUNT
-            // =============================================
-
-            var totalSw =
-                Stopwatch.StartNew();
-
-            var totalCount =
-                await connection
-                    .ExecuteScalarAsync<int>(
-                        countSql,
-                        parametri
-                    );
-
-            totalSw.Stop();
-
-            Console.WriteLine(
-                $"CRITICAL PAGE COUNT: " +
-                $"{totalSw.ElapsedMilliseconds} ms | " +
-                $"Total: {totalCount}"
-            );
-
-            // =============================================
-            // PAGE
-            // =============================================
-
-            var pageSw =
-                Stopwatch.StartNew();
-
-            var items =
-                (
+            using (
+                var multi =
                     await connection
-                        .QueryAsync<
-                            CriticalProductsPageDTO>(
-                            pageSql,
-                            parametri
+                        .QueryMultipleAsync(
+                            combinedSql,
+                            parametri,
+                            commandTimeout: 30
                         )
-                )
-                .ToList();
+            )
+            {
+                totalCount =
+                    await multi
+                        .ReadSingleAsync<int>();
 
-            pageSw.Stop();
+                items =
+                    (
+                        await multi
+                            .ReadAsync<
+                                CriticalProductsPageDTO>()
+                    )
+                    .ToList();
+            }
+
+            sw.Stop();
 
             Console.WriteLine(
-                $"CRITICAL PAGE DATA: " +
-                $"{pageSw.ElapsedMilliseconds} ms | " +
+                $"CRITICAL PAGE [{requestId}] " +
+                $"{sw.ElapsedMilliseconds} ms | " +
+                $"Total: {totalCount} | " +
                 $"Page: {pagination.Page} | " +
                 $"PageSize: {pagination.PageSize} | " +
                 $"Returned: {items.Count}"
             );
-
-            // =============================================
-            // RESULT
-            // =============================================
 
             return new PaginationGeneric<
                 CriticalProductsPageDTO>

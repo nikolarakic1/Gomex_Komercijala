@@ -19,33 +19,36 @@ namespace GomexPraksa.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<RucChangeDTO>> CheckInfoForChangesAsync(
-            [FromQuery] DashboardFilterDTO filter,
-            [FromQuery] DateOnly prethodniDatumOd,
-            [FromQuery] DateOnly prethodniDatumDo)
+        public async Task<ActionResult<RucChangeDTO>>
+            CheckInfoForChangesAsync(
+                [FromQuery] DashboardFilterDTO filter)
         {
             try
             {
                 var rezultat =
-                    await _service.CheckInfoForChangesAsync(
-                        filter,
-                        prethodniDatumOd,
-                        prethodniDatumDo
-                    );
+                    await _service
+                        .CheckInfoForChangesAsync(
+                            filter
+                        );
 
                 return Ok(rezultat);
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(
+                    ex.Message
+                );
             }
-           
             catch (UnauthorizedAccessException)
             {
                 return Forbid();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(
+                    $"RUC TRACKER ERROR: {ex}"
+                );
+
                 return StatusCode(
                     500,
                     "Greška prilikom obrade RUC podataka."
