@@ -1,0 +1,470 @@
+﻿@model GomexPraksaMVC.Models.DodajAkcijuViewModel
+
+@{
+    ViewData["Title"] = "Dodaj akciju";
+}
+
+<style>
+    .add-action-page {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+
+    .add-action-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .add-action-title {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 800;
+        color: #26312B;
+    }
+
+    .add-action-subtitle {
+        margin: 5px 0 0;
+        font-size: 14px;
+        color: #748079;
+    }
+
+    .add-action-card {
+        background: linear-gradient( 145deg, #FFFFFF 0%, #F6F9F7 100% );
+        border: 1px solid #DDE5E1;
+        border-radius: 18px;
+        box-shadow: 0 2px 4px rgba(20, 32, 26, .03), 0 14px 34px rgba(20, 32, 26, .07);
+        overflow: hidden;
+    }
+
+    .add-action-card-header {
+        padding: 20px 22px;
+        border-bottom: 1px solid #E1E8E4;
+        background: linear-gradient( 180deg, #F9FBFA 0%, #F2F6F4 100% );
+    }
+
+    .add-action-card-header-title {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .45px;
+        text-transform: uppercase;
+        color: #46534C;
+    }
+
+    .add-action-card-header-text {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #7A8580;
+    }
+
+    .add-action-body {
+        padding: 24px;
+    }
+
+    .form-section {
+        margin-bottom: 26px;
+    }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+    .form-section-title {
+        margin-bottom: 14px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: #4C5A53;
+    }
+
+    .form-label {
+        margin-bottom: 7px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #4B5650;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 44px;
+        border-radius: 10px;
+        border: 1px solid #D6DFDA;
+        background: #FFFFFF;
+        font-size: 13px;
+        color: #2F3934;
+        box-shadow: none;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #4BA77E;
+            box-shadow: 0 0 0 3px rgba(75, 167, 126, .12);
+        }
+
+    .input-group-text {
+        border-color: #D6DFDA;
+        background: #F4F7F5;
+        color: #59645E;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .info-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: #EEF6F2;
+        border: 1px solid #D6E9DF;
+        color: #4B5D54;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+        .info-box i {
+            margin-top: 1px;
+            color: #2E805F;
+        }
+
+    .action-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 22px;
+        border-top: 1px solid #E1E8E4;
+        background: #F8FAF9;
+    }
+
+    .action-footer-left {
+        color: #7B8580;
+        font-size: 11px;
+    }
+
+    .action-footer-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-add-action {
+        min-width: 140px;
+        border-radius: 9px;
+        font-weight: 700;
+    }
+
+    .success-alert {
+        border-radius: 12px;
+        border: 1px solid #BFE3D1;
+        background: #EAF7F0;
+        color: #216647;
+    }
+
+    .validation-summary-errors {
+        padding: 12px 14px;
+        margin-bottom: 18px;
+        border-radius: 10px;
+        border: 1px solid #F0C8C5;
+        background: #FCEDEC;
+        color: #A23B35;
+        font-size: 12px;
+    }
+
+        .validation-summary-errors ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .field-validation-error {
+        display: block;
+        margin-top: 5px;
+        font-size: 11px;
+        color: #B63E38;
+    }
+
+    @@media (max-width: 768px) {
+        .add-action-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .action-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action-footer-buttons {
+            width: 100%;
+        }
+
+            .action-footer-buttons .btn {
+                flex: 1;
+            }
+    }
+</style>
+
+<div class="add-action-page">
+
+    <div class="add-action-header">
+
+        <div>
+
+            <h2 class="add-action-title">
+                Dodaj akciju
+            </h2>
+
+            <p class="add-action-subtitle">
+                Kreiranje nove akcije za izabrani artikal
+            </p>
+
+        </div>
+
+        <a asp-controller="Akcija"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Nazad na akcije
+
+        </a>
+
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert success-alert mb-4">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+        </div>
+    }
+
+    <div class="add-action-card">
+
+        <div class="add-action-card-header">
+
+            <div class="add-action-card-header-title">
+                Nova akcija
+            </div>
+
+            <div class="add-action-card-header-text">
+                Unesite podatke o artiklu, periodu i akcijskoj ceni
+            </div>
+
+        </div>
+
+        <form asp-controller="Akcija"
+              asp-action="DodajAkciju"
+              method="post">
+
+            <div class="add-action-body">
+
+                <div asp-validation-summary="ModelOnly">
+                </div>
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+                        Artikal
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label asp-for="SifraArtikla"
+                                   class="form-label">
+
+                                Šifra artikla
+
+                            </label>
+
+                            <input asp-for="SifraArtikla"
+                                   class="form-control"
+                                   placeholder="Unesite šifru artikla" />
+
+                            <span asp-validation-for="SifraArtikla">
+                            </span>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label asp-for="TipAkcijeId"
+                                   class="form-label">
+
+                                Tip akcije
+
+                            </label>
+
+                            <select asp-for="TipAkcijeId"
+                                    class="form-select">
+
+                                <option value="">
+                                    Izaberite tip akcije
+                                </option>
+
+                                @foreach (var tip in Model.TipoviAkcija)
+                                {
+                                    <option value="@tip.TipAkcijeId">
+                                        @tip.Naziv
+                                    </option>
+                                }
+
+                            </select>
+
+                            <span asp-validation-for="TipAkcijeId">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+                        Period akcije
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label asp-for="DatumOd"
+                                   class="form-label">
+
+                                Datum od
+
+                            </label>
+
+                            <input asp-for="DatumOd"
+                                   type="date"
+                                   class="form-control" />
+
+                            <span asp-validation-for="DatumOd">
+                            </span>
+
+                        </div>
+
+                        <div class="col-md-6">
+
+                            <label asp-for="DatumDo"
+                                   class="form-label">
+
+                                Datum do
+
+                            </label>
+
+                            <input asp-for="DatumDo"
+                                   type="date"
+                                   class="form-control" />
+
+                            <span asp-validation-for="DatumDo">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+                        Cena
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label asp-for="AkcijskaCena"
+                                   class="form-label">
+
+                                Akcijska cena
+
+                            </label>
+
+                            <div class="input-group">
+
+                                <input asp-for="AkcijskaCena"
+                                       type="number"
+                                       step="0.01"
+                                       min="0"
+                                       class="form-control"
+                                       placeholder="0.00" />
+
+                                <span class="input-group-text">
+                                    RSD
+                                </span>
+
+                            </div>
+
+                            <span asp-validation-for="AkcijskaCena">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="info-box">
+
+                    <i class="bi bi-info-circle"></i>
+
+                    <div>
+                        Akcija će biti vezana za artikal preko njegove šifre.
+                        Proverite period i cenu pre čuvanja.
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="action-footer">
+
+                <div class="action-footer-left">
+                    Sva polja su obavezna.
+                </div>
+
+                <div class="action-footer-buttons">
+
+                    <a asp-controller="Akcija"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary btn-add-action">
+
+                        Odustani
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary btn-add-action">
+
+                        <i class="bi bi-plus-circle me-1"></i>
+
+                        Dodaj akciju
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

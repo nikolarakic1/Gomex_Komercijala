@@ -18,5 +18,6 @@ namespace Models.Dtos
 
         public bool Aktivan { get; set; }
         public decimal? RedovnaCena { get; set; }
+        public string NazivDobavljaca { get; set; } = string.Empty;
     }
 }

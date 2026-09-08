@@ -48,516 +48,965 @@
         >();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+    .critical-page {
+        width: 100%;
+        min-width: 0;
+    }
 
-    <div>
-        <h2 class="mb-1">
-            Kritični artikli
-        </h2>
+    .critical-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
 
-        <p class="text-secondary mb-0">
-            Pregled artikala sa problematičnim RUC12
-            ili nedostatkom margine
-        </p>
-    </div>
-
-    <a asp-controller="Dashboard"
-       asp-action="Index"
-       asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
-       asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
-       asp-route-odeljenjeId="@odeljenjeId"
-       asp-route-kategorijaId="@kategorijaId"
-       asp-route-dobavljacId="@dobavljacId"
-       asp-route-tipProdajeId="@tipProdajeId"
-       class="btn btn-outline-secondary">
-
-        Nazad na Dashboard
-    </a>
-
-</div>
-
-
-<!-- =============================================
-     FILTERI
-     ============================================= -->
-
-<div class="filter-card mb-4">
-
-    <form method="get"
-          asp-controller="Artikal"
-          asp-action="Kriticni"
-          class="row g-3 align-items-end">
-
-        <div class="col-md-3">
-
-            <label class="form-label">
-                Datum od
-            </label>
-
-            <input type="date"
-                   name="datumOd"
-                   class="form-control"
-                   value="@datumOd.ToString("yyyy-MM-dd")" />
-
-        </div>
-
-
-        <div class="col-md-3">
-
-            <label class="form-label">
-                Datum do
-            </label>
-
-            <input type="date"
-                   name="datumDo"
-                   class="form-control"
-                   value="@datumDo.ToString("yyyy-MM-dd")" />
-
-        </div>
-
-
-        @if (odeljenjeId.HasValue)
-        {
-            <input type="hidden"
-                   name="odeljenjeId"
-                   value="@odeljenjeId.Value" />
+        .critical-header h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            color: #26312B;
         }
 
-        @if (kategorijaId.HasValue)
-        {
-            <input type="hidden"
-                   name="kategorijaId"
-                   value="@kategorijaId.Value" />
+        .critical-header p {
+            margin: 4px 0 0;
+            color: #737D78;
+            font-size: 14px;
         }
 
-        @if (dobavljacId.HasValue)
-        {
-            <input type="hidden"
-                   name="dobavljacId"
-                   value="@dobavljacId.Value" />
+    .critical-main-card {
+        border: 1px solid #DCE4E0;
+        border-radius: 16px;
+        background: linear-gradient( 145deg, #FCFEFD 0%, #F4F8F6 100% );
+        box-shadow: 0 1px 2px rgba(20, 32, 26, .04), 0 10px 28px rgba(20, 32, 26, .065);
+        overflow: hidden;
+    }
+
+    .critical-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #E1E7E4;
+        background: linear-gradient( 180deg, #F8FBF9 0%, #F3F7F5 100% );
+    }
+
+    .critical-card-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: #303A35;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+    }
+
+    .critical-count {
+        margin-top: 3px;
+        font-size: 12px;
+        color: #717B76;
+    }
+
+    .critical-date-range {
+        font-size: 12px;
+        font-weight: 600;
+        color: #66716B;
+        white-space: nowrap;
+    }
+
+    .critical-table-scroll {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .critical-table {
+        width: 100%;
+        min-width: 1580px;
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .critical-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 12px 13px;
+            border-bottom: 1px solid #D8E1DC;
+            background: #EAF1ED;
+            color: #53605A;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .45px;
+            white-space: nowrap;
         }
 
-        @if (tipProdajeId.HasValue)
-        {
-            <input type="hidden"
-                   name="tipProdajeId"
-                   value="@tipProdajeId.Value" />
+        .critical-table tbody td {
+            padding: 13px;
+            border-bottom: 1px solid #E8EDEB;
+            color: #3F4944;
+            vertical-align: middle;
+            background: rgba(255, 255, 255, .7);
+            font-size: 12px;
         }
 
+        .critical-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
 
-        <!--
-            Kod promene filtera uvek idemo
-            nazad na prvu stranu.
-        -->
+        .critical-table tbody tr:hover td {
+            background: #F1F6F3;
+        }
 
-        <input type="hidden"
-               name="page"
-               value="1" />
+    .article-name {
+        min-width: 220px;
+        max-width: 280px;
+    }
 
-        <input type="hidden"
-               name="pageSize"
-               value="@pageSize" />
+        .article-name strong {
+            display: block;
+            color: #27322C;
+            font-weight: 800;
+            line-height: 1.3;
+        }
 
+    .supplier-cell {
+        min-width: 160px;
+        max-width: 210px;
+        color: #626D67;
+    }
 
-        <div class="col-md-3">
+    .numeric-cell {
+        text-align: right;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
 
-            <button type="submit"
-                    class="btn btn-primary">
+    .actual-value {
+        color: #26352E;
+        font-weight: 700;
+    }
 
-                Primeni
-            </button>
+    .plan-value {
+        color: #67736D;
+        font-weight: 600;
+    }
 
+    .positive-value {
+        color: #197653;
+        font-weight: 800;
+    }
 
-            <a asp-controller="Artikal"
-               asp-action="Kriticni"
-               asp-route-page="1"
-               asp-route-pageSize="@pageSize"
-               class="btn btn-secondary ms-2">
+    .negative-value {
+        color: #B33B35;
+        font-weight: 800;
+    }
 
-                Reset
-            </a>
+    .neutral-value {
+        color: #56615B;
+        font-weight: 700;
+    }
 
-        </div>
+    .missing-value {
+        color: #9AA39E;
+        font-weight: 600;
+    }
 
-    </form>
+    .critical-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 98px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .2px;
+        white-space: nowrap;
+    }
 
-</div>
+    .critical-status-critical {
+        color: #9F2F2A;
+        background: #FCEBE9;
+        border: 1px solid #F1C8C4;
+    }
 
+    .critical-status-negative {
+        color: #922C28;
+        background: #F9E2DF;
+        border: 1px solid #EFBAB5;
+    }
 
-<!-- =============================================
-     KRITICNI ARTIKLI
-     ============================================= -->
+    .critical-status-below {
+        color: #A64A20;
+        background: #FFF1E6;
+        border: 1px solid #F3D1B9;
+    }
 
-<div class="metric-card">
+    .critical-status-watch {
+        color: #82620B;
+        background: #FFF8D9;
+        border: 1px solid #EBD98A;
+    }
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    .critical-status-good {
+        color: #197653;
+        background: #E9F6F0;
+        border: 1px solid #C2E4D5;
+    }
+
+    .critical-margin-box {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+    }
+
+        .critical-margin-box small {
+            color: #87908B;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+    .critical-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        border-top: 1px solid #E1E7E4;
+        background: #F8FAF9;
+    }
+
+    .critical-footer-info {
+        color: #737D78;
+        font-size: 12px;
+    }
+
+        .critical-footer-info strong {
+            color: #39443E;
+        }
+
+    .critical-page .pagination {
+        gap: 4px;
+    }
+
+    .critical-page .page-link {
+        min-width: 34px;
+        border-radius: 8px !important;
+        border-color: #D8E1DC;
+        color: #4A5851;
+        font-size: 12px;
+        text-align: center;
+    }
+
+    .critical-page .page-item.active .page-link {
+        background: #23785A;
+        border-color: #23785A;
+        color: white;
+    }
+
+    .critical-page .page-item.disabled .page-link {
+        color: #A3AAA6;
+        background: #F4F6F5;
+    }
+
+    @@media (max-width: 768px) {
+        .critical-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .critical-card-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .critical-footer {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="critical-page">
+
+    <div class="critical-header">
 
         <div>
+            <h2>Kritični artikli</h2>
 
-            <div class="metric-label mb-0">
-                Svi kritični artikli
-            </div>
-
-            <small class="text-secondary">
-                Ukupno: @totalCount
-            </small>
-
+            <p>
+                Poređenje stvarnog rezultata sa planiranim prometom i maržom
+            </p>
         </div>
 
+        <a asp-controller="Dashboard"
+           asp-action="Index"
+           asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
+           asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
+           asp-route-odeljenjeId="@odeljenjeId"
+           asp-route-kategorijaId="@kategorijaId"
+           asp-route-dobavljacId="@dobavljacId"
+           asp-route-tipProdajeId="@tipProdajeId"
+           class="btn btn-outline-secondary">
 
-        <div class="text-secondary small">
-
-            @datumOd.ToString("dd.MM.yyyy")
-            -
-            @datumDo.ToString("dd.MM.yyyy")
-
-        </div>
+            <i class="bi bi-arrow-left me-1"></i>
+            Nazad na Dashboard
+        </a>
 
     </div>
 
+    <div class="filter-card mb-4">
 
-    @if (items.Any())
-    {
-        <div class="table-responsive">
+        <form method="get"
+              asp-controller="Artikal"
+              asp-action="Kriticni"
+              class="row g-3 align-items-end">
 
-            <table class="table table-hover align-middle mb-0">
+            <div class="col-md-3">
 
-                <thead>
+                <label class="form-label">
+                    Datum od
+                </label>
 
-                    <tr>
-
-                        <th>
-                            Šifra
-                        </th>
-
-                        <th>
-                            Artikal
-                        </th>
-
-                        <th>
-                            Dobavljač
-                        </th>
-
-                        <th class="text-end">
-                            Promet
-                        </th>
-
-                        <th class="text-end">
-                            RUC12
-                        </th>
-
-                        <th class="text-end">
-                            RUC12%
-                        </th>
-
-                        <th class="text-end">
-                            Nedostatak margine
-                        </th>
-
-                        <th></th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                    @foreach (var item in items)
-                    {
-                        <tr>
-
-                            <td>
-                                @item.Sifra
-                            </td>
-
-
-                            <td>
-                                <strong>
-                                    @item.Naziv
-                                </strong>
-                            </td>
-
-
-                            <td>
-                                @(item.Dobavljac ?? "-")
-                            </td>
-
-
-                            <!-- PROMET -->
-
-                            <td class="text-end">
-                                @(item.Promet.ToString("N0")) RSD
-                            </td>
-
-
-                            <!-- RUC12 -->
-
-                            <td class="text-end @(item.RUC12 < 0 ? "text-danger" : "text-success")">
-                                @(item.RUC12.ToString("N0")) RSD
-                            </td>
-
-
-                            <!-- RUC12 PROCENAT -->
-
-                            <td class="text-end @(item.RUC12Procenat < 0 ? "text-danger" : "text-success")">
-                                @((item.RUC12Procenat * 100m).ToString("0.0"))%
-                            </td>
-
-
-                            <!-- NEDOSTATAK MARGINE -->
-
-                            <td class="text-end @(item.NedostatakMargine < 0 ? "text-danger" : "text-success")">
-                                @(item.NedostatakMargine.ToString("N0")) RSD
-                            </td>
-
-
-                            <!-- DETALJI -->
-
-                            <td class="text-end">
-
-                                <a asp-controller="Artikal"
-                                   asp-action="Detalji"
-                                   asp-route-sifra="@item.Sifra"
-                                   class="btn btn-sm btn-outline-primary">
-
-                                    Detalji
-                                </a>
-
-                            </td>
-
-                        </tr>
-                    }
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-
-        <!-- =============================================
-             INFORMACIJE O PAGINACIJI
-             ============================================= -->
-
-        <div class="
-            d-flex
-            flex-column
-            flex-md-row
-            justify-content-between
-            align-items-md-center
-            gap-3
-            mt-4">
-
-            <div class="text-secondary small">
-
-                Strana
-
-                <strong>
-                    @currentPage
-                </strong>
-
-                od
-
-                <strong>
-                    @totalPages
-                </strong>
-
-                &nbsp; | &nbsp;
-
-                Ukupno
-
-                <strong>
-                    @totalCount
-                </strong>
-
-                artikala
+                <input type="date"
+                       name="datumOd"
+                       class="form-control"
+                       value="@datumOd.ToString("yyyy-MM-dd")" />
 
             </div>
 
+            <div class="col-md-3">
 
-            <!-- =============================================
-                 PAGINACIJA
-                 ============================================= -->
-            @if (totalPages > 1)
+                <label class="form-label">
+                    Datum do
+                </label>
+
+                <input type="date"
+                       name="datumDo"
+                       class="form-control"
+                       value="@datumDo.ToString("yyyy-MM-dd")" />
+
+            </div>
+
+            @if (odeljenjeId.HasValue)
             {
-                <nav aria-label="Paginacija">
-
-                    <ul class="pagination mb-0">
-
-
-                        <!-- PRETHODNA -->
-
-                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-
-                            <a class="page-link"
-                               asp-controller="Artikal"
-                               asp-action="Kriticni"
-                               asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
-                               asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
-                               asp-route-odeljenjeId="@odeljenjeId"
-                               asp-route-kategorijaId="@kategorijaId"
-                               asp-route-dobavljacId="@dobavljacId"
-                               asp-route-tipProdajeId="@tipProdajeId"
-                               asp-route-page="@(currentPage - 1)"
-                               asp-route-pageSize="@pageSize">
-
-                                Prethodna
-                            </a>
-
-                        </li>
-
-
-                        @{
-                            int startPage =
-                                Math.Max(
-                                    1,
-                                    currentPage - 2
-                                );
-
-                            int endPage =
-                                Math.Min(
-                                    totalPages,
-                                    currentPage + 2
-                                );
-                        }
-
-
-                        <!-- PRVA STRANA -->
-                        @if (startPage > 1)
-                        {
-                            <li class="page-item">
-
-                                <a class="page-link"
-                                   asp-controller="Artikal"
-                                   asp-action="Kriticni"
-                                   asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
-                                   asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
-                                   asp-route-odeljenjeId="@odeljenjeId"
-                                   asp-route-kategorijaId="@kategorijaId"
-                                   asp-route-dobavljacId="@dobavljacId"
-                                   asp-route-tipProdajeId="@tipProdajeId"
-                                   asp-route-page="1"
-                                   asp-route-pageSize="@pageSize">
-
-                                    1
-                                </a>
-
-                            </li>
-
-
-                            @if (startPage > 2)
-                            {
-                                <li class="page-item disabled">
-
-                                    <span class="page-link">
-                                        ...
-                                    </span>
-
-                                </li>
-                            }
-                        }
-
-
-                        <!-- STRANE OKO TRENUTNE -->
-                        @for (
-                                                    int i = startPage;
-                                                    i <= endPage;
-                                                    i++)
-                        {
-                            <li class="page-item @(i == currentPage ? "active" : "")">
-
-                                <a class="page-link"
-                                   asp-controller="Artikal"
-                                   asp-action="Kriticni"
-                                   asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
-                                   asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
-                                   asp-route-odeljenjeId="@odeljenjeId"
-                                   asp-route-kategorijaId="@kategorijaId"
-                                   asp-route-dobavljacId="@dobavljacId"
-                                   asp-route-tipProdajeId="@tipProdajeId"
-                                   asp-route-page="@i"
-                                   asp-route-pageSize="@pageSize">
-
-                                    @i
-                                </a>
-
-                            </li>
-                        }
-
-
-                        <!-- POSLEDNJA STRANA -->
-                        @if (endPage < totalPages)
-                        {
-                            @if (endPage < totalPages - 1)
-                            {
-                                <li class="page-item disabled">
-
-                                    <span class="page-link">
-                                        ...
-                                    </span>
-
-                                </li>
-                            }
-
-
-                            <li class="page-item">
-
-                                <a class="page-link"
-                                   asp-controller="Artikal"
-                                   asp-action="Kriticni"
-                                   asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
-                                   asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
-                                   asp-route-odeljenjeId="@odeljenjeId"
-                                   asp-route-kategorijaId="@kategorijaId"
-                                   asp-route-dobavljacId="@dobavljacId"
-                                   asp-route-tipProdajeId="@tipProdajeId"
-                                   asp-route-page="@totalPages"
-                                   asp-route-pageSize="@pageSize">
-
-                                    @totalPages
-                                </a>
-
-                            </li>
-                        }
-
-
-                        <!-- SLEDECA -->
-
-                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-
-                            <a class="page-link"
-                               asp-controller="Artikal"
-                               asp-action="Kriticni"
-                               asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
-                               asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
-                               asp-route-odeljenjeId="@odeljenjeId"
-                               asp-route-kategorijaId="@kategorijaId"
-                               asp-route-dobavljacId="@dobavljacId"
-                               asp-route-tipProdajeId="@tipProdajeId"
-                               asp-route-page="@(currentPage + 1)"
-                               asp-route-pageSize="@pageSize">
-
-                                Sledeća
-                            </a>
-
-                        </li>
-
-                    </ul>
-
-                </nav>
+                <input type="hidden"
+                       name="odeljenjeId"
+                       value="@odeljenjeId.Value" />
             }
 
-        </div>
-    }
-    else
-    {
-        <div class="text-center text-secondary py-5">
+            @if (kategorijaId.HasValue)
+            {
+                <input type="hidden"
+                       name="kategorijaId"
+                       value="@kategorijaId.Value" />
+            }
 
-            Nema kritičnih artikala
-            za izabrani period.
+            @if (dobavljacId.HasValue)
+            {
+                <input type="hidden"
+                       name="dobavljacId"
+                       value="@dobavljacId.Value" />
+            }
+
+            @if (tipProdajeId.HasValue)
+            {
+                <input type="hidden"
+                       name="tipProdajeId"
+                       value="@tipProdajeId.Value" />
+            }
+
+            <input type="hidden"
+                   name="page"
+                   value="1" />
+
+            <input type="hidden"
+                   name="pageSize"
+                   value="@pageSize" />
+
+            <div class="col-md-3">
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-funnel me-1"></i>
+                    Primeni
+
+                </button>
+
+                <a asp-controller="Artikal"
+                   asp-action="Kriticni"
+                   asp-route-page="1"
+                   asp-route-pageSize="@pageSize"
+                   class="btn btn-secondary ms-2">
+
+                    Reset
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="critical-main-card">
+
+        <div class="critical-card-header">
+
+            <div>
+
+                <div class="critical-card-title">
+                    Analiza kritičnih artikala
+                </div>
+
+                <div class="critical-count">
+                    Ukupno @totalCount artikala
+                </div>
+
+            </div>
+
+            <div class="critical-date-range">
+
+                @datumOd.ToString("dd.MM.yyyy")
+                -
+                @datumDo.ToString("dd.MM.yyyy")
+
+            </div>
 
         </div>
-    }
+
+        @if (items.Any())
+        {
+            <div class="critical-table-scroll">
+
+                <table class="critical-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Šifra
+                            </th>
+
+                            <th>
+                                Artikal
+                            </th>
+
+                            <th>
+                                Dobavljač
+                            </th>
+
+                            <th class="text-end">
+                                Actual promet
+                            </th>
+
+                            <th class="text-end">
+                                Plan promet
+                            </th>
+
+                            <th class="text-end">
+                                Actual RUC
+                            </th>
+
+                            <th class="text-end">
+                                Plan RUC
+                            </th>
+
+                            <th class="text-end">
+                                Actual RUC %
+                            </th>
+
+                            <th class="text-end">
+                                Plan RUC %
+                            </th>
+
+                            <th class="text-end">
+                                Odstupanje
+                            </th>
+
+                            <th class="text-end">
+                                Margin effect
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in items)
+                        {
+                            bool imaPlan =
+                                item.PlanPromet != 0;
+
+                            string statusClass =
+                                item.Status switch
+                                {
+                                    "Negativan RUC" =>
+                                        "critical-status-negative",
+
+                                    "Kritično" =>
+                                        "critical-status-critical",
+
+                                    "Ispod plana" =>
+                                        "critical-status-below",
+
+                                    "Blizu plana" =>
+                                        "critical-status-watch",
+
+                                    _ =>
+                                        "critical-status-good"
+                                };
+
+                            string odstupanjeClass =
+                                item.OdstupanjeProcentniPoeni < 0
+                                    ? "negative-value"
+                                    : item.OdstupanjeProcentniPoeni < 0.005m
+                                        ? "neutral-value"
+                                        : "positive-value";
+
+                            string marginClass =
+                                item.NedostatakMargine < 0
+                                    ? "negative-value"
+                                    : item.NedostatakMargine > 0
+                                        ? "positive-value"
+                                        : "neutral-value";
+
+                            <tr>
+
+                                <td>
+                                    @item.Sifra
+                                </td>
+
+                                <td class="article-name">
+
+                                    <strong>
+                                        @item.Naziv
+                                    </strong>
+
+                                </td>
+
+                                <td class="supplier-cell">
+                                    @(item.Dobavljac ?? "-")
+                                </td>
+
+                                <td class="numeric-cell actual-value">
+
+                                    @item.Promet.ToString("N0")
+                                    RSD
+
+                                </td>
+
+                                <td class="numeric-cell plan-value">
+
+                                    @if (imaPlan)
+                                    {
+                                        <span>
+                                            @item.PlanPromet.ToString("N0") RSD
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="missing-value">
+                                            Nema plana
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="
+                                    numeric-cell
+                                    @(item.RUC12 < 0
+                                        ? "negative-value"
+                                        : "actual-value")
+                                    ">
+
+                                    @item.RUC12.ToString("N0")
+                                    RSD
+
+                                </td>
+
+                                <td class="numeric-cell plan-value">
+
+                                    @if (imaPlan)
+                                    {
+                                        <span>
+                                            @item.PlanRuc.ToString("N0") RSD
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="missing-value">
+                                            -
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="
+                                    numeric-cell
+                                    @(item.RUC12Procenat < 0
+                                        ? "negative-value"
+                                        : "actual-value")
+                                    ">
+
+                                    @(
+                                        (item.RUC12Procenat * 100m)
+                                            .ToString("0.00")
+                                    )%
+
+                                </td>
+
+                                <td class="numeric-cell plan-value">
+
+                                    @if (imaPlan)
+                                    {
+                                        <span>
+                                            @(
+                                                (item.PlanRucProcenat * 100m)
+                                                    .ToString("0.00")
+                                            )%
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="missing-value">
+                                            -
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="numeric-cell">
+
+                                    @if (imaPlan)
+                                    {
+                                        <span class="@odstupanjeClass">
+
+                                            @(
+                                                (item.OdstupanjeProcentniPoeni * 100m)
+                                                    .ToString("+0.00;-0.00;0.00")
+                                            )
+                                            p.p.
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="missing-value">
+                                            -
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="numeric-cell">
+
+                                    <div class="critical-margin-box">
+
+                                        @if (imaPlan)
+                                        {
+                                            <span class="@marginClass">
+
+                                                @(
+                                                    item.NedostatakMargine
+                                                        .ToString("+N0;-N0;0")
+                                                )
+                                                RSD
+
+                                            </span>
+
+                                            <small>
+                                                efekat marže
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="missing-value">
+                                                -
+                                            </span>
+
+                                            <small>
+                                                nema plana
+                                            </small>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+
+                                    <span class="
+                                        critical-status
+                                        @statusClass
+                                        ">
+
+                                        @item.Status
+
+                                    </span>
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    <a asp-controller="Artikal"
+                                       asp-action="Detalji"
+                                       asp-route-sifra="@item.Sifra"
+                                       class="btn btn-sm btn-outline-primary">
+
+                                        Detalji
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="critical-footer">
+
+                <div class="critical-footer-info">
+
+                    Strana
+
+                    <strong>
+                        @currentPage
+                    </strong>
+
+                    od
+
+                    <strong>
+                        @totalPages
+                    </strong>
+
+                    &nbsp; | &nbsp;
+
+                    Ukupno
+
+                    <strong>
+                        @totalCount
+                    </strong>
+
+                    artikala
+
+                </div>
+
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Paginacija">
+
+                        <ul class="pagination mb-0">
+
+                            <li class="
+                                page-item
+                                @(
+                                    Model.HasPreviousPage
+                                        ? ""
+                                        : "disabled"
+                                )
+                                ">
+
+                                <a class="page-link"
+                                   asp-controller="Artikal"
+                                   asp-action="Kriticni"
+                                   asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
+                                   asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
+                                   asp-route-odeljenjeId="@odeljenjeId"
+                                   asp-route-kategorijaId="@kategorijaId"
+                                   asp-route-dobavljacId="@dobavljacId"
+                                   asp-route-tipProdajeId="@tipProdajeId"
+                                   asp-route-page="@(currentPage - 1)"
+                                   asp-route-pageSize="@pageSize">
+
+                                    Prethodna
+
+                                </a>
+
+                            </li>
+
+                            @{
+                                int startPage =
+                                    Math.Max(
+                                        1,
+                                        currentPage - 2
+                                    );
+
+                                int endPage =
+                                    Math.Min(
+                                        totalPages,
+                                        currentPage + 2
+                                    );
+                            }
+
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+
+                                    <a class="page-link"
+                                       asp-controller="Artikal"
+                                       asp-action="Kriticni"
+                                       asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
+                                       asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
+                                       asp-route-odeljenjeId="@odeljenjeId"
+                                       asp-route-kategorijaId="@kategorijaId"
+                                       asp-route-dobavljacId="@dobavljacId"
+                                       asp-route-tipProdajeId="@tipProdajeId"
+                                       asp-route-page="1"
+                                       asp-route-pageSize="@pageSize">
+
+                                        1
+
+                                    </a>
+
+                                </li>
+
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+
+                                        <span class="page-link">
+                                            ...
+                                        </span>
+
+                                    </li>
+                                }
+                            }
+
+                            @for (
+                                int i = startPage;
+                                i <= endPage;
+                                i++
+                            )
+                            {
+                                <li class="
+                                    page-item
+                                    @(
+                                        i == currentPage
+                                            ? "active"
+                                            : ""
+                                    )
+                                    ">
+
+                                    <a class="page-link"
+                                       asp-controller="Artikal"
+                                       asp-action="Kriticni"
+                                       asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
+                                       asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
+                                       asp-route-odeljenjeId="@odeljenjeId"
+                                       asp-route-kategorijaId="@kategorijaId"
+                                       asp-route-dobavljacId="@dobavljacId"
+                                       asp-route-tipProdajeId="@tipProdajeId"
+                                       asp-route-page="@i"
+                                       asp-route-pageSize="@pageSize">
+
+                                        @i
+
+                                    </a>
+
+                                </li>
+                            }
+
+                            @if (endPage < totalPages)
+                            {
+                                @if (endPage < totalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+
+                                        <span class="page-link">
+                                            ...
+                                        </span>
+
+                                    </li>
+                                }
+
+                                <li class="page-item">
+
+                                    <a class="page-link"
+                                       asp-controller="Artikal"
+                                       asp-action="Kriticni"
+                                       asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
+                                       asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
+                                       asp-route-odeljenjeId="@odeljenjeId"
+                                       asp-route-kategorijaId="@kategorijaId"
+                                       asp-route-dobavljacId="@dobavljacId"
+                                       asp-route-tipProdajeId="@tipProdajeId"
+                                       asp-route-page="@totalPages"
+                                       asp-route-pageSize="@pageSize">
+
+                                        @totalPages
+
+                                    </a>
+
+                                </li>
+                            }
+
+                            <li class="
+                                page-item
+                                @(
+                                    Model.HasNextPage
+                                        ? ""
+                                        : "disabled"
+                                )
+                                ">
+
+                                <a class="page-link"
+                                   asp-controller="Artikal"
+                                   asp-action="Kriticni"
+                                   asp-route-datumOd="@datumOd.ToString("yyyy-MM-dd")"
+                                   asp-route-datumDo="@datumDo.ToString("yyyy-MM-dd")"
+                                   asp-route-odeljenjeId="@odeljenjeId"
+                                   asp-route-kategorijaId="@kategorijaId"
+                                   asp-route-dobavljacId="@dobavljacId"
+                                   asp-route-tipProdajeId="@tipProdajeId"
+                                   asp-route-page="@(currentPage + 1)"
+                                   asp-route-pageSize="@pageSize">
+
+                                    Sledeća
+
+                                </a>
+
+                            </li>
+
+                        </ul>
+
+                    </nav>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="
+                text-center
+                text-secondary
+                py-5
+                ">
+
+                Nema kritičnih artikala
+                za izabrani period.
+
+            </div>
+        }
+
+    </div>
 
 </div>

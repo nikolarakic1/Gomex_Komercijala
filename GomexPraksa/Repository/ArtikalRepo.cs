@@ -27,11 +27,14 @@ namespace GomexPraksa.Repository
             a.DobavljacId,
             a.RobnaGrupaId,
             a.Aktivan,
-            a.RedovnaCena
+            a.RedovnaCena,
+            b.Naziv AS NazivDobavljaca
         FROM dbo.Artikal a
 
         INNER JOIN dbo.RobnaGrupa rg
             ON rg.RobnaGrupaId = a.RobnaGrupaId
+        INNER JOIN dbo.Dobavljac b 
+        ON a.DobavljacId = b.DobavljacId
 
         WHERE
             @CanViewAllCategories = 1
@@ -108,11 +111,14 @@ namespace GomexPraksa.Repository
                     a.DobavljacId,
                     a.RobnaGrupaId,
                     a.Aktivan,
-                    a.RedovnaCena
+                    a.RedovnaCena,
+                    b.Naziv AS NazivDobavljaca
                 FROM dbo.Artikal a
 
                 INNER JOIN dbo.RobnaGrupa rg
                     ON rg.RobnaGrupaId = a.RobnaGrupaId
+                INNER JOIN dbo.Dobavljac b 
+                ON a.DobavljacId = b.DobavljacId
 
                 WHERE
                     a.ArtikalId = @Id
@@ -155,11 +161,14 @@ namespace GomexPraksa.Repository
             a.DobavljacId,
             a.RobnaGrupaId,
             a.Aktivan,
-            a.RedovnaCena
+            a.RedovnaCena,
+            b.Naziv AS NazivDobavljaca
         FROM dbo.Artikal a
 
         INNER JOIN dbo.RobnaGrupa rg
             ON rg.RobnaGrupaId = a.RobnaGrupaId
+        INNER JOIN dbo.Dobavljac b 
+        ON a.DobavljacId = b.DobavljacId
 
         WHERE
             a.Sifra = @Sifra
@@ -204,13 +213,16 @@ namespace GomexPraksa.Repository
             a.DobavljacId,
             a.RobnaGrupaId,
             a.Aktivan,
-            a.RedovnaCena
+            a.RedovnaCena,
+            b.Naziv AS NazivDobavljaca
         FROM dbo.Artikal a
 
         INNER JOIN dbo.RobnaGrupa rg
             ON rg.RobnaGrupaId = a.RobnaGrupaId
         INNER JOIN dbo.Kategorija k
             ON k.KategorijaId = rg.KategorijaId
+        INNER JOIN dbo.Dobavljac b 
+        ON a.DobavljacId = b.DobavljacId
 
         WHERE
             (@Naziv IS NULL

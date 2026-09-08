@@ -1,5 +1,8 @@
 ﻿using Dapper;
+using GomexPraksa.Auth;
 using GomexPraksa.ConnectionFactory;
+using Microsoft.EntityFrameworkCore;
+using Models.ModelsDash;
 using Models.ReadDetails;
 
 namespace GomexPraksa.Repository
@@ -7,10 +10,12 @@ namespace GomexPraksa.Repository
     public class AkcijaRepo : IAkcijaRepo
     {
         private readonly IConnFactory _connFactory;
+        private readonly AuthDbContext _context;
 
-        public AkcijaRepo(IConnFactory connFactory)
+        public AkcijaRepo(IConnFactory connFactory , AuthDbContext context)
         {
             _connFactory = connFactory;
+            _context = context;
         }
 
         public async Task<IEnumerable<AkcijaDetalji>> GetAllAsync()
@@ -160,6 +165,27 @@ namespace GomexPraksa.Repository
             using var connection = _connFactory.CreateConnection();
 
             return await connection.QueryAsync<AkcijaDetalji>(sql);
+        }
+        public async Task<Akcija?> DodajAkciju(Akcija akcija)
+        {
+            if(akcija is null)
+    {
+                return null;
+            }
+
+            await _context.Akcija.AddAsync(akcija);
+
+            var rezultat =
+                await _context.SaveChangesAsync();
+
+            if (rezultat == 0)
+            {
+                return null;
+            }
+
+            return akcija;
+
+
         }
     }
 }

@@ -13,4 +13,5 @@ public class AkcijaDTO
     public decimal AkcijskaCena { get; set; }
 
     public string TipAkcije { get; set; } = string.Empty;
+    public int TipAkcijeId { get; set; }
 }

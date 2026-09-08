@@ -1,4 +1,5 @@
-﻿using Models.ReadDetails;
+﻿using Models.ModelsDash;
+using Models.ReadDetails;
 
 namespace GomexPraksa.Repository
 {
@@ -15,5 +16,6 @@ namespace GomexPraksa.Repository
         Task<IEnumerable<AkcijaDetalji>> GetByArtikalIdAsync(int artikalId);
 
         Task<AkcijaDetalji?> GetPoslednjuZaArtikalAsync(int artikalId);
+        Task<Akcija?> DodajAkciju(Akcija akcija);
     }
 }

@@ -312,7 +312,9 @@ namespace GomexPraksa.RepositoryComerc
                     SELECT TOP (5)
                         ArtikalId,
                         ActualPromet,
+                        PlanPromet,
                         ActualRuc,
+                        PlanRuc,
                         ActualRucProcenat,
                         PlanRucProcenat,
                         OdstupanjeProcentniPoeni,
@@ -344,8 +346,7 @@ namespace GomexPraksa.RepositoryComerc
                         AS Kategorija,
 
                     CASE
-                        WHEN
-                            t.ActualRuc <= 0
+                        WHEN t.ActualRuc <= 0
                             THEN 'Visok'
 
                         WHEN
@@ -736,18 +737,22 @@ namespace GomexPraksa.RepositoryComerc
                     ActualPromet
                         AS Promet,
 
+                    PlanPromet,
+
                     ActualRuc
                         AS RUC12,
+
+                    PlanRuc,
 
                     ActualRucProcenat
                         AS RUC12Procenat,
 
-                    MarginEffect
-                        AS NedostatakMargine,
+                    PlanRucProcenat,
 
                     OdstupanjeProcentniPoeni,
 
-                    PlanRucProcenat,
+                    MarginEffect
+                        AS NedostatakMargine,
 
                     CASE
                         WHEN
@@ -817,9 +822,35 @@ namespace GomexPraksa.RepositoryComerc
                         AS Dobavljac,
 
                     k.Promet,
+
+                    k.PlanPromet,
+
                     k.RUC12,
+
+                    k.PlanRuc,
+
                     k.RUC12Procenat,
-                    k.NedostatakMargine
+
+                    k.PlanRucProcenat,
+
+                    k.OdstupanjeProcentniPoeni,
+
+                    k.NedostatakMargine,
+
+                    k.ProcenjeniUticaj,
+
+                    CASE
+                        WHEN k.RUC12 <= 0
+                            THEN 'Kritično'
+
+                        WHEN k.OdstupanjeProcentniPoeni < 0
+                            THEN 'Ispod plana'
+
+                        WHEN k.OdstupanjeProcentniPoeni < @PragOdstupanja
+                            THEN 'Blizu plana'
+
+                        ELSE 'Dobro'
+                    END AS Status
 
                 FROM #Kriticni k
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
+using Models.DtosComerc;
 
 namespace GomexPraksa.Controllers;
 
@@ -82,5 +83,18 @@ public class AkcijeController : ControllerBase
         }
 
         return Ok(poslednjaAkcija);
+    }
+    [HttpPost("dodajAkciju")]
+    public async Task<ActionResult<DodajAkcijuDTO>> DodajNovuAkciju(DodajAkcijuDTO akcija)
+    {
+        var rezultat =
+      await _akcijaService.DodajAkciju(akcija);
+
+        if (rezultat is null)
+        {
+            return BadRequest();
+        }
+
+        return Ok(rezultat);
     }
 }

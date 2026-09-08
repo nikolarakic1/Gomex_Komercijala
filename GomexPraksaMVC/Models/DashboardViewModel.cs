@@ -100,8 +100,20 @@ namespace GomexPraksaMVC.Models
         public string? Dobavljac { get; set; }
 
         public decimal Promet { get; set; }
+        public decimal PlanPromet { get; set; }
+
         public decimal RUC12 { get; set; }
+        public decimal PlanRuc { get; set; }
+
         public decimal RUC12Procenat { get; set; }
+        public decimal PlanRucProcenat { get; set; }
+
+        public decimal OdstupanjeProcentniPoeni { get; set; }
+
         public decimal NedostatakMargine { get; set; }
+
+        public decimal ProcenjeniUticaj { get; set; }
+
+        public string Status { get; set; } = string.Empty;
     }
 }

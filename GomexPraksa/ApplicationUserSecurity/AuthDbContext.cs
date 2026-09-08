@@ -1,6 +1,8 @@
 ﻿using GomexPraksa.ApplicationUserSecurity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Models.ModelsDash;
+using Models.ReadDetails;
 
 namespace GomexPraksa.Auth
 {
@@ -12,6 +14,7 @@ namespace GomexPraksa.Auth
         }
 
         public DbSet<UserKategorija> UserKategorije { get; set; }
+        public DbSet<Akcija> Akcija { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
