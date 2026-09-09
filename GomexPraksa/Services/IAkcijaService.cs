@@ -1,5 +1,6 @@
 ﻿using Models.Dtos;
 using Models.DtosComerc;
+using Models.ModelsDash;
 using Models.ReadDetails;
 
 namespace GomexPraksa.Services;
@@ -18,4 +19,5 @@ public interface IAkcijaService
 
     Task<AkcijaDTO?> GetPoslednjuZaArtikalAsync(int artikalId);
     Task<AkcijaDTO?> DodajAkciju(DodajAkcijuDTO akcija);
+    Task<IEnumerable<TipAkcije>> GetAktivniTipoviAkcije();
 }

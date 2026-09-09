@@ -12,7 +12,9 @@ namespace GomexPraksa.Repository
         private readonly IConnFactory _connFactory;
         private readonly AuthDbContext _context;
 
-        public AkcijaRepo(IConnFactory connFactory , AuthDbContext context)
+        public AkcijaRepo(
+            IConnFactory connFactory,
+            AuthDbContext context)
         {
             _connFactory = connFactory;
             _context = context;
@@ -28,16 +30,48 @@ namespace GomexPraksa.Repository
                     a.DatumDo,
                     a.AkcijskaCena,
                     a.TipAkcijeId,
-                    ta.Naziv AS TipAkcije
+                    ta.Naziv AS TipAkcije,
+
+                    COALESCE(actual.ActualPromet, 0) AS ActualPromet,
+                    COALESCE(actual.ActualRUC12, 0) AS ActualRUC12,
+
+                    CASE
+                        WHEN COALESCE(actual.ActualPromet, 0) = 0
+                        THEN 0
+                        ELSE
+                            COALESCE(actual.ActualRUC12, 0)
+                            / NULLIF(actual.ActualPromet, 0)
+                    END AS ActualRUC12Procenat
+
                 FROM dbo.Akcija a
+
                 INNER JOIN dbo.TipAkcije ta
                     ON ta.TipAkcijeId = a.TipAkcijeId
+
+                OUTER APPLY
+                (
+                    SELECT
+                        SUM(COALESCE(kr.MPBezPDV, 0)) AS ActualPromet,
+                        SUM(COALESCE(kr.RUC12, 0)) AS ActualRUC12
+
+                    FROM dbo.KomercijalniRezultat kr
+
+                    WHERE
+                        kr.ArtikalId = a.ArtikalId
+                        AND kr.TipProdajeId = 6
+                        AND kr.DatumRezultata >= a.DatumOd
+                        AND kr.DatumRezultata < DATEADD(DAY, 1, a.DatumDo)
+                ) actual
+
                 ORDER BY a.DatumOd DESC;
                 """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
-            return await connection.QueryAsync<AkcijaDetalji>(sql);
+            return await connection.QueryAsync<AkcijaDetalji>(
+                sql
+            );
         }
 
         public async Task<IEnumerable<AkcijaDetalji>> GetBuduceAsync()
@@ -50,17 +84,51 @@ namespace GomexPraksa.Repository
                     a.DatumDo,
                     a.AkcijskaCena,
                     a.TipAkcijeId,
-                    ta.Naziv AS TipAkcije
+                    ta.Naziv AS TipAkcije,
+
+                    COALESCE(actual.ActualPromet, 0) AS ActualPromet,
+                    COALESCE(actual.ActualRUC12, 0) AS ActualRUC12,
+
+                    CASE
+                        WHEN COALESCE(actual.ActualPromet, 0) = 0
+                        THEN 0
+                        ELSE
+                            COALESCE(actual.ActualRUC12, 0)
+                            / NULLIF(actual.ActualPromet, 0)
+                    END AS ActualRUC12Procenat
+
                 FROM dbo.Akcija a
+
                 INNER JOIN dbo.TipAkcije ta
                     ON ta.TipAkcijeId = a.TipAkcijeId
-                WHERE a.DatumOd > GETDATE()
+
+                OUTER APPLY
+                (
+                    SELECT
+                        SUM(COALESCE(kr.MPBezPDV, 0)) AS ActualPromet,
+                        SUM(COALESCE(kr.RUC12, 0)) AS ActualRUC12
+
+                    FROM dbo.KomercijalniRezultat kr
+
+                    WHERE
+                        kr.ArtikalId = a.ArtikalId
+                        AND kr.TipProdajeId = 6
+                        AND kr.DatumRezultata >= a.DatumOd
+                        AND kr.DatumRezultata < DATEADD(DAY, 1, a.DatumDo)
+                ) actual
+
+                WHERE
+                    a.DatumOd > GETDATE()
+
                 ORDER BY a.DatumOd;
                 """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
-            return await connection.QueryAsync<AkcijaDetalji>(sql);
+            return await connection.QueryAsync<AkcijaDetalji>(
+                sql
+            );
         }
 
         public async Task<IEnumerable<AkcijaDetalji>> GetByArtikalIdAsync(
@@ -74,19 +142,54 @@ namespace GomexPraksa.Repository
                     a.DatumDo,
                     a.AkcijskaCena,
                     a.TipAkcijeId,
-                    ta.Naziv AS TipAkcije
+                    ta.Naziv AS TipAkcije,
+
+                    COALESCE(actual.ActualPromet, 0) AS ActualPromet,
+                    COALESCE(actual.ActualRUC12, 0) AS ActualRUC12,
+
+                    CASE
+                        WHEN COALESCE(actual.ActualPromet, 0) = 0
+                        THEN 0
+                        ELSE
+                            COALESCE(actual.ActualRUC12, 0)
+                            / NULLIF(actual.ActualPromet, 0)
+                    END AS ActualRUC12Procenat
+
                 FROM dbo.Akcija a
+
                 INNER JOIN dbo.TipAkcije ta
                     ON ta.TipAkcijeId = a.TipAkcijeId
-                WHERE a.ArtikalId = @ArtikalId
+
+                OUTER APPLY
+                (
+                    SELECT
+                        SUM(COALESCE(kr.MPBezPDV, 0)) AS ActualPromet,
+                        SUM(COALESCE(kr.RUC12, 0)) AS ActualRUC12
+
+                    FROM dbo.KomercijalniRezultat kr
+
+                    WHERE
+                        kr.ArtikalId = a.ArtikalId
+                        AND kr.TipProdajeId = 6
+                        AND kr.DatumRezultata >= a.DatumOd
+                        AND kr.DatumRezultata < DATEADD(DAY, 1, a.DatumDo)
+                ) actual
+
+                WHERE
+                    a.ArtikalId = @ArtikalId
+
                 ORDER BY a.DatumOd DESC;
                 """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
             return await connection.QueryAsync<AkcijaDetalji>(
                 sql,
-                new { ArtikalId = artikalId }
+                new
+                {
+                    ArtikalId = artikalId
+                }
             );
         }
 
@@ -100,19 +203,54 @@ namespace GomexPraksa.Repository
                     a.DatumDo,
                     a.AkcijskaCena,
                     a.TipAkcijeId,
-                    ta.Naziv AS TipAkcije
+                    ta.Naziv AS TipAkcije,
+
+                    COALESCE(actual.ActualPromet, 0) AS ActualPromet,
+                    COALESCE(actual.ActualRUC12, 0) AS ActualRUC12,
+
+                    CASE
+                        WHEN COALESCE(actual.ActualPromet, 0) = 0
+                        THEN 0
+                        ELSE
+                            COALESCE(actual.ActualRUC12, 0)
+                            / NULLIF(actual.ActualPromet, 0)
+                    END AS ActualRUC12Procenat
+
                 FROM dbo.Akcija a
+
                 INNER JOIN dbo.TipAkcije ta
                     ON ta.TipAkcijeId = a.TipAkcijeId
-                WHERE a.AkcijaId = @AkcijaId;
+
+                OUTER APPLY
+                (
+                    SELECT
+                        SUM(COALESCE(kr.MPBezPDV, 0)) AS ActualPromet,
+                        SUM(COALESCE(kr.RUC12, 0)) AS ActualRUC12
+
+                    FROM dbo.KomercijalniRezultat kr
+
+                    WHERE
+                        kr.ArtikalId = a.ArtikalId
+                        AND kr.TipProdajeId = 6
+                        AND kr.DatumRezultata >= a.DatumOd
+                        AND kr.DatumRezultata < DATEADD(DAY, 1, a.DatumDo)
+                ) actual
+
+                WHERE
+                    a.AkcijaId = @AkcijaId;
                 """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
-            return await connection.QuerySingleOrDefaultAsync<AkcijaDetalji>(
-                sql,
-                new { AkcijaId = id }
-            );
+            return await connection
+                .QuerySingleOrDefaultAsync<AkcijaDetalji>(
+                    sql,
+                    new
+                    {
+                        AkcijaId = id
+                    }
+                );
         }
 
         public async Task<AkcijaDetalji?> GetPoslednjuZaArtikalAsync(
@@ -126,21 +264,57 @@ namespace GomexPraksa.Repository
                     a.DatumDo,
                     a.AkcijskaCena,
                     a.TipAkcijeId,
-                    ta.Naziv AS TipAkcije
+                    ta.Naziv AS TipAkcije,
+
+                    COALESCE(actual.ActualPromet, 0) AS ActualPromet,
+                    COALESCE(actual.ActualRUC12, 0) AS ActualRUC12,
+
+                    CASE
+                        WHEN COALESCE(actual.ActualPromet, 0) = 0
+                        THEN 0
+                        ELSE
+                            COALESCE(actual.ActualRUC12, 0)
+                            / NULLIF(actual.ActualPromet, 0)
+                    END AS ActualRUC12Procenat
+
                 FROM dbo.Akcija a
+
                 INNER JOIN dbo.TipAkcije ta
                     ON ta.TipAkcijeId = a.TipAkcijeId
-                WHERE a.ArtikalId = @ArtikalId
-                  AND a.DatumDo < GETDATE()
+
+                OUTER APPLY
+                (
+                    SELECT
+                        SUM(COALESCE(kr.MPBezPDV, 0)) AS ActualPromet,
+                        SUM(COALESCE(kr.RUC12, 0)) AS ActualRUC12
+
+                    FROM dbo.KomercijalniRezultat kr
+
+                    WHERE
+                        kr.ArtikalId = a.ArtikalId
+                        AND kr.TipProdajeId = 6
+                        AND kr.DatumRezultata >= a.DatumOd
+                        AND kr.DatumRezultata < DATEADD(DAY, 1, a.DatumDo)
+                ) actual
+
+                WHERE
+                    a.ArtikalId = @ArtikalId
+                    AND a.DatumDo < GETDATE()
+
                 ORDER BY a.DatumDo DESC;
                 """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
-            return await connection.QueryFirstOrDefaultAsync<AkcijaDetalji>(
-                sql,
-                new { ArtikalId = artikalId }
-            );
+            return await connection
+                .QueryFirstOrDefaultAsync<AkcijaDetalji>(
+                    sql,
+                    new
+                    {
+                        ArtikalId = artikalId
+                    }
+                );
         }
 
         public async Task<IEnumerable<AkcijaDetalji>> GetTrenutneAsync()
@@ -153,27 +327,64 @@ namespace GomexPraksa.Repository
                     a.DatumDo,
                     a.AkcijskaCena,
                     a.TipAkcijeId,
-                    ta.Naziv AS TipAkcije
+                    ta.Naziv AS TipAkcije,
+
+                    COALESCE(actual.ActualPromet, 0) AS ActualPromet,
+                    COALESCE(actual.ActualRUC12, 0) AS ActualRUC12,
+
+                    CASE
+                        WHEN COALESCE(actual.ActualPromet, 0) = 0
+                        THEN 0
+                        ELSE
+                            COALESCE(actual.ActualRUC12, 0)
+                            / NULLIF(actual.ActualPromet, 0)
+                    END AS ActualRUC12Procenat
+
                 FROM dbo.Akcija a
+
                 INNER JOIN dbo.TipAkcije ta
                     ON ta.TipAkcijeId = a.TipAkcijeId
-                WHERE a.DatumOd <= GETDATE()
-                  AND a.DatumDo >= GETDATE()
+
+                OUTER APPLY
+                (
+                    SELECT
+                        SUM(COALESCE(kr.MPBezPDV, 0)) AS ActualPromet,
+                        SUM(COALESCE(kr.RUC12, 0)) AS ActualRUC12
+
+                    FROM dbo.KomercijalniRezultat kr
+
+                    WHERE
+                        kr.ArtikalId = a.ArtikalId
+                        AND kr.TipProdajeId = 6
+                        AND kr.DatumRezultata >= a.DatumOd
+                        AND kr.DatumRezultata < DATEADD(DAY, 1, a.DatumDo)
+                ) actual
+
+                WHERE
+                    a.DatumOd <= GETDATE()
+                    AND a.DatumDo >= GETDATE()
+
                 ORDER BY a.DatumDo ASC;
                 """;
 
-            using var connection = _connFactory.CreateConnection();
+            using var connection =
+                _connFactory.CreateConnection();
 
-            return await connection.QueryAsync<AkcijaDetalji>(sql);
+            return await connection.QueryAsync<AkcijaDetalji>(
+                sql
+            );
         }
+
         public async Task<Akcija?> DodajAkciju(Akcija akcija)
         {
-            if(akcija is null)
-    {
+            if (akcija is null)
+            {
                 return null;
             }
 
-            await _context.Akcija.AddAsync(akcija);
+            await _context.Akcija.AddAsync(
+                akcija
+            );
 
             var rezultat =
                 await _context.SaveChangesAsync();
@@ -184,8 +395,26 @@ namespace GomexPraksa.Repository
             }
 
             return akcija;
+        }
 
+        public async Task<IEnumerable<TipAkcije>> GetAktivniTipoviAkcije()
+        {
+            const string sql = """
+                SELECT
+                    TipAkcijeId,
+                    Naziv,
+                    Aktivan
+                FROM dbo.TipAkcije
+                WHERE Aktivan = 1
+                ORDER BY Naziv;
+                """;
 
+            using var connection =
+                _connFactory.CreateConnection();
+
+            return await connection.QueryAsync<TipAkcije>(
+                sql
+            );
         }
     }
 }

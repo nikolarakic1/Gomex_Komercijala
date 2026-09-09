@@ -1,6 +1,6 @@
-namespace GomexPraksaMVC.Models
+﻿namespace Models.ModelsDash
 {
-    public class ArtikalViewItem
+    public class ArtikalStatistika
     {
         public int ArtikalId { get; set; }
 
@@ -29,8 +29,6 @@ namespace GomexPraksaMVC.Models
         public decimal PlanRUC12 { get; set; }
 
         public decimal PlanRUC12Procenat { get; set; }
-
-        public decimal OdstupanjeRUC12ProcentniPoeni { get; set; }
 
         public decimal Margina { get; set; }
 

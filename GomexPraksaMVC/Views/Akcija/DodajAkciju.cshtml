@@ -64,7 +64,7 @@
     }
 
     .form-section {
-        margin-bottom: 26px;
+        margin-bottom: 28px;
     }
 
         .form-section:last-child {
@@ -116,7 +116,7 @@
         display: flex;
         align-items: flex-start;
         gap: 10px;
-        padding: 12px 14px;
+        padding: 13px 15px;
         border-radius: 10px;
         background: #EEF6F2;
         border: 1px solid #D6E9DF;
@@ -151,7 +151,7 @@
     }
 
     .btn-add-action {
-        min-width: 140px;
+        min-width: 145px;
         border-radius: 9px;
         font-weight: 700;
     }
@@ -185,6 +185,16 @@
         color: #B63E38;
     }
 
+    .empty-types {
+        padding: 12px 14px;
+        margin-top: 8px;
+        border-radius: 10px;
+        border: 1px solid #F1D4A9;
+        background: #FFF7E8;
+        color: #8A651D;
+        font-size: 12px;
+    }
+
     @@media (max-width: 768px) {
         .add-action-header {
             flex-direction: column;
@@ -211,7 +221,6 @@
     <div class="add-action-header">
 
         <div>
-
             <h2 class="add-action-title">
                 Dodaj akciju
             </h2>
@@ -219,7 +228,6 @@
             <p class="add-action-subtitle">
                 Kreiranje nove akcije za izabrani artikal
             </p>
-
         </div>
 
         <a asp-controller="Akcija"
@@ -227,6 +235,7 @@
            class="btn btn-outline-secondary">
 
             <i class="bi bi-arrow-left me-1"></i>
+
             Nazad na akcije
 
         </a>
@@ -253,7 +262,7 @@
             </div>
 
             <div class="add-action-card-header-text">
-                Unesite podatke o artiklu, periodu i akcijskoj ceni
+                Unesite artikal, tip akcije, period i akcijsku cenu
             </div>
 
         </div>
@@ -261,6 +270,8 @@
         <form asp-controller="Akcija"
               asp-action="DodajAkciju"
               method="post">
+
+            @Html.AntiForgeryToken()
 
             <div class="add-action-body">
 
@@ -270,7 +281,7 @@
                 <div class="form-section">
 
                     <div class="form-section-title">
-                        Artikal
+                        Artikal i tip akcije
                     </div>
 
                     <div class="row g-3">
@@ -286,9 +297,11 @@
 
                             <input asp-for="SifraArtikla"
                                    class="form-control"
-                                   placeholder="Unesite šifru artikla" />
+                                   placeholder="Na primer 10019"
+                                   autocomplete="off" />
 
-                            <span asp-validation-for="SifraArtikla">
+                            <span asp-validation-for="SifraArtikla"
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -305,7 +318,7 @@
                             <select asp-for="TipAkcijeId"
                                     class="form-select">
 
-                                <option value="">
+                                <option value="0">
                                     Izaberite tip akcije
                                 </option>
 
@@ -318,8 +331,16 @@
 
                             </select>
 
-                            <span asp-validation-for="TipAkcijeId">
+                            <span asp-validation-for="TipAkcijeId"
+                                  class="text-danger">
                             </span>
+
+                            @if (!Model.TipoviAkcija.Any())
+                            {
+                                <div class="empty-types">
+                                    Nema dostupnih tipova akcije.
+                                </div>
+                            }
 
                         </div>
 
@@ -348,7 +369,8 @@
                                    type="date"
                                    class="form-control" />
 
-                            <span asp-validation-for="DatumOd">
+                            <span asp-validation-for="DatumOd"
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -366,7 +388,8 @@
                                    type="date"
                                    class="form-control" />
 
-                            <span asp-validation-for="DatumDo">
+                            <span asp-validation-for="DatumDo"
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -397,7 +420,7 @@
                                 <input asp-for="AkcijskaCena"
                                        type="number"
                                        step="0.01"
-                                       min="0"
+                                       min="0.01"
                                        class="form-control"
                                        placeholder="0.00" />
 
@@ -407,7 +430,8 @@
 
                             </div>
 
-                            <span asp-validation-for="AkcijskaCena">
+                            <span asp-validation-for="AkcijskaCena"
+                                  class="text-danger">
                             </span>
 
                         </div>
@@ -421,8 +445,8 @@
                     <i class="bi bi-info-circle"></i>
 
                     <div>
-                        Akcija će biti vezana za artikal preko njegove šifre.
-                        Proverite period i cenu pre čuvanja.
+                        Akcija će biti pronađena preko šifre artikla.
+                        Tip akcije se učitava iz baze, a datum se šalje bez vremena.
                     </div>
 
                 </div>
@@ -432,7 +456,7 @@
             <div class="action-footer">
 
                 <div class="action-footer-left">
-                    Sva polja su obavezna.
+                    Šifra, tip akcije, period i cena su obavezni.
                 </div>
 
                 <div class="action-footer-buttons">
@@ -446,7 +470,8 @@
                     </a>
 
                     <button type="submit"
-                            class="btn btn-primary btn-add-action">
+                            class="btn btn-primary btn-add-action"
+                            disabled="@(!Model.TipoviAkcija.Any())">
 
                         <i class="bi bi-plus-circle me-1"></i>
 

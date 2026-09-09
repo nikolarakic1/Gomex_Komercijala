@@ -3,30 +3,30 @@
     public class AkcijaViewItem
     {
         public int AkcijaId { get; set; }
+
         public int ArtikalId { get; set; }
 
         public DateTime DatumOd { get; set; }
+
         public DateTime DatumDo { get; set; }
 
         public decimal AkcijskaCena { get; set; }
+
         public string TipAkcije { get; set; } = string.Empty;
 
         public string? ArtikalNaziv { get; set; }
+
         public string? ArtikalSifra { get; set; }
 
         public decimal? RedovnaCena { get; set; }
 
-        // =============================================
-        // CM METRIKE
-        // =============================================
+        public decimal ActualPromet { get; set; }
 
-        public decimal Promet { get; set; }
+        public decimal ActualRUC12 { get; set; }
+
+        public decimal ActualRUC12Procenat { get; set; }
 
         public decimal Kolicina { get; set; }
-
-        public decimal Ruc12 { get; set; }
-
-        public decimal Ruc12Procenat { get; set; }
 
         public decimal NabavnaVrednost { get; set; }
 
@@ -34,7 +34,7 @@
 
         public decimal MarzaPoKomadu =>
             Kolicina != 0
-                ? Ruc12 / Kolicina
+                ? ActualRUC12 / Kolicina
                 : 0;
 
         public decimal? ProcenatPopusta =>
@@ -60,22 +60,19 @@
 
         public List<AkcijaViewItem> Artikli { get; set; } = new();
 
-        // =============================================
-        // UKUPNO ZA CELU AKCIJU
-        // =============================================
+        public decimal UkupanActualPromet =>
+            Artikli.Sum(x => x.ActualPromet);
 
-        public decimal UkupanPromet =>
-            Artikli.Sum(x => x.Promet);
-
-        public decimal UkupanRuc12 =>
-            Artikli.Sum(x => x.Ruc12);
+        public decimal UkupanActualRUC12 =>
+            Artikli.Sum(x => x.ActualRUC12);
 
         public decimal UkupnaKolicina =>
             Artikli.Sum(x => x.Kolicina);
 
-        public decimal Ruc12Procenat =>
-            UkupanPromet != 0
-                ? UkupanRuc12 / UkupanPromet
+        public decimal ActualRUC12Procenat =>
+            UkupanActualPromet != 0
+                ? UkupanActualRUC12
+                  / UkupanActualPromet
                 : 0;
     }
 }

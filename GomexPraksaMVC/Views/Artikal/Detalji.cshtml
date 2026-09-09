@@ -3,16 +3,30 @@
 @{
     ViewData["Title"] = "Detalji artikla";
 
-    var dobavljacNaziv =
-        ViewData["DobavljacNaziv"] as string;
-
     var aktivnaAkcija =
         ViewData["AktivnaAkcija"]
         as GomexPraksaMVC.Models.AkcijaViewItem;
 
-    var rucPodaci =
-        ViewData["RucPodaci"]
-        as GomexPraksaMVC.Models.CriticalProductPageViewItem;
+    var rucBoja =
+        Model.RUC12 < 0
+            ? "#C1443B"
+            : Model.RUC12 > 0
+                ? "#2E7D5B"
+                : "#6C757D";
+
+    var marginaBoja =
+        Model.Margina < 0
+            ? "#C1443B"
+            : Model.Margina > 0
+                ? "#2E7D5B"
+                : "#6C757D";
+
+    var odstupanjeBoja =
+        Model.OdstupanjeRUC12ProcentniPoeni < 0
+            ? "#C1443B"
+            : Model.OdstupanjeRUC12ProcentniPoeni > 0
+                ? "#2E7D5B"
+                : "#6C757D";
 }
 
 <a asp-controller="Artikal"
@@ -23,23 +37,24 @@
 
 </a>
 
-
 <div class="d-flex justify-content-between align-items-start mb-4">
 
     <div>
 
         <h4 class="mb-1">
-            @Model?.Naziv
+            @Model.Naziv
         </h4>
 
         <div class="text-secondary small">
 
-            Šifra @Model?.Sifra
+            Šifra @Model.Sifra
 
-            @if (!string.IsNullOrWhiteSpace(dobavljacNaziv))
+            @if (!string.IsNullOrWhiteSpace(
+                Model.NazivDobavljaca))
             {
                 <text>
-                    &middot; Dobavljač: @dobavljacNaziv
+                    &middot;
+                    Dobavljač: @Model.NazivDobavljaca
                 </text>
             }
 
@@ -47,15 +62,14 @@
 
     </div>
 
-
     <span class="badge"
           style="
-        background:@(Model != null && Model.Aktivan ? "#E7F3EC" : "#FBEAEA");
-        color:@(Model != null && Model.Aktivan ? "#2E7D5B" : "#C1443B");
+        background:@(Model.Aktivan ? "#E7F3EC" : "#FBEAEA");
+        color:@(Model.Aktivan ? "#2E7D5B" : "#C1443B");
         font-size:12px;
         padding:6px 12px;">
 
-        @(Model != null && Model.Aktivan
+        @(Model.Aktivan
             ? "Aktivan"
             : "Neaktivan")
 
@@ -63,18 +77,11 @@
 
 </div>
 
+<div class="row g-3 mb-4">
 
-<!-- =========================================
-     CENA I AKCIJA
-     ========================================= -->
+    <div class="col-xl-3 col-md-6">
 
-<div class="row g-3 mb-3">
-
-    <!-- REDOVNA CENA -->
-
-    <div class="col-md-3">
-
-        <div class="metric-card">
+        <div class="metric-card h-100">
 
             <div class="metric-label">
                 Redovna cena
@@ -84,7 +91,7 @@
                  style="font-size:22px;">
 
                 @(
-                    Model?.RedovnaCena.HasValue == true
+                    Model.RedovnaCena.HasValue
                         ? Model.RedovnaCena.Value.ToString("N2") + " RSD"
                         : "—"
                 )
@@ -95,14 +102,11 @@
 
     </div>
 
-
     @if (aktivnaAkcija != null)
     {
-        <!-- AKCIJSKA CENA -->
+        <div class="col-xl-3 col-md-6">
 
-        <div class="col-md-3">
-
-            <div class="metric-card"
+            <div class="metric-card h-100"
                  style="
                 border-left:3px solid #2E7D5B;
                 border-radius:0 8px 8px 0;">
@@ -116,16 +120,17 @@
                     font-size:22px;
                     color:#2E7D5B;">
 
-                    @aktivnaAkcija.AkcijskaCena.ToString("N2") RSD
+                    @aktivnaAkcija.AkcijskaCena.ToString("N2")
+                    RSD
 
                 </div>
-
 
                 @if (aktivnaAkcija.ProcenatPopusta.HasValue)
                 {
                     <div class="metric-yoy positive">
 
-                        -@aktivnaAkcija.ProcenatPopusta.Value% popusta
+                        -@aktivnaAkcija.ProcenatPopusta.Value%
+                        popusta
 
                     </div>
                 }
@@ -134,12 +139,9 @@
 
         </div>
 
+        <div class="col-xl-6 col-md-12">
 
-        <!-- AKTIVNA AKCIJA -->
-
-        <div class="col-md-6">
-
-            <div class="metric-card d-flex align-items-center justify-content-between">
+            <div class="metric-card h-100 d-flex align-items-center justify-content-between">
 
                 <div>
 
@@ -153,14 +155,13 @@
 
                 </div>
 
-
                 <div class="text-end text-secondary small">
 
                     @aktivnaAkcija.DatumOd.ToString("dd.MM.yyyy.")
 
                     <br />
 
-                    &ndash;
+                    do
 
                     @aktivnaAkcija.DatumDo.ToString("dd.MM.yyyy.")
 
@@ -172,9 +173,9 @@
     }
     else
     {
-        <div class="col-md-9">
+        <div class="col-xl-9 col-md-6">
 
-            <div class="metric-card d-flex align-items-center h-100">
+            <div class="metric-card h-100 d-flex align-items-center">
 
                 <span class="text-secondary small">
 
@@ -191,147 +192,258 @@
 
 </div>
 
+<div class="d-flex justify-content-between align-items-center mb-3">
 
-<!-- =========================================
-     PERFORMANSE
-     ========================================= -->
-@if (rucPodaci != null)
-{
-    <h6 class="mb-3 mt-4">
-        Performanse u poslednjih 30 dana
+    <h6 class="mb-0">
+        Komercijalne performanse
     </h6>
 
+    @if (Model.PoslednjiDatumPodataka.HasValue)
+    {
+        <span class="text-secondary small">
 
-    <div class="row g-3 mb-3">
+            Poslednji podaci:
+            @Model.PoslednjiDatumPodataka.Value.ToString("dd.MM.yyyy.")
 
-        <!-- PROMET -->
+        </span>
+    }
 
-        <div class="col-md-3">
+</div>
 
-            <div class="metric-card">
+<div class="row g-3 mb-4">
 
-                <div class="metric-label">
-                    Promet
-                </div>
+    <div class="col-xl-3 col-md-6">
 
-                <div class="metric-value"
-                     style="font-size:20px;">
+        <div class="metric-card h-100">
 
-                    @rucPodaci.Promet.ToString("N0") RSD
-
-                </div>
-
+            <div class="metric-label">
+                Promet
             </div>
 
-        </div>
+            <div class="metric-value"
+                 style="font-size:20px;">
 
-
-        <!-- RUC12 -->
-
-        <div class="col-md-3">
-
-            <div class="metric-card">
-
-                <div class="metric-label">
-                    RUC12
-                </div>
-
-                <div class="metric-value"
-                     style="font-size:20px;">
-
-                    @rucPodaci.RUC12.ToString("N0") RSD
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- RUC12 % -->
-
-        <div class="col-md-3">
-
-            <div class="metric-card">
-
-                <div class="metric-label">
-                    Marža (RUC12%)
-                </div>
-
-                <div class="metric-value"
-                     style="font-size:20px;">
-
-                    @(
-                        (rucPodaci.RUC12Procenat * 100m)
-                        .ToString("0.0")
-                    )%
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- NEDOSTATAK MARGINE -->
-
-        <div class="col-md-3">
-
-            <div class="metric-card">
-
-                <div class="metric-label">
-                    Nedostatak margine
-                </div>
-
-                <div class="metric-value"
-                     style="
-                    font-size:20px;
-                    color:@(
-                     rucPodaci.NedostatakMargine < 0
-                         ? "#C1443B"
-                         : "#2E7D5B"
-                                         );">
-
-                    @rucPodaci.NedostatakMargine.ToString("N0") RSD
-
-                </div>
+                @Model.Promet.ToString("N0") RSD
 
             </div>
 
         </div>
 
     </div>
-}
-else
-{
-    <div class="metric-card mb-3">
 
-        <div class="text-secondary small">
+    <div class="col-xl-3 col-md-6">
 
-            Nema podataka o performansama za ovaj artikal
-            u poslednjih 30 dana.
+        <div class="metric-card h-100">
+
+            <div class="metric-label">
+                RUC12
+            </div>
+
+            <div class="metric-value"
+                 style="
+                font-size:20px;
+                color:@rucBoja;">
+
+                @Model.RUC12.ToString("N0") RSD
+
+            </div>
 
         </div>
 
     </div>
-}
 
+    <div class="col-xl-3 col-md-6">
 
-<!-- =========================================
-     ISTORIJA CENA
-     ========================================= -->
+        <div class="metric-card h-100">
 
-<div class="metric-card">
+            <div class="metric-label">
+                RUC12 %
+            </div>
 
-    <div class="metric-label mb-2">
-        Istorija cena
+            <div class="metric-value"
+                 style="font-size:20px;">
+
+                @(
+                    (Model.RUC12Procenat * 100m)
+                    .ToString("N2")
+                )%
+
+            </div>
+
+        </div>
+
     </div>
 
-    <div class="text-secondary small">
+    <div class="col-xl-3 col-md-6">
 
-        Istorija cena trenutno nije dostupna.
-        Potrebna je posebna tabela u bazi koja beleži
-        datum i iznos svake promene cene.
+        <div class="metric-card h-100">
+
+            <div class="metric-label">
+                Margina
+            </div>
+
+            <div class="metric-value"
+                 style="
+                font-size:20px;
+                color:@marginaBoja;">
+
+                @Model.Margina.ToString("N0") RSD
+
+            </div>
+
+            <div class="text-secondary small mt-1">
+                Mix + margina
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<h6 class="mb-3">
+    Plan i odstupanje
+</h6>
+
+<div class="row g-3 mb-4">
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="metric-card h-100">
+
+            <div class="metric-label">
+                Planirani promet
+            </div>
+
+            <div class="metric-value"
+                 style="font-size:20px;">
+
+                @Model.PlanPromet.ToString("N0") RSD
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="metric-card h-100">
+
+            <div class="metric-label">
+                Planirani RUC12
+            </div>
+
+            <div class="metric-value"
+                 style="font-size:20px;">
+
+                @Model.PlanRUC12.ToString("N0") RSD
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="metric-card h-100">
+
+            <div class="metric-label">
+                Plan RUC12 %
+            </div>
+
+            <div class="metric-value"
+                 style="font-size:20px;">
+
+                @(
+                    (Model.PlanRUC12Procenat * 100m)
+                    .ToString("N2")
+                )%
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+
+        <div class="metric-card h-100">
+
+            <div class="metric-label">
+                Odstupanje RUC12
+            </div>
+
+            <div class="metric-value"
+                 style="
+                font-size:20px;
+                color:@odstupanjeBoja;">
+
+                @(
+                    (Model.OdstupanjeRUC12ProcentniPoeni * 100m)
+                    .ToString("+0.00;-0.00;0.00")
+                ) pp
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row g-3">
+
+    <div class="col-md-6">
+
+        <div class="metric-card h-100">
+
+            <div class="metric-label">
+                Nedostatak margine
+            </div>
+
+            <div class="metric-value"
+                 style="
+                font-size:20px;
+                color:@(
+                 Model.NedostatakMargine < 0
+                     ? "#C1443B"
+                     : Model.NedostatakMargine > 0
+                         ? "#2E7D5B"
+                         : "#6C757D"
+                                );">
+
+                @Model.NedostatakMargine.ToString("N0")
+                RSD
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="metric-card h-100">
+
+            <div class="metric-label">
+                Poslednji dostupni podaci
+            </div>
+
+            <div class="metric-value"
+                 style="font-size:20px;">
+
+                @(
+                    Model.PoslednjiDatumPodataka.HasValue
+                        ? Model.PoslednjiDatumPodataka.Value
+                            .ToString("dd.MM.yyyy.")
+                        : "—"
+                )
+
+            </div>
+
+        </div>
 
     </div>
 

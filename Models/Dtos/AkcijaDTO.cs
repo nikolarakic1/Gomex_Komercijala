@@ -14,4 +14,9 @@ public class AkcijaDTO
 
     public string TipAkcije { get; set; } = string.Empty;
     public int TipAkcijeId { get; set; }
+    public decimal ActualPromet { get; set; }
+
+    public decimal ActualRUC12 { get; set; }
+
+    public decimal ActualRUC12Procenat { get; set; }
 }

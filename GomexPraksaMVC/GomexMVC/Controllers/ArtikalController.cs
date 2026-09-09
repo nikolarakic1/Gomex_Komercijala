@@ -4,24 +4,15 @@ using System.Net.Http.Json;
 
 namespace GomexPraksaMVC.GomexMVC.Controllers
 {
-    [TypeFilter(
-        typeof(
-            GomexPraksaMVC.Filters.RequireAuthFilter
-        )
-    )]
+    [TypeFilter(typeof(GomexPraksaMVC.Filters.RequireAuthFilter))]
     public class ArtikalController : Controller
     {
         private readonly IHttpClientFactory _httpFactory;
 
-        public ArtikalController(
-            IHttpClientFactory httpFactory)
+        public ArtikalController(IHttpClientFactory httpFactory)
         {
             _httpFactory = httpFactory;
         }
-
-        // =============================================
-        // ARTIKLI
-        // =============================================
 
         public async Task<IActionResult> Index(
             int? dobavljacId,
@@ -33,14 +24,7 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
             int page = 1,
             int pageSize = 10)
         {
-            var client =
-                _httpFactory.CreateClient(
-                    "GomexApi"
-                );
-
-            // =============================================
-            // PAGINACIJA
-            // =============================================
+            var client = _httpFactory.CreateClient("GomexApi");
 
             if (page < 1)
             {
@@ -57,102 +41,70 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                 pageSize = 100;
             }
 
-            var model =
-                new ArtikalIndexViewModel
-                {
-                    SelectedDobavljacId =
-                        dobavljacId,
-
-                    SelectedRobnaGrupaId =
-                        robnaGrupaId,
-
-                    SelectedOdeljenjeId =
-                        odeljenjeId,
-
-                    SelectedKategorijaId =
-                        kategorijaId,
-
-                    Naziv =
-                        naziv,
-
-                    Page =
-                        page,
-
-                    PageSize =
-                        pageSize
-                };
-
-            // =============================================
-            // ARTIKLI
-            // =============================================
+            var model = new ArtikalIndexViewModel
+            {
+                SelectedDobavljacId = dobavljacId,
+                SelectedRobnaGrupaId = robnaGrupaId,
+                SelectedOdeljenjeId = odeljenjeId,
+                SelectedKategorijaId = kategorijaId,
+                Naziv = naziv,
+                Sifra = sifra,
+                Page = page,
+                PageSize = pageSize
+            };
 
             try
             {
-                var queryParts =
-                    new List<string>();
-
-                queryParts.Add(
-                    $"page={page}"
-                );
-
-                queryParts.Add(
+                var queryParts = new List<string>
+                {
+                    $"page={page}",
                     $"pageSize={pageSize}"
-                );
+                };
 
                 if (!string.IsNullOrWhiteSpace(naziv))
                 {
                     queryParts.Add(
-                        $"naziv=" +
-                        $"{Uri.EscapeDataString(naziv)}"
+                        $"naziv={Uri.EscapeDataString(naziv)}"
                     );
                 }
 
                 if (dobavljacId.HasValue)
                 {
                     queryParts.Add(
-                        $"dobavljacId=" +
-                        $"{dobavljacId.Value}"
+                        $"dobavljacId={dobavljacId.Value}"
                     );
                 }
 
                 if (robnaGrupaId.HasValue)
                 {
                     queryParts.Add(
-                        $"robnaGrupaId=" +
-                        $"{robnaGrupaId.Value}"
+                        $"robnaGrupaId={robnaGrupaId.Value}"
                     );
                 }
 
                 if (odeljenjeId.HasValue)
                 {
                     queryParts.Add(
-                        $"odeljenjeId=" +
-                        $"{odeljenjeId.Value}"
+                        $"odeljenjeId={odeljenjeId.Value}"
                     );
                 }
 
                 if (kategorijaId.HasValue)
                 {
                     queryParts.Add(
-                        $"kategorijaId=" +
-                        $"{kategorijaId.Value}"
+                        $"kategorijaId={kategorijaId.Value}"
                     );
                 }
 
                 if (!string.IsNullOrWhiteSpace(sifra))
                 {
                     queryParts.Add(
-                        $"sifra=" +
-                        $"{Uri.EscapeDataString(sifra)}"
+                        $"sifra={Uri.EscapeDataString(sifra)}"
                     );
                 }
 
                 var query =
-                    "?" +
-                    string.Join(
-                        "&",
-                        queryParts
-                    );
+                    "?" + string.Join("&", queryParts);
 
                 var url =
                     $"api/artikli/search{query}";
@@ -162,12 +114,9 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                 );
 
                 var result =
-                    await client
-                        .GetFromJsonAsync<
-                            PaginationResponse<
-                                ArtikalViewItem
-                            >
-                        >(url);
+                    await client.GetFromJsonAsync<
+                        PaginationResponse<ArtikalViewItem>
+                    >(url);
 
                 if (result != null)
                 {
@@ -196,137 +145,89 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(
-                    $"GRESKA ARTIKLI: " +
-                    $"{ex.Message}"
+                    $"GRESKA ARTIKLI: {ex.Message}"
                 );
 
                 model.Artikli =
                     new List<ArtikalViewItem>();
 
-                model.TotalCount =
-                    0;
-
-                model.TotalPages =
-                    0;
-
-                model.HasPreviousPage =
-                    false;
-
-                model.HasNextPage =
-                    false;
+                model.TotalCount = 0;
+                model.TotalPages = 0;
+                model.HasPreviousPage = false;
+                model.HasNextPage = false;
             }
-
-            // =============================================
-            // DOBAVLJACI
-            // =============================================
 
             try
             {
                 var paged =
-                    await client
-                        .GetFromJsonAsync<
-                            PaginationResponse<
-                                DobavljacViewItem
-                            >
-                        >(
-                            "api/dobavljaci"
-                        );
+                    await client.GetFromJsonAsync<
+                        PaginationResponse<DobavljacViewItem>
+                    >(
+                        "api/dobavljaci"
+                    );
 
                 model.Dobavljaci =
                     paged?.Items
-                    ?? new List<
-                        DobavljacViewItem
-                    >();
+                    ?? new List<DobavljacViewItem>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(
-                    $"GRESKA DOBAVLJACI: " +
-                    $"{ex.Message}"
+                    $"GRESKA DOBAVLJACI: {ex.Message}"
                 );
 
                 model.Dobavljaci =
-                    new List<
-                        DobavljacViewItem
-                    >();
+                    new List<DobavljacViewItem>();
             }
-
-            // =============================================
-            // ODELJENJA
-            // =============================================
 
             try
             {
                 var odeljenja =
-                    await client
-                        .GetFromJsonAsync<
-                            List<
-                                OdeljenjeViewItem
-                            >
-                        >(
-                            "api/odeljenja"
-                        );
+                    await client.GetFromJsonAsync<
+                        List<OdeljenjeViewItem>
+                    >(
+                        "api/odeljenja"
+                    );
 
                 model.Odeljenja =
                     odeljenja
-                    ?? new List<
-                        OdeljenjeViewItem
-                    >();
+                    ?? new List<OdeljenjeViewItem>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(
-                    $"GRESKA ODELJENJA: " +
-                    $"{ex.Message}"
+                    $"GRESKA ODELJENJA: {ex.Message}"
                 );
 
                 model.Odeljenja =
-                    new List<
-                        OdeljenjeViewItem
-                    >();
+                    new List<OdeljenjeViewItem>();
             }
-
-            // =============================================
-            // KATEGORIJE
-            // =============================================
 
             try
             {
                 var kategorije =
-                    await client
-                        .GetFromJsonAsync<
-                            List<
-                                KategorijaViewItem
-                            >
-                        >(
-                            "api/kategorije"
-                        );
+                    await client.GetFromJsonAsync<
+                        List<KategorijaViewItem>
+                    >(
+                        "api/kategorije"
+                    );
 
                 model.Kategorije =
                     kategorije
-                    ?? new List<
-                        KategorijaViewItem
-                    >();
+                    ?? new List<KategorijaViewItem>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(
-                    $"GRESKA KATEGORIJE: " +
-                    $"{ex.Message}"
+                    $"GRESKA KATEGORIJE: {ex.Message}"
                 );
 
                 model.Kategorije =
-                    new List<
-                        KategorijaViewItem
-                    >();
+                    new List<KategorijaViewItem>();
             }
 
             return View(model);
         }
-
-        // =============================================
-        // KRITICNI ARTIKLI
-        // =============================================
 
         public async Task<IActionResult> Kriticni(
             DateTime? datumOd,
@@ -343,10 +244,6 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                     "GomexApi"
                 );
 
-            // =============================================
-            // PAGINACIJA
-            // =============================================
-
             if (page < 1)
             {
                 page = 1;
@@ -361,10 +258,6 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
             {
                 pageSize = 100;
             }
-
-            // =============================================
-            // DATUMI
-            // =============================================
 
             DateOnly datumStart;
             DateOnly datumEnd;
@@ -419,10 +312,6 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                     );
             }
 
-            // =============================================
-            // PROVERA DATUMA
-            // =============================================
-
             if (datumStart > datumEnd)
             {
                 datumEnd =
@@ -433,10 +322,6 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                 datumStart =
                     datumEnd.AddDays(-29);
             }
-
-            // =============================================
-            // DEFAULT MODEL
-            // =============================================
 
             var model =
                 new PaginationResponse<
@@ -467,55 +352,42 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                         false
                 };
 
-            // =============================================
-            // API
-            // =============================================
-
             try
             {
                 var queryParts =
                     new List<string>
                     {
-                        $"datumOd=" +
-                        $"{datumStart:yyyy-MM-dd}",
-
-                        $"datumDo=" +
-                        $"{datumEnd:yyyy-MM-dd}",
-
+                        $"datumOd={datumStart:yyyy-MM-dd}",
+                        $"datumDo={datumEnd:yyyy-MM-dd}",
                         $"page={page}",
-
                         $"pageSize={pageSize}"
                     };
 
                 if (odeljenjeId.HasValue)
                 {
                     queryParts.Add(
-                        $"odeljenjeId=" +
-                        $"{odeljenjeId.Value}"
+                        $"odeljenjeId={odeljenjeId.Value}"
                     );
                 }
 
                 if (kategorijaId.HasValue)
                 {
                     queryParts.Add(
-                        $"kategorijaId=" +
-                        $"{kategorijaId.Value}"
+                        $"kategorijaId={kategorijaId.Value}"
                     );
                 }
 
                 if (dobavljacId.HasValue)
                 {
                     queryParts.Add(
-                        $"dobavljacId=" +
-                        $"{dobavljacId.Value}"
+                        $"dobavljacId={dobavljacId.Value}"
                     );
                 }
 
                 if (tipProdajeId.HasValue)
                 {
                     queryParts.Add(
-                        $"tipProdajeId=" +
-                        $"{tipProdajeId.Value}"
+                        $"tipProdajeId={tipProdajeId.Value}"
                     );
                 }
 
@@ -527,38 +399,30 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                     );
 
                 var url =
-                    $"api/artikli/" +
-                    $"CriticalPage{query}";
+                    $"api/artikli/CriticalPage{query}";
 
                 Console.WriteLine(
                     $"KRITICNI URL: {url}"
                 );
 
                 var result =
-                    await client
-                        .GetFromJsonAsync<
-                            PaginationResponse<
-                                CriticalProductPageViewItem
-                            >
-                        >(url);
+                    await client.GetFromJsonAsync<
+                        PaginationResponse<
+                            CriticalProductPageViewItem
+                        >
+                    >(url);
 
                 if (result != null)
                 {
-                    model =
-                        result;
+                    model = result;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(
-                    $"GRESKA KRITICNI ARTIKLI: " +
-                    $"{ex.Message}"
+                    $"GRESKA KRITICNI ARTIKLI: {ex.Message}"
                 );
             }
-
-            // =============================================
-            // VIEW DATA FILTERI
-            // =============================================
 
             ViewData["DatumOd"] =
                 datumStart;
@@ -584,16 +448,10 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
             );
         }
 
-        // =============================================
-        // DETALJI
-        // =============================================
-
         public async Task<IActionResult> Detalji(
             string sifra)
         {
-            if (string.IsNullOrWhiteSpace(
-                sifra
-            ))
+            if (string.IsNullOrWhiteSpace(sifra))
             {
                 return BadRequest();
             }
@@ -605,53 +463,18 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
 
             try
             {
-                // =============================================
-                // ARTIKAL
-                // =============================================
-
                 var artikal =
-                    await client
-                        .GetFromJsonAsync<
-                            ArtikalViewItem
-                        >(
-                            $"api/artikli/" +
-                            $"sifra/{sifra}"
-                        );
+                    await client.GetFromJsonAsync<
+                        ArtikalViewItem
+                    >(
+                        $"api/artikli/sifra/" +
+                        $"{Uri.EscapeDataString(sifra)}"
+                    );
 
-                if (artikal is null)
+                if (artikal == null)
                 {
                     return NotFound();
                 }
-
-                // =============================================
-                // DOBAVLJAC
-                // =============================================
-
-                DobavljacViewItem?
-                    dobavljac = null;
-
-                try
-                {
-                    dobavljac =
-                        await client
-                            .GetFromJsonAsync<
-                                DobavljacViewItem
-                            >(
-                                $"api/dobavljaci/" +
-                                $"{artikal.DobavljacId}"
-                            );
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(
-                        $"GRESKA DOBAVLJAC " +
-                        $"DETALJI: {ex.Message}"
-                    );
-                }
-
-                // =============================================
-                // AKTIVNA AKCIJA
-                // =============================================
 
                 AkcijaViewItem?
                     aktivnaAkcija = null;
@@ -659,16 +482,12 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                 try
                 {
                     var akcije =
-                        await client
-                            .GetFromJsonAsync<
-                                List<
-                                    AkcijaViewItem
-                                >
-                            >(
-                                $"api/akcije/" +
-                                $"artikal/" +
-                                $"{artikal.ArtikalId}"
-                            );
+                        await client.GetFromJsonAsync<
+                            List<AkcijaViewItem>
+                        >(
+                            $"api/akcije/artikal/" +
+                            $"{artikal.ArtikalId}"
+                        );
 
                     aktivnaAkcija =
                         akcije?
@@ -690,80 +509,15 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                 catch (Exception ex)
                 {
                     Console.WriteLine(
-                        $"GRESKA AKCIJE " +
-                        $"DETALJI: {ex.Message}"
-                    );
-                }
-
-                // =============================================
-                // RUC PODACI
-                //
-                // CriticalPage je sada paginiran.
-                // Za detalje uzmemo do 100 rezultata.
-                // =============================================
-
-                CriticalProductPageViewItem?
-                    rucPodaci = null;
-
-                try
-                {
-                    var datumDo =
-                        DateTime.Today;
-
-                    var datumOd =
-                        datumDo.AddDays(-29);
-
-                    var paged =
-                        await client
-                            .GetFromJsonAsync<
-                                PaginationResponse<
-                                    CriticalProductPageViewItem
-                                >
-                            >(
-                                $"api/artikli/" +
-                                $"CriticalPage" +
-                                $"?datumOd=" +
-                                $"{datumOd:yyyy-MM-dd}" +
-                                $"&datumDo=" +
-                                $"{datumDo:yyyy-MM-dd}" +
-                                $"&page=1" +
-                                $"&pageSize=100"
-                            );
-
-                    rucPodaci =
-                        paged?
-                            .Items
-                            .FirstOrDefault(
-                                p =>
-                                    p.ArtikalId
-                                    ==
-                                    artikal.ArtikalId
-                            );
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(
-                        $"GRESKA RUC DETALJI: " +
+                        $"GRESKA AKCIJE DETALJI: " +
                         $"{ex.Message}"
                     );
                 }
 
-                // =============================================
-                // VIEW DATA
-                // =============================================
-
-                ViewData["DobavljacNaziv"] =
-                    dobavljac?.Naziv;
-
                 ViewData["AktivnaAkcija"] =
                     aktivnaAkcija;
 
-                ViewData["RucPodaci"] =
-                    rucPodaci;
-
-                return View(
-                    artikal
-                );
+                return View(artikal);
             }
             catch (Exception ex)
             {
@@ -772,9 +526,7 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
                     $"{ex.Message}"
                 );
 
-                return StatusCode(
-                    500
-                );
+                return StatusCode(500);
             }
         }
     }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
 using Models.DtosComerc;
+using Models.ModelsDash;
 
 namespace GomexPraksa.Controllers;
 
@@ -96,5 +97,14 @@ public class AkcijeController : ControllerBase
         }
 
         return Ok(rezultat);
+    }
+    [HttpGet("TipAkcije")]
+    public async Task<ActionResult<IEnumerable<TipAkcije>>> GetAll()
+    {
+        var tipovi =
+            await _akcijaService
+                .GetAktivniTipoviAkcije();
+
+        return Ok(tipovi);
     }
 }

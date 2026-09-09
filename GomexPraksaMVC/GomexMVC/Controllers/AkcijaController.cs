@@ -8,57 +8,56 @@ namespace GomexPraksaMVC.Controllers
     {
         private readonly IHttpClientFactory _httpFactory;
 
-        public AkcijaController(
-            IHttpClientFactory httpFactory)
+        public AkcijaController(IHttpClientFactory httpFactory)
         {
             _httpFactory = httpFactory;
         }
 
         [HttpGet]
-        public async Task<IActionResult> DodajAkciju(
-            string? sifra)
+        public async Task<IActionResult> DodajAkciju(string? sifra)
         {
-            var client =
-                _httpFactory.CreateClient("GomexApi");
+            var client = _httpFactory.CreateClient("GomexApi");
 
-            var model =
-                new DodajAkcijuViewModel
-                {
-                    SifraArtikla =
-                        sifra ?? string.Empty,
+            var model = new DodajAkcijuViewModel
+            {
+                SifraArtikla = sifra ?? string.Empty,
+                DatumOd = DateOnly.FromDateTime(DateTime.Today),
+                DatumDo = DateOnly.FromDateTime(DateTime.Today.AddDays(7))
+            };
 
-                    DatumOd =
-                        DateOnly.FromDateTime(
-                            DateTime.Today
-                        ),
-
-                    DatumDo =
-                        DateOnly.FromDateTime(
-                            DateTime.Today.AddDays(7)
-                        )
-                };
-
-            await UcitajTipoveAkcije(
-                client,
-                model
-            );
+            await UcitajTipoveAkcije(client, model);
 
             return View(model);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DodajAkciju(
             DodajAkcijuViewModel model)
         {
-            var client =
-                _httpFactory.CreateClient("GomexApi");
+            var client = _httpFactory.CreateClient("GomexApi");
 
-            if (string.IsNullOrWhiteSpace(
-                model.SifraArtikla))
+            if (string.IsNullOrWhiteSpace(model.SifraArtikla))
             {
                 ModelState.AddModelError(
                     nameof(model.SifraArtikla),
                     "Šifra artikla je obavezna."
+                );
+            }
+
+            if (model.DatumOd == default)
+            {
+                ModelState.AddModelError(
+                    nameof(model.DatumOd),
+                    "Datum od je obavezan."
+                );
+            }
+
+            if (model.DatumDo == default)
+            {
+                ModelState.AddModelError(
+                    nameof(model.DatumDo),
+                    "Datum do je obavezan."
                 );
             }
 
@@ -88,46 +87,36 @@ namespace GomexPraksaMVC.Controllers
 
             if (!ModelState.IsValid)
             {
-                await UcitajTipoveAkcije(
-                    client,
-                    model
-                );
+                await UcitajTipoveAkcije(client, model);
 
                 return View(model);
             }
 
-            var request =
-                new DodajAkcijuApiRequest
-                {
-                    SifraArtikla =
-                        model.SifraArtikla.Trim(),
-
-                    DatumOd =
-                        model.DatumOd,
-
-                    DatumDo =
-                        model.DatumDo,
-
-                    AkcijskaCena =
-                        model.AkcijskaCena,
-
-                    TipAkcijeId =
-                        model.TipAkcijeId
-                };
+            var request = new DodajAkcijuApiRequest
+            {
+                SifraArtikla = model.SifraArtikla.Trim(),
+                DatumOd = model.DatumOd,
+                DatumDo = model.DatumDo,
+                AkcijskaCena = model.AkcijskaCena,
+                TipAkcijeId = model.TipAkcijeId
+            };
 
             try
             {
-                var response =
-                    await client.PostAsJsonAsync(
-                        "api/akcije/dodajAkciju",
-                        request
-                    );
+                var response = await client.PostAsJsonAsync(
+                    "api/akcije/dodajAkciju",
+                    request
+                );
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var error =
-                        await response.Content
-                            .ReadAsStringAsync();
+                        await response.Content.ReadAsStringAsync();
+
+                    Console.WriteLine(
+                        $"GRESKA API DODAVANJE AKCIJE: " +
+                        $"{response.StatusCode} | {error}"
+                    );
 
                     ModelState.AddModelError(
                         string.Empty,
@@ -136,10 +125,7 @@ namespace GomexPraksaMVC.Controllers
                             : error
                     );
 
-                    await UcitajTipoveAkcije(
-                        client,
-                        model
-                    );
+                    await UcitajTipoveAkcije(client, model);
 
                     return View(model);
                 }
@@ -148,14 +134,17 @@ namespace GomexPraksaMVC.Controllers
                     "Akcija je uspešno dodata.";
 
                 return RedirectToAction(
-                    nameof(DodajAkciju)
+                    nameof(Index),
+                    new
+                    {
+                        tab = "trenutne"
+                    }
                 );
             }
             catch (Exception ex)
             {
                 Console.WriteLine(
-                    $"GRESKA DODAVANJE AKCIJE: " +
-                    $"{ex.Message}"
+                    $"GRESKA DODAVANJE AKCIJE: {ex.Message}"
                 );
 
                 ModelState.AddModelError(
@@ -163,10 +152,7 @@ namespace GomexPraksaMVC.Controllers
                     "Došlo je do greške prilikom dodavanja akcije."
                 );
 
-                await UcitajTipoveAkcije(
-                    client,
-                    model
-                );
+                await UcitajTipoveAkcije(client, model);
 
                 return View(model);
             }
@@ -178,38 +164,35 @@ namespace GomexPraksaMVC.Controllers
             var akcije =
                 await UcitajIPopuniAkcije(tab);
 
-            var grupe =
-                akcije
-                    .GroupBy(a => a.TipAkcije)
-                    .Select(g =>
-                        new AkcijaGrupaViewItem
-                        {
-                            TipAkcije =
-                                g.Key,
+            var grupe = akcije
+                .GroupBy(a => a.TipAkcije)
+                .Select(g => new AkcijaGrupaViewItem
+                {
+                    TipAkcije =
+                        string.IsNullOrWhiteSpace(g.Key)
+                            ? "Bez naziva"
+                            : g.Key,
 
-                            DatumOd =
-                                g.Min(x => x.DatumOd),
+                    DatumOd =
+                        g.Min(x => x.DatumOd),
 
-                            DatumDo =
-                                g.Max(x => x.DatumDo),
+                    DatumDo =
+                        g.Max(x => x.DatumDo),
 
-                            BrojArtikala =
-                                g.Count(),
+                    BrojArtikala =
+                        g.Count(),
 
-                            Artikli =
-                                g.OrderByDescending(
-                                        x => x.DatumOd
-                                    )
-                                    .ToList()
-                        }
-                    )
-                    .OrderByDescending(
-                        g => g.DatumOd
-                    )
-                    .ToList();
+                    Artikli =
+                        g.OrderByDescending(
+                            x => x.DatumOd
+                        ).ToList()
+                })
+                .OrderByDescending(
+                    g => g.DatumOd
+                )
+                .ToList();
 
-            ViewData["ActiveTab"] =
-                tab;
+            ViewData["ActiveTab"] = tab;
 
             return View(grupe);
         }
@@ -224,24 +207,16 @@ namespace GomexPraksaMVC.Controllers
             var akcije =
                 await UcitajIPopuniAkcije(tab);
 
-            var artikliUGrupi =
-                akcije
-                    .Where(
-                        a =>
-                            a.TipAkcije
-                            == tipAkcije
-                    )
-                    .ToList();
+            var artikliUGrupi = akcije
+                .Where(
+                    a => a.TipAkcije == tipAkcije
+                )
+                .ToList();
 
-            if (
-                datumOd != null
-                &&
-                datumDo != null
-                &&
-                datumOd.Length > 0
-                &&
-                datumDo.Length > 0
-            )
+            if (datumOd != null &&
+                datumDo != null &&
+                datumOd.Length > 0 &&
+                datumDo.Length > 0)
             {
                 var pairs =
                     new HashSet<string>();
@@ -252,11 +227,7 @@ namespace GomexPraksaMVC.Controllers
                         datumDo.Length
                     );
 
-                for (
-                    int i = 0;
-                    i < len;
-                    i++
-                )
+                for (int i = 0; i < len; i++)
                 {
                     pairs.Add(
                         datumOd[i]
@@ -271,66 +242,52 @@ namespace GomexPraksaMVC.Controllers
                     );
                 }
 
-                artikliUGrupi =
-                    artikliUGrupi
-                        .Where(
-                            a =>
-                                pairs.Contains(
-                                    a.DatumOd
-                                        .Date
-                                        .ToString(
-                                            "yyyy-MM-dd"
-                                        )
-                                    +
-                                    "_"
-                                    +
-                                    a.DatumDo
-                                        .Date
-                                        .ToString(
-                                            "yyyy-MM-dd"
-                                        )
-                                )
+                artikliUGrupi = artikliUGrupi
+                    .Where(a =>
+                        pairs.Contains(
+                            a.DatumOd
+                                .Date
+                                .ToString("yyyy-MM-dd")
+                            +
+                            "_"
+                            +
+                            a.DatumDo
+                                .Date
+                                .ToString("yyyy-MM-dd")
                         )
-                        .ToList();
+                    )
+                    .ToList();
             }
 
-            if (!string.IsNullOrWhiteSpace(
-                filter))
+            if (!string.IsNullOrWhiteSpace(filter))
             {
-                var f =
-                    filter.Trim();
+                var f = filter.Trim();
 
-                artikliUGrupi =
-                    artikliUGrupi
-                        .Where(
-                            a =>
-                                (
-                                    !string.IsNullOrWhiteSpace(
-                                        a.ArtikalNaziv
-                                    )
-                                    &&
-                                    a.ArtikalNaziv!
-                                        .Contains(
-                                            f,
-                                            StringComparison
-                                                .OrdinalIgnoreCase
-                                        )
-                                )
-                                ||
-                                (
-                                    !string.IsNullOrWhiteSpace(
-                                        a.ArtikalSifra
-                                    )
-                                    &&
-                                    a.ArtikalSifra!
-                                        .Contains(
-                                            f,
-                                            StringComparison
-                                                .OrdinalIgnoreCase
-                                        )
-                                )
+                artikliUGrupi = artikliUGrupi
+                    .Where(a =>
+                        (
+                            !string.IsNullOrWhiteSpace(
+                                a.ArtikalNaziv
+                            )
+                            &&
+                            a.ArtikalNaziv!.Contains(
+                                f,
+                                StringComparison.OrdinalIgnoreCase
+                            )
                         )
-                        .ToList();
+                        ||
+                        (
+                            !string.IsNullOrWhiteSpace(
+                                a.ArtikalSifra
+                            )
+                            &&
+                            a.ArtikalSifra!.Contains(
+                                f,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                    )
+                    .ToList();
             }
 
             var grupa =
@@ -341,18 +298,16 @@ namespace GomexPraksaMVC.Controllers
 
                     DatumOd =
                         artikliUGrupi.Any()
-                            ? artikliUGrupi
-                                .Min(
-                                    a => a.DatumOd
-                                )
+                            ? artikliUGrupi.Min(
+                                a => a.DatumOd
+                            )
                             : DateTime.Today,
 
                     DatumDo =
                         artikliUGrupi.Any()
-                            ? artikliUGrupi
-                                .Max(
-                                    a => a.DatumDo
-                                )
+                            ? artikliUGrupi.Max(
+                                a => a.DatumDo
+                            )
                             : DateTime.Today,
 
                     BrojArtikala =
@@ -362,8 +317,7 @@ namespace GomexPraksaMVC.Controllers
                         artikliUGrupi
                 };
 
-            ViewData["Tab"] =
-                tab;
+            ViewData["Tab"] = tab;
 
             return View(grupa);
         }
@@ -375,101 +329,86 @@ namespace GomexPraksaMVC.Controllers
             var akcije =
                 await UcitajIPopuniAkcije(tab);
 
-            var periods =
-                akcije
-                    .Where(
-                        a =>
-                            a.TipAkcije
-                            == tipAkcije
-                    )
-                    .GroupBy(
-                        a =>
-                            new
-                            {
-                                Od =
-                                    a.DatumOd.Date,
+            var periods = akcije
+                .Where(
+                    a => a.TipAkcije == tipAkcije
+                )
+                .GroupBy(a => new
+                {
+                    Od = a.DatumOd.Date,
+                    Do = a.DatumDo.Date
+                })
+                .Select(g =>
+                    new AkcijaPeriodViewItem
+                    {
+                        DatumOd =
+                            g.Key.Od,
 
-                                Do =
-                                    a.DatumDo.Date
-                            }
-                    )
-                    .Select(
-                        g =>
-                            new AkcijaPeriodViewItem
-                            {
-                                DatumOd =
-                                    g.Key.Od,
+                        DatumDo =
+                            g.Key.Do,
 
-                                DatumDo =
-                                    g.Key.Do,
+                        BrojArtikala =
+                            g.Count()
+                    }
+                )
+                .OrderByDescending(
+                    p => p.DatumOd
+                )
+                .ToList();
 
-                                BrojArtikala =
-                                    g.Count()
-                            }
-                    )
-                    .OrderByDescending(
-                        p => p.DatumOd
-                    )
-                    .ToList();
-
-            ViewData["Tab"] =
-                tab;
+            ViewData["Tab"] = tab;
 
             return View(periods);
         }
 
-        private async Task<
-            List<AkcijaViewItem>
-        > UcitajIPopuniAkcije(
-            string tab)
+        private async Task<List<AkcijaViewItem>>
+            UcitajIPopuniAkcije(string tab)
         {
             var client =
-                _httpFactory.CreateClient(
-                    "GomexApi"
-                );
+                _httpFactory.CreateClient("GomexApi");
 
-            string endpoint =
-                tab switch
-                {
-                    "buduce" =>
-                        "api/akcije/buduce",
+            string endpoint = tab switch
+            {
+                "buduce" =>
+                    "api/akcije/buduce",
 
-                    "trenutne" =>
-                        "api/akcije/trenutne",
+                "trenutne" =>
+                    "api/akcije/trenutne",
 
-                    _ =>
-                        "api/akcije"
-                };
+                _ =>
+                    "api/akcije"
+            };
 
-            List<AkcijaViewItem>
-                akcije;
+            List<AkcijaViewItem> akcije;
 
             try
             {
                 akcije =
-                    await client
-                        .GetFromJsonAsync<
-                            List<AkcijaViewItem>
-                        >(endpoint)
+                    await client.GetFromJsonAsync<
+                        List<AkcijaViewItem>
+                    >(endpoint)
                     ??
                     new List<AkcijaViewItem>();
             }
-            catch
+            catch (Exception ex)
             {
-                akcije =
-                    new List<AkcijaViewItem>();
+                Console.WriteLine(
+                    $"GRESKA UČITAVANJE AKCIJA: " +
+                    $"{ex.Message}"
+                );
+
+                return new List<AkcijaViewItem>();
             }
 
             if (tab == "prethodne")
             {
-                akcije =
-                    akcije
-                        .Where(
-                            a =>
-                                a.DatumDo
-                                < DateTime.Today
-                        )
-                        .ToList();
+                akcije = akcije
+                    .Where(
+                        a =>
+                            a.DatumDo
+                            < DateTime.Today
+                    )
+                    .ToList();
             }
 
             if (!akcije.Any())
@@ -477,54 +416,56 @@ namespace GomexPraksaMVC.Controllers
                 return akcije;
             }
 
-            List<ArtikalViewItem>
-                sviArtikli;
-
-            try
-            {
-                var paged =
-                    await client
-                        .GetFromJsonAsync<
-                            PaginationResponse<
-                                ArtikalViewItem
-                            >
-                        >(
-                            "api/artikli?page=1&pageSize=100"
-                        );
-
-                sviArtikli =
-                    paged?.Items
-                    ??
-                    new List<ArtikalViewItem>();
-            }
-            catch
-            {
-                sviArtikli =
-                    new List<ArtikalViewItem>();
-            }
+            var artikalIds = akcije
+                .Where(
+                    a => a.ArtikalId > 0
+                )
+                .Select(
+                    a => a.ArtikalId
+                )
+                .Distinct()
+                .ToList();
 
             var artikalCache =
-                sviArtikli
-                    .Where(
-                        a => a != null
-                    )
-                    .GroupBy(
-                        a => a.ArtikalId
-                    )
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.First()
-                    );
+                new Dictionary<
+                    int,
+                    ArtikalViewItem
+                >();
 
-            foreach (
-                var akcija in akcije)
+            foreach (var id in artikalIds)
+            {
+                try
+                {
+                    var artikal =
+                        await client
+                            .GetFromJsonAsync<
+                                ArtikalViewItem
+                            >(
+                                $"api/artikli/{id}"
+                            );
+
+                    if (artikal != null)
+                    {
+                        artikalCache[id] =
+                            artikal;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(
+                        $"GRESKA UČITAVANJE ARTIKLA " +
+                        $"{id}: {ex.Message}"
+                    );
+                }
+            }
+
+            foreach (var akcija in akcije)
             {
                 if (
-                    artikalCache
-                        .TryGetValue(
-                            akcija.ArtikalId,
-                            out var artikal
-                        )
+                    artikalCache.TryGetValue(
+                        akcija.ArtikalId,
+                        out var artikal
+                    )
                 )
                 {
                     akcija.ArtikalNaziv =
@@ -538,74 +479,6 @@ namespace GomexPraksaMVC.Controllers
                 }
             }
 
-            var missingIds =
-                akcije
-                    .Where(
-                        a =>
-                            string.IsNullOrWhiteSpace(
-                                a.ArtikalNaziv
-                            )
-                            &&
-                            a.ArtikalId > 0
-                    )
-                    .Select(
-                        a => a.ArtikalId
-                    )
-                    .Distinct()
-                    .ToList();
-
-            if (missingIds.Any())
-            {
-                foreach (
-                    var id in missingIds)
-                {
-                    try
-                    {
-                        var single =
-                            await client
-                                .GetFromJsonAsync<
-                                    ArtikalViewItem
-                                >(
-                                    $"api/artikli/{id}"
-                                );
-
-                        if (single != null)
-                        {
-                            artikalCache[id] =
-                                single;
-                        }
-                    }
-                    catch
-                    {
-                    }
-                }
-
-                foreach (
-                    var akcija in akcije)
-                {
-                    if (
-                        string.IsNullOrWhiteSpace(
-                            akcija.ArtikalNaziv
-                        )
-                        &&
-                        artikalCache.TryGetValue(
-                            akcija.ArtikalId,
-                            out var art
-                        )
-                    )
-                    {
-                        akcija.ArtikalNaziv =
-                            art.Naziv;
-
-                        akcija.ArtikalSifra =
-                            art.Sifra;
-
-                        akcija.RedovnaCena =
-                            art.RedovnaCena;
-                    }
-                }
-            }
-
             return akcije;
         }
 
@@ -616,20 +489,36 @@ namespace GomexPraksaMVC.Controllers
             try
             {
                 var tipovi =
-                    await client
-                        .GetFromJsonAsync<
-                            List<TipAkcijeViewItem>
-                        >(
-                            "api/tipakcije"
-                        );
+                    await client.GetFromJsonAsync<
+                        List<TipAkcijeViewItem>
+                    >(
+                        "api/akcije/TipAkcije"
+                    );
 
                 model.TipoviAkcija =
-                    tipovi
+                    tipovi?
+                        .Where(
+                            x => x.Aktivan
+                        )
+                        .OrderBy(
+                            x => x.Naziv
+                        )
+                        .ToList()
                     ??
                     new List<TipAkcijeViewItem>();
+
+                Console.WriteLine(
+                    $"UČITANO TIPOVA AKCIJE: " +
+                    $"{model.TipoviAkcija.Count}"
+                );
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(
+                    $"GRESKA TIPOVI AKCIJE: " +
+                    $"{ex.Message}"
+                );
+
                 model.TipoviAkcija =
                     new List<TipAkcijeViewItem>();
             }
@@ -637,8 +526,8 @@ namespace GomexPraksaMVC.Controllers
 
         private class DodajAkcijuApiRequest
         {
-            public string SifraArtikla { get; set; }
-                = string.Empty;
+            public string SifraArtikla { get; set; } =
+                string.Empty;
 
             public DateOnly DatumOd { get; set; }
 

@@ -4,18 +4,29 @@
     ViewData["Title"] = "Artikli";
 }
 
-<div class="dashboard-header mb-4">
-    <h2 class="mb-1">Artikli</h2>
+<div class="d-flex justify-content-between align-items-start mb-4">
 
-    <p class="text-secondary mb-0">
-        Lista artikala i filteri
-    </p>
+    <div>
+        <h4 class="mb-1">
+            Artikli
+        </h4>
+
+        <div class="text-secondary small">
+            Pregled proizvoda i komercijalnih rezultata
+        </div>
+    </div>
+
+    <div class="text-secondary small">
+        Ukupno: @Model.TotalCount
+    </div>
+
 </div>
 
-<div class="filter-card mb-4">
+<div class="metric-card mb-4">
 
-    <form method="get"
-          class="filter-bar d-flex align-items-end">
+    <form asp-controller="Artikal"
+          asp-action="Index"
+          method="get">
 
         <input type="hidden"
                name="page"
@@ -25,100 +36,128 @@
                name="pageSize"
                value="@Model.PageSize" />
 
-        <div class="filter-group mb-0">
+        <div class="row g-3">
 
-            <label>
-                Naziv
-            </label>
+            <div class="col-xl-3 col-md-6">
 
-            <input type="text"
-                   name="naziv"
-                   class="form-control"
-                   value="@Model.Naziv"
-                   placeholder="Pretraži po nazivu" />
+                <label class="form-label small">
+                    Naziv
+                </label>
 
-        </div>
+                <input type="text"
+                       name="naziv"
+                       value="@Model.Naziv"
+                       class="form-control"
+                       placeholder="Naziv artikla" />
 
-        <div class="filter-group mb-0">
+            </div>
 
-            <label>
-                Šifra
-            </label>
+            <div class="col-xl-2 col-md-6">
 
-            <input type="text"
-                   name="sifra"
-                   class="form-control"
-                   value="@Model.Sifra"
-                   placeholder="Pretraži po šifri" />
+                <label class="form-label small">
+                    Šifra
+                </label>
 
-        </div>
+                <input type="text"
+                       name="sifra"
+                       value="@Model.Sifra"
+                       class="form-control"
+                       placeholder="Šifra artikla" />
 
-        <div class="filter-group mb-0">
+            </div>
 
-            <label>
-                Dobavljač
-            </label>
+            <div class="col-xl-3 col-md-6">
 
-            <select class="form-select"
-                    name="dobavljacId">
+                <label class="form-label small">
+                    Dobavljač
+                </label>
 
-                <option value="">
-                    Svi dobavljači
-                </option>
+                <select name="dobavljacId"
+                        class="form-select">
 
-                @foreach (var d in Model.Dobavljaci)
-                {
-                    <option value="@d.DobavljacId"
-                            selected="@(Model.SelectedDobavljacId == d.DobavljacId ? "selected" : null)">
-                        @d.Naziv
+                    <option value="">
+                        Svi dobavljači
                     </option>
-                }
 
-            </select>
+                    @foreach (var d in Model.Dobavljaci)
+                    {
+                        if (Model.SelectedDobavljacId ==
+                            d.DobavljacId)
+                        {
+                            <option value="@d.DobavljacId"
+                                    selected>
+                                @d.Naziv
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@d.DobavljacId">
+                                @d.Naziv
+                            </option>
+                        }
+                    }
 
-        </div>
+                </select>
 
-        <div class="filter-group mb-0">
+            </div>
 
-            <label>
-                Odeljenje
-            </label>
+            <div class="col-xl-2 col-md-6">
 
-            <select class="form-select"
-                    name="odeljenjeId">
+                <label class="form-label small">
+                    Odeljenje
+                </label>
 
-                <option value="">
-                    Sva odeljenja
-                </option>
+                <select name="odeljenjeId"
+                        class="form-select">
 
-                @foreach (var o in Model.Odeljenja)
-                {
-                    <option value="@o.OdeljenjeId"
-                            selected="@(Model.SelectedOdeljenjeId == o.OdeljenjeId ? "selected" : null)">
-                        @o.Naziv
+                    <option value="">
+                        Sva odeljenja
                     </option>
-                }
 
-            </select>
+                    @foreach (var o in Model.Odeljenja)
+                    {
+                        if (Model.SelectedOdeljenjeId ==
+                            o.OdeljenjeId)
+                        {
+                            <option value="@o.OdeljenjeId"
+                                    selected>
+                                @o.Naziv
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@o.OdeljenjeId">
+                                @o.Naziv
+                            </option>
+                        }
+                    }
 
-        </div>
+                </select>
 
-        <div class="filter-group d-flex align-items-end mb-0">
+            </div>
 
-            <button type="submit"
-                    class="btn btn-primary">
+            <div class="col-xl-2 col-md-6 d-flex align-items-end">
 
-                Primeni filtere
+                <div class="d-flex gap-2 w-100">
 
-            </button>
+                    <button type="submit"
+                            class="btn btn-primary flex-grow-1">
 
-            <a asp-controller="Artikal"
-               asp-action="Index"
-               class="btn btn-secondary ms-2">
+                        Primeni
 
-                Poništi
+                    </button>
 
-            </a>
+                    <a asp-controller="Artikal"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        Reset
+
+                    </a>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -126,17 +165,17 @@
 
 </div>
 
-<div class="metric-card">
+<div class="metric-card p-0 overflow-hidden">
 
     <div class="table-responsive">
 
-        <table class="table table-sm table-striped align-middle mb-0">
+        <table class="table table-hover align-middle mb-0">
 
             <thead>
 
                 <tr>
 
-                    <th>
+                    <th class="ps-3">
                         Šifra
                     </th>
 
@@ -148,15 +187,24 @@
                         Dobavljač
                     </th>
 
-                    <th>
-                        Robna grupa
+                    <th class="text-end">
+                        Promet
                     </th>
 
-                    <th>
-                        Aktivan
+                    <th class="text-end">
+                        RUC12
                     </th>
 
-                    <th>
+                    <th class="text-end">
+                        RUC12 %
+                    </th>
+
+                    <th class="text-end">
+                        MIX+MARGINA
+                    </th>
+
+                    <th class="text-end pe-3">
+                        Detalji
                     </th>
 
                 </tr>
@@ -167,42 +215,62 @@
 
                 @if (Model.Artikli.Any())
                 {
-                    @foreach (var a in Model.Artikli)
+                    foreach (var artikal in Model.Artikli)
                     {
+                        var rucKlasa =
+                            artikal.RUC12 < 0
+                                ? "text-danger"
+                                : artikal.RUC12 > 0
+                                    ? "text-success"
+                                    : "text-secondary";
+
+                        var marginaKlasa =
+                            artikal.Margina < 0
+                                ? "text-danger"
+                                : artikal.Margina > 0
+                                    ? "text-success"
+                                    : "text-secondary";
+
                         <tr>
 
-                            <td>
-                                @a.Sifra
-                            </td>
+                            <td class="ps-3">
 
-                            <td>
-                                <strong>
-                                    @a.Naziv
-                                </strong>
-                            </td>
+                                <span class="fw-medium">
+                                    @artikal.Sifra
+                                </span>
 
-                            <td>
-                                @(string.IsNullOrWhiteSpace(a.NazivDobavljaca)
-                                    ? "-"
-                                    : a.NazivDobavljaca)
-                            </td>
-
-                            <td>
-                                @a.RobnaGrupaId
                             </td>
 
                             <td>
 
-                                @if (a.Aktivan)
+                                <div class="fw-medium">
+                                    @artikal.Naziv
+                                </div>
+
+                                @if (artikal.RedovnaCena.HasValue)
                                 {
-                                    <span class="badge bg-success">
-                                        Da
-                                    </span>
+                                    <div class="text-secondary small">
+
+                                        Cena:
+                                        @artikal.RedovnaCena.Value.ToString("N2")
+                                        RSD
+
+                                    </div>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                    artikal.NazivDobavljaca))
+                                {
+                                    @artikal.NazivDobavljaca
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">
-                                        Ne
+                                    <span class="text-secondary">
+                                        —
                                     </span>
                                 }
 
@@ -210,10 +278,55 @@
 
                             <td class="text-end">
 
+                                <span class="fw-medium">
+                                    @artikal.Promet.ToString("N0")
+                                </span>
+
+                                <span class="text-secondary small">
+                                    RSD
+                                </span>
+
+                            </td>
+
+                            <td class="text-end @rucKlasa">
+
+                                <span class="fw-medium">
+                                    @artikal.RUC12.ToString("N0")
+                                </span>
+
+                                <span class="small">
+                                    RSD
+                                </span>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                @(
+                                    (artikal.RUC12Procenat * 100m)
+                                    .ToString("N2")
+                                )%
+
+                            </td>
+
+                            <td class="text-end @marginaKlasa">
+
+                                <span class="fw-medium">
+                                    @artikal.Margina.ToString("N0")
+                                </span>
+
+                                <span class="small">
+                                    RSD
+                                </span>
+
+                            </td>
+
+                            <td class="text-end pe-3">
+
                                 <a asp-controller="Artikal"
                                    asp-action="Detalji"
-                                   asp-route-sifra="@a.Sifra"
-                                   class="btn btn-sm btn-outline-secondary">
+                                   asp-route-sifra="@artikal.Sifra"
+                                   class="btn btn-sm btn-outline-primary">
 
                                     Detalji
 
@@ -228,8 +341,8 @@
                 {
                     <tr>
 
-                        <td colspan="6"
-                            class="text-center text-secondary py-4">
+                        <td colspan="8"
+                            class="text-center text-secondary py-5">
 
                             Nema pronađenih artikala.
 
@@ -246,9 +359,9 @@
 
     @if (Model.TotalPages > 0)
     {
-        <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
 
-            <div class="text-secondary">
+            <div class="text-secondary small">
 
                 Strana
 
@@ -262,13 +375,9 @@
                     @Model.TotalPages
                 </strong>
 
-                · Ukupno
+                &middot;
 
-                <strong>
-                    @Model.TotalCount
-                </strong>
-
-                artikala
+                Ukupno @Model.TotalCount artikala
 
             </div>
 
@@ -283,8 +392,9 @@
                        asp-route-naziv="@Model.Naziv"
                        asp-route-sifra="@Model.Sifra"
                        asp-route-dobavljacId="@Model.SelectedDobavljacId"
-                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
                        asp-route-robnaGrupaId="@Model.SelectedRobnaGrupaId"
+                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
+                       asp-route-kategorijaId="@Model.SelectedKategorijaId"
                        class="btn btn-sm btn-outline-secondary">
 
                         Prethodna
@@ -301,8 +411,9 @@
                        asp-route-naziv="@Model.Naziv"
                        asp-route-sifra="@Model.Sifra"
                        asp-route-dobavljacId="@Model.SelectedDobavljacId"
-                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
                        asp-route-robnaGrupaId="@Model.SelectedRobnaGrupaId"
+                       asp-route-odeljenjeId="@Model.SelectedOdeljenjeId"
+                       asp-route-kategorijaId="@Model.SelectedKategorijaId"
                        class="btn btn-sm btn-outline-primary">
 
                         Sledeća

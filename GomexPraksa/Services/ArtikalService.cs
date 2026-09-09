@@ -173,7 +173,26 @@ namespace GomexPraksa.Services
                 RobnaGrupaId = artikal.RobnaGrupaId,
                 Aktivan = artikal.Aktivan,
                 RedovnaCena = artikal.RedovnaCena,
-                NazivDobavljaca = artikal.NazivDobavljaca
+                NazivDobavljaca = artikal.NazivDobavljaca,
+
+                Promet = artikal.Promet,
+                RUC12 = artikal.RUC12,
+                RUC12Procenat = artikal.RUC12Procenat,
+
+                PlanPromet = artikal.PlanPromet,
+                PlanRUC12 = artikal.PlanRUC12,
+                PlanRUC12Procenat = artikal.PlanRUC12Procenat,
+
+                OdstupanjeRUC12ProcentniPoeni =
+                    artikal.OdstupanjeRUC12ProcentniPoeni,
+
+                Margina = artikal.Margina,
+
+                NedostatakMargine =
+                    artikal.NedostatakMargine,
+
+                PoslednjiDatumPodataka =
+                    artikal.PoslednjiDatumPodataka
             };
         }
     }

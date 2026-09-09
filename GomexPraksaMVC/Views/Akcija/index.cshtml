@@ -88,7 +88,7 @@
         <div class="mb-3">
 
             <i class="bi bi-calendar-x"
-               style="font-size: 32px;">
+               style="font-size:32px;">
             </i>
 
         </div>
@@ -105,7 +105,7 @@ else
 
         @foreach (var grupa in Model)
         {
-            <div class="col-md-4">
+            <div class="col-xl-4 col-md-6">
 
                 <div class="
                     metric-card
@@ -158,6 +158,75 @@ else
                                 @grupa.DatumDo.ToString("dd.MM.yyyy")
 
                             </strong>
+
+                        </div>
+
+                        <div class="row g-2 mb-3">
+
+                            <div class="col-6">
+
+                                <div class="border rounded p-2">
+
+                                    <div class="text-secondary small">
+                                        Actual promet
+                                    </div>
+
+                                    <div class="fw-semibold">
+
+                                        @grupa.UkupanActualPromet.ToString("N0")
+
+                                        <span class="text-secondary small">
+                                            RSD
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-6">
+
+                                <div class="border rounded p-2">
+
+                                    <div class="text-secondary small">
+                                        Actual RUC12
+                                    </div>
+
+                                    <div class="fw-semibold">
+
+                                        @grupa.UkupanActualRUC12.ToString("N0")
+
+                                        <span class="text-secondary small">
+                                            RSD
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <div class="border rounded p-2">
+
+                                    <div class="text-secondary small">
+                                        Actual RUC12 %
+                                    </div>
+
+                                    <div class="fw-semibold">
+
+                                        @(
+                                            (grupa.ActualRUC12Procenat * 100m)
+                                            .ToString("N2")
+                                        )%
+
+                                    </div>
+
+                                </div>
+
+                            </div>
 
                         </div>
 

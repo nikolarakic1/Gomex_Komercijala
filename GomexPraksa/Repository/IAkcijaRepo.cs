@@ -17,5 +17,6 @@ namespace GomexPraksa.Repository
 
         Task<AkcijaDetalji?> GetPoslednjuZaArtikalAsync(int artikalId);
         Task<Akcija?> DodajAkciju(Akcija akcija);
+        Task<IEnumerable<TipAkcije>> GetAktivniTipoviAkcije();
     }
 }
