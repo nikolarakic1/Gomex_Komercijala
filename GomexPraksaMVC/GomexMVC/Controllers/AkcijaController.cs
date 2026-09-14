@@ -14,6 +14,51 @@ namespace GomexPraksaMVC.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Tipovi()
+        {
+            var client = _httpFactory.CreateClient("GomexApi");
+
+            try
+            {
+                var tipovi = await client.GetFromJsonAsync<List<TipAkcijeViewItem>>("api/akcije/TipAkcije");
+                var aktivni = tipovi?.Where(x => x.Aktivan).OrderBy(x => x.Naziv).ToList() ?? new List<TipAkcijeViewItem>();
+                return Json(aktivni);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GRESKA Tipovi: {ex.Message}");
+                return StatusCode(500, "Lookup failed");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LookupArtikli(string prefix)
+        {
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                return Json(new List<ArtikalViewItem>());
+            }
+
+            var client = _httpFactory.CreateClient("GomexApi");
+
+            try
+            {
+                var url = $"api/artikli/search?sifra={Uri.EscapeDataString(prefix)}&page=1&pageSize=10";
+
+                var resp = await client.GetFromJsonAsync<PaginationResponse<ArtikalViewItem>>(url);
+
+                var items = resp?.Items ?? new List<ArtikalViewItem>();
+
+                return Json(items);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GRESKA LookupArtikli: {ex.Message}");
+                return StatusCode(500, "Lookup failed");
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> DodajAkciju(string? sifra)
         {
             var client = _httpFactory.CreateClient("GomexApi");
@@ -320,6 +365,36 @@ namespace GomexPraksaMVC.Controllers
             ViewData["Tab"] = tab;
 
             return View(grupa);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LookupArtikal(string sifra)
+        {
+            if (string.IsNullOrWhiteSpace(sifra))
+            {
+                return BadRequest();
+            }
+
+            var client = _httpFactory.CreateClient("GomexApi");
+
+            try
+            {
+                var artikal = await client.GetFromJsonAsync<ArtikalViewItem>(
+                    $"api/artikli/sifra/{Uri.EscapeDataString(sifra)}"
+                );
+
+                if (artikal == null)
+                {
+                    return NotFound();
+                }
+
+                return Json(artikal);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GRESKA LookupArtikal: {ex.Message}");
+                return StatusCode(500, "Lookup failed");
+            }
         }
 
         public async Task<IActionResult> Periods(

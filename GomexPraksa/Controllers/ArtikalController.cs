@@ -53,13 +53,23 @@ namespace GomexPraksa.Controllers
             GetById(
                 int id)
         {
-            var artikal =
-                await _artikalService
-                    .GetByIdAsync(
-                        id
-                    );
-
-            return Ok(artikal);
+            try
+            {
+                var artikal = await _artikalService.GetByIdAsync(id);
+                return Ok(artikal);
+            }
+            catch (ArgumentException aex)
+            {
+                return BadRequest(aex.Message);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
         }
 
         // =============================================
@@ -72,13 +82,23 @@ namespace GomexPraksa.Controllers
             GetBySifra(
                 string sifra)
         {
-            var artikal =
-                await _artikalService
-                    .GetBySifraAsync(
-                        sifra
-                    );
-
-            return Ok(artikal);
+            try
+            {
+                var artikal = await _artikalService.GetBySifraAsync(sifra);
+                return Ok(artikal);
+            }
+            catch (ArgumentException aex)
+            {
+                return BadRequest(aex.Message);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
         }
 
         // =============================================

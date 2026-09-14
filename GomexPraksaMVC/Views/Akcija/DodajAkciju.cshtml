@@ -4,217 +4,7 @@
     ViewData["Title"] = "Dodaj akciju";
 }
 
-<style>
-    .add-action-page {
-        max-width: 980px;
-        margin: 0 auto;
-    }
-
-    .add-action-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .add-action-title {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 800;
-        color: #26312B;
-    }
-
-    .add-action-subtitle {
-        margin: 5px 0 0;
-        font-size: 14px;
-        color: #748079;
-    }
-
-    .add-action-card {
-        background: linear-gradient( 145deg, #FFFFFF 0%, #F6F9F7 100% );
-        border: 1px solid #DDE5E1;
-        border-radius: 18px;
-        box-shadow: 0 2px 4px rgba(20, 32, 26, .03), 0 14px 34px rgba(20, 32, 26, .07);
-        overflow: hidden;
-    }
-
-    .add-action-card-header {
-        padding: 20px 22px;
-        border-bottom: 1px solid #E1E8E4;
-        background: linear-gradient( 180deg, #F9FBFA 0%, #F2F6F4 100% );
-    }
-
-    .add-action-card-header-title {
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: .45px;
-        text-transform: uppercase;
-        color: #46534C;
-    }
-
-    .add-action-card-header-text {
-        margin-top: 4px;
-        font-size: 12px;
-        color: #7A8580;
-    }
-
-    .add-action-body {
-        padding: 24px;
-    }
-
-    .form-section {
-        margin-bottom: 28px;
-    }
-
-        .form-section:last-child {
-            margin-bottom: 0;
-        }
-
-    .form-section-title {
-        margin-bottom: 14px;
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-        color: #4C5A53;
-    }
-
-    .form-label {
-        margin-bottom: 7px;
-        font-size: 12px;
-        font-weight: 700;
-        color: #4B5650;
-    }
-
-    .form-control,
-    .form-select {
-        min-height: 44px;
-        border-radius: 10px;
-        border: 1px solid #D6DFDA;
-        background: #FFFFFF;
-        font-size: 13px;
-        color: #2F3934;
-        box-shadow: none;
-    }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #4BA77E;
-            box-shadow: 0 0 0 3px rgba(75, 167, 126, .12);
-        }
-
-    .input-group-text {
-        border-color: #D6DFDA;
-        background: #F4F7F5;
-        color: #59645E;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .info-box {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 13px 15px;
-        border-radius: 10px;
-        background: #EEF6F2;
-        border: 1px solid #D6E9DF;
-        color: #4B5D54;
-        font-size: 12px;
-        line-height: 1.5;
-    }
-
-        .info-box i {
-            margin-top: 1px;
-            color: #2E805F;
-        }
-
-    .action-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 14px;
-        padding: 18px 22px;
-        border-top: 1px solid #E1E8E4;
-        background: #F8FAF9;
-    }
-
-    .action-footer-left {
-        color: #7B8580;
-        font-size: 11px;
-    }
-
-    .action-footer-buttons {
-        display: flex;
-        gap: 10px;
-    }
-
-    .btn-add-action {
-        min-width: 145px;
-        border-radius: 9px;
-        font-weight: 700;
-    }
-
-    .success-alert {
-        border-radius: 12px;
-        border: 1px solid #BFE3D1;
-        background: #EAF7F0;
-        color: #216647;
-    }
-
-    .validation-summary-errors {
-        padding: 12px 14px;
-        margin-bottom: 18px;
-        border-radius: 10px;
-        border: 1px solid #F0C8C5;
-        background: #FCEDEC;
-        color: #A23B35;
-        font-size: 12px;
-    }
-
-        .validation-summary-errors ul {
-            margin: 0;
-            padding-left: 18px;
-        }
-
-    .field-validation-error {
-        display: block;
-        margin-top: 5px;
-        font-size: 11px;
-        color: #B63E38;
-    }
-
-    .empty-types {
-        padding: 12px 14px;
-        margin-top: 8px;
-        border-radius: 10px;
-        border: 1px solid #F1D4A9;
-        background: #FFF7E8;
-        color: #8A651D;
-        font-size: 12px;
-    }
-
-    @@media (max-width: 768px) {
-        .add-action-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .action-footer {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .action-footer-buttons {
-            width: 100%;
-        }
-
-            .action-footer-buttons .btn {
-                flex: 1;
-            }
-    }
-</style>
+<link rel="stylesheet" href="~/css/akcija-dodaj.css" asp-append-version="true" />
 
 <div class="add-action-page">
 
@@ -286,7 +76,7 @@
 
                     <div class="row g-3">
 
-                        <div class="col-md-6">
+                        <div class="col-md-6" style="position:relative;">
 
                             <label asp-for="SifraArtikla"
                                    class="form-label">
@@ -297,12 +87,21 @@
 
                             <input asp-for="SifraArtikla"
                                    class="form-control"
-                                   placeholder="Na primer 10019"
+                                   placeholder="Na primer 10118"
                                    autocomplete="off" />
+
+                            <div id="article-suggestions" class="list-group position-absolute w-100" style="z-index:1000;display:none;max-height:240px;overflow:auto;"></div>
 
                             <span asp-validation-for="SifraArtikla"
                                   class="text-danger">
                             </span>
+
+                            <div id="article-preview" class="mt-3" style="display:none;">
+                                <div class="card p-2" style="border:1px solid #e6ebe8;border-radius:8px;background:#fbfdfc;">
+                                    <div id="article-name" style="font-weight:700;color:#2f3934;"></div>
+                                    <div id="article-price" style="color:#4b5650;margin-top:4px;"></div>
+                                </div>
+                            </div>
 
                         </div>
 
@@ -422,11 +221,24 @@
                                        step="0.01"
                                        min="0.01"
                                        class="form-control"
-                                       placeholder="0.00" />
-
+                                       placeholder="0.00"
+                                       id="akcijska-cena" />
                                 <span class="input-group-text">
                                     RSD
                                 </span>
+
+                                <span class="input-group-text" style="border-left:1px solid #d6dfda;border-right:0;background:#f7fbf9;">
+                                    % popusta
+                                </span>
+
+                                <input type="number"
+                                       id="discount-percent"
+                                       name="DiscountPercent"
+                                       class="form-control"
+                                       step="1"
+                                       min="0"
+                                       max="99.99"
+                                       placeholder="0.00" />
 
                             </div>
 
@@ -492,4 +304,5 @@
 @section Scripts
 {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/akcija-dodaj.js" asp-append-version="true"></script>
 }
