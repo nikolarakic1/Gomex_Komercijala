@@ -6,12 +6,15 @@
     DateOnly datumOd =
         ViewData["DatumOd"] is DateOnly start
             ? start
-            : DateOnly.FromDateTime(DateTime.Today).AddDays(-29);
+            : DateOnly
+                .FromDateTime(DateTime.Today)
+                .AddDays(-29);
 
     DateOnly datumDo =
         ViewData["DatumDo"] is DateOnly end
             ? end
-            : DateOnly.FromDateTime(DateTime.Today);
+            : DateOnly
+                .FromDateTime(DateTime.Today);
 
     int? odeljenjeId =
         ViewData["OdeljenjeId"] as int?;
@@ -46,6 +49,12 @@
         ?? Enumerable.Empty<
             GomexPraksaMVC.Models.CriticalProductPageViewItem
         >();
+
+    int godinaDo =
+        datumDo.Year;
+
+    int godinaOd =
+        godinaDo - 1;
 }
 
 <style>
@@ -147,7 +156,7 @@
             border-bottom: 1px solid #E8EDEB;
             color: #3F4944;
             vertical-align: middle;
-            background: rgba(255, 255, 255, .7);
+            background: rgba(255,255,255,.7);
             font-size: 12px;
         }
 
@@ -269,6 +278,28 @@
             font-weight: 600;
         }
 
+    .critical-detail-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid #BFD7CC;
+        border-radius: 8px;
+        padding: 6px 10px;
+        background: #F1F8F5;
+        color: #23785A;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+        transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+
+        .critical-detail-button:hover {
+            background: #23785A;
+            border-color: #23785A;
+            color: white;
+        }
+
     .critical-footer {
         display: flex;
         justify-content: space-between;
@@ -312,17 +343,9 @@
         background: #F4F6F5;
     }
 
-    @@media (max-width: 768px) {
-        .critical-header {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .critical-card-header {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
+    @@media(max-width:768px) {
+        .critical-header,
+        .critical-card-header,
         .critical-footer {
             align-items: flex-start;
             flex-direction: column;
@@ -335,11 +358,16 @@
     <div class="critical-header">
 
         <div>
-            <h2>Kritični artikli</h2>
+
+            <h2>
+                Kritični artikli
+            </h2>
 
             <p>
-                Poređenje stvarnog rezultata sa planiranim prometom i maržom
+                Poređenje stvarnog rezultata
+                sa planiranim prometom i maržom
             </p>
+
         </div>
 
         <a asp-controller="Dashboard"
@@ -354,6 +382,7 @@
 
             <i class="bi bi-arrow-left me-1"></i>
             Nazad na Dashboard
+
         </a>
 
     </div>
@@ -602,19 +631,24 @@
                                     @(item.Dobavljac ?? "-")
                                 </td>
 
-                                <td class="numeric-cell actual-value">
+                                <td class="
+                                    numeric-cell
+                                    actual-value">
 
                                     @item.Promet.ToString("N0")
                                     RSD
 
                                 </td>
 
-                                <td class="numeric-cell plan-value">
+                                <td class="
+                                    numeric-cell
+                                    plan-value">
 
                                     @if (imaPlan)
                                     {
                                         <span>
-                                            @item.PlanPromet.ToString("N0") RSD
+                                            @item.PlanPromet.ToString("N0")
+                                            RSD
                                         </span>
                                     }
                                     else
@@ -630,20 +664,22 @@
                                     numeric-cell
                                     @(item.RUC12 < 0
                                         ? "negative-value"
-                                        : "actual-value")
-                                    ">
+                                        : "actual-value")">
 
                                     @item.RUC12.ToString("N0")
                                     RSD
 
                                 </td>
 
-                                <td class="numeric-cell plan-value">
+                                <td class="
+                                    numeric-cell
+                                    plan-value">
 
                                     @if (imaPlan)
                                     {
                                         <span>
-                                            @item.PlanRuc.ToString("N0") RSD
+                                            @item.PlanRuc.ToString("N0")
+                                            RSD
                                         </span>
                                     }
                                     else
@@ -659,24 +695,29 @@
                                     numeric-cell
                                     @(item.RUC12Procenat < 0
                                         ? "negative-value"
-                                        : "actual-value")
-                                    ">
+                                        : "actual-value")">
 
                                     @(
-                                        (item.RUC12Procenat * 100m)
-                                            .ToString("0.00")
+                                        (
+                                            item.RUC12Procenat *
+                                            100m
+                                        ).ToString("0.00")
                                     )%
 
                                 </td>
 
-                                <td class="numeric-cell plan-value">
+                                <td class="
+                                    numeric-cell
+                                    plan-value">
 
                                     @if (imaPlan)
                                     {
                                         <span>
                                             @(
-                                                (item.PlanRucProcenat * 100m)
-                                                    .ToString("0.00")
+                                                (
+                                                    item.PlanRucProcenat *
+                                                    100m
+                                                ).ToString("0.00")
                                             )%
                                         </span>
                                     }
@@ -693,11 +734,17 @@
 
                                     @if (imaPlan)
                                     {
-                                        <span class="@odstupanjeClass">
+                                        <span class="
+                                            @odstupanjeClass">
 
                                             @(
-                                                (item.OdstupanjeProcentniPoeni * 100m)
-                                                    .ToString("+0.00;-0.00;0.00")
+                                                (
+                                                    item.OdstupanjeProcentniPoeni *
+                                                    100m
+                                                )
+                                                .ToString(
+                                                    "+0.00;-0.00;0.00"
+                                                )
                                             )
                                             p.p.
 
@@ -714,15 +761,17 @@
 
                                 <td class="numeric-cell">
 
-                                    <div class="critical-margin-box">
+                                    <div class="
+                                        critical-margin-box">
 
                                         @if (imaPlan)
                                         {
-                                            <span class="@marginClass">
+                                            <span class="
+                                                @marginClass">
 
-                                                @(
-                                                    item.NedostatakMargine
-                                                        .ToString("+N0;-N0;0")
+                                                @item.NedostatakMargine
+                                                .ToString(
+                                                "+N0;-N0;0"
                                                 )
                                                 RSD
 
@@ -751,8 +800,7 @@
 
                                     <span class="
                                         critical-status
-                                        @statusClass
-                                        ">
+                                        @statusClass">
 
                                         @item.Status
 
@@ -763,11 +811,15 @@
                                 <td class="text-end">
 
                                     <a asp-controller="Artikal"
-                                       asp-action="Detalji"
+                                       asp-action="KriticniDetalji"
                                        asp-route-sifra="@item.Sifra"
-                                       class="btn btn-sm btn-outline-primary">
+                                       asp-route-godinaOd="@godinaOd"
+                                       asp-route-godinaDo="@godinaDo"
+                                       class="critical-detail-button">
 
-                                        Detalji
+                                        <i class="bi bi-graph-up-arrow"></i>
+
+                                        Analiza
 
                                     </a>
 
@@ -822,8 +874,7 @@
                                     Model.HasPreviousPage
                                         ? ""
                                         : "disabled"
-                                )
-                                ">
+                                )">
 
                                 <a class="page-link"
                                    asp-controller="Artikal"
@@ -881,7 +932,9 @@
 
                                 @if (startPage > 2)
                                 {
-                                    <li class="page-item disabled">
+                                    <li class="
+                                        page-item
+                                        disabled">
 
                                         <span class="page-link">
                                             ...
@@ -903,8 +956,7 @@
                                         i == currentPage
                                             ? "active"
                                             : ""
-                                    )
-                                    ">
+                                    )">
 
                                     <a class="page-link"
                                        asp-controller="Artikal"
@@ -927,9 +979,14 @@
 
                             @if (endPage < totalPages)
                             {
-                                @if (endPage < totalPages - 1)
+                                @if (
+                                    endPage <
+                                    totalPages - 1
+                                )
                                 {
-                                    <li class="page-item disabled">
+                                    <li class="
+                                        page-item
+                                        disabled">
 
                                         <span class="page-link">
                                             ...
@@ -965,8 +1022,7 @@
                                     Model.HasNextPage
                                         ? ""
                                         : "disabled"
-                                )
-                                ">
+                                )">
 
                                 <a class="page-link"
                                    asp-controller="Artikal"
@@ -998,8 +1054,7 @@
             <div class="
                 text-center
                 text-secondary
-                py-5
-                ">
+                py-5">
 
                 Nema kritičnih artikala
                 za izabrani period.

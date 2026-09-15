@@ -1,3 +1,4 @@
+using GomexPraksa.AddedFunctions;
 using GomexPraksa.ApplicationUserSecurity;
 using GomexPraksa.Auth;
 using GomexPraksa.ConnectionFactory;
@@ -5,6 +6,7 @@ using GomexPraksa.JWTInfo;
 using GomexPraksa.KomercijalaStaging;
 using GomexPraksa.Repository;
 using GomexPraksa.RepositoryComerc;
+using GomexPraksa.ServiceComerc;
 using GomexPraksa.Services;
 using GomexPraksa.ServicesComerc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -143,6 +145,15 @@ builder.Services.AddScoped<IUserAccess, UserAccess>();
 
 builder.Services.AddScoped<IStagingRepo, StagingRepo>();
 builder.Services.AddScoped<IStagingService, StagingService>();
+builder.Services.AddScoped<
+    ICriticalArticleDetailsRepo,
+    CriticalArticleDetailsRepo
+>();
+
+builder.Services.AddScoped<
+    ICriticalArticleDetailsService,
+    CriticalArticleDetailsService
+>();
 
 // =========================
 // APP

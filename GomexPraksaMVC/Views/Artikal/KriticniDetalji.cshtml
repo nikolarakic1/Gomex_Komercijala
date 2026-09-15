@@ -1,0 +1,1742 @@
+﻿@using System.Globalization
+@model GomexPraksaMVC.Models.CriticalArticleDetailsViewItem
+
+@{
+    ViewData["Title"] = "Analiza kritičnog artikla";
+
+    var culture =
+        CultureInfo.GetCultureInfo(
+            "sr-Latn-RS"
+        );
+
+    var godinaOd =
+        Convert.ToInt32(
+            ViewData["GodinaOd"] ?? 2025
+        );
+
+    var godinaDo =
+        Convert.ToInt32(
+            ViewData["GodinaDo"] ?? 2026
+        );
+
+    var actualOd =
+        Model.Performanse
+            .Where(x =>
+                x.Godina == godinaOd &&
+                x.Tip.Equals(
+                    "ACTUAL",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .ToList();
+
+    var actualDo =
+        Model.Performanse
+            .Where(x =>
+                x.Godina == godinaDo &&
+                x.Tip.Equals(
+                    "ACTUAL",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .ToList();
+
+    var planDo =
+        Model.Performanse
+            .Where(x =>
+                x.Godina == godinaDo &&
+                x.Tip.Equals(
+                    "PLAN",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .ToList();
+
+    var redovna =
+        actualDo
+            .Where(x =>
+                x.VrstaProdaje.Equals(
+                    "REDOVNA",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .ToList();
+
+    var akcijska =
+        actualDo
+            .Where(x =>
+                x.VrstaProdaje.Equals(
+                    "AKCIJSKA",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .OrderByDescending(x =>
+                x.CmUtice
+            )
+            .ThenBy(x =>
+                x.Ruc12Procenat
+            )
+            .ToList();
+
+    decimal actualPrometOd =
+        actualOd.Sum(x => x.Promet);
+
+    decimal actualRucOd =
+        actualOd.Sum(x => x.Ruc12);
+
+    decimal actualPctOd =
+        actualPrometOd == 0
+            ? 0
+            : actualRucOd /
+              actualPrometOd;
+
+    decimal actualPrometDo =
+        actualDo.Sum(x => x.Promet);
+
+    decimal actualRucDo =
+        actualDo.Sum(x => x.Ruc12);
+
+    decimal actualPctDo =
+        actualPrometDo == 0
+            ? 0
+            : actualRucDo /
+              actualPrometDo;
+
+    decimal planPromet =
+        planDo.Sum(x => x.Promet);
+
+    decimal planRuc =
+        planDo.Sum(x => x.Ruc12);
+
+    decimal planPct =
+        planPromet == 0
+            ? 0
+            : planRuc /
+              planPromet;
+
+    decimal redovnaPromet =
+        redovna.Sum(x => x.Promet);
+
+    decimal redovnaRuc =
+        redovna.Sum(x => x.Ruc12);
+
+    decimal redovnaPct =
+        redovnaPromet == 0
+            ? 0
+            : redovnaRuc /
+              redovnaPromet;
+
+    decimal akcijskaPromet =
+        akcijska.Sum(x => x.Promet);
+
+    decimal akcijskaRuc =
+        akcijska.Sum(x => x.Ruc12);
+
+    decimal akcijskaPct =
+        akcijskaPromet == 0
+            ? 0
+            : akcijskaRuc /
+              akcijskaPromet;
+
+    decimal prometPromena =
+        actualPrometOd == 0
+            ? 0
+            : (
+                actualPrometDo -
+                actualPrometOd
+              ) /
+              Math.Abs(actualPrometOd);
+
+    decimal rucPromena =
+        actualRucOd == 0
+            ? 0
+            : (
+                actualRucDo -
+                actualRucOd
+              ) /
+              Math.Abs(actualRucOd);
+
+    decimal rucPp =
+        (
+            actualPctDo -
+            actualPctOd
+        ) * 100m;
+
+    decimal planPp =
+        (
+            actualPctDo -
+            planPct
+        ) * 100m;
+
+    var sveAkcije =
+        Model.Performanse
+            .Where(x =>
+                x.Tip.Equals(
+                    "ACTUAL",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                &&
+                x.VrstaProdaje.Equals(
+                    "AKCIJSKA",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .GroupBy(x =>
+                x.TipAkcije
+            )
+            .Select(g => new
+            {
+                Naziv =
+                    g.Key,
+
+                Godine =
+                    g.Select(x => x.Godina)
+                        .Distinct()
+                        .OrderBy(x => x)
+                        .ToList(),
+
+                Kolicina =
+                    g.Sum(x => x.Kolicina),
+
+                Promet =
+                    g.Sum(x => x.Promet),
+
+                Ruc =
+                    g.Sum(x => x.Ruc12),
+
+                CmUtice =
+                    g.Any(x => x.CmUtice)
+            })
+            .OrderByDescending(x =>
+                x.CmUtice
+            )
+            .ThenByDescending(x =>
+                x.Promet
+            )
+            .ToList();
+
+    string Money(decimal value)
+    {
+        return value.ToString(
+            "N0",
+            culture
+        );
+    }
+
+    string Number(decimal value)
+    {
+        return value.ToString(
+            "N2",
+            culture
+        );
+    }
+
+    string Percent(decimal value)
+    {
+        return (
+            value * 100m
+        ).ToString(
+            "N2",
+            culture
+        ) + "%";
+    }
+
+    string ValueClass(decimal value)
+    {
+        if (value < 0)
+        {
+            return "negative";
+        }
+
+        if (value < 0.05m)
+        {
+            return "warning";
+        }
+
+        return "positive";
+    }
+
+    string DeltaClass(decimal value)
+    {
+        if (value < 0)
+        {
+            return "negative";
+        }
+
+        if (value > 0)
+        {
+            return "positive";
+        }
+
+        return "neutral";
+    }
+}
+
+<style>
+    .critical-detail-page {
+        width: 100%;
+        min-width: 0;
+        color: #26312B;
+    }
+
+    .detail-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .detail-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #66716B;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+        .detail-back:hover {
+            color: #23785A;
+        }
+
+    .year-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px;
+        border: 1px solid #DCE4E0;
+        border-radius: 12px;
+        background: #FFFFFF;
+    }
+
+        .year-form span {
+            margin-left: 5px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #737D78;
+            text-transform: uppercase;
+        }
+
+        .year-form select {
+            border: 1px solid #DCE4E0;
+            border-radius: 8px;
+            padding: 7px 9px;
+            background: #F7FAF8;
+            color: #39443E;
+            font-weight: 700;
+        }
+
+        .year-form button {
+            border: 0;
+            border-radius: 8px;
+            padding: 8px 13px;
+            background: #23785A;
+            color: white;
+            font-weight: 800;
+        }
+
+    .detail-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    .hero-info,
+    .hero-status {
+        border: 1px solid #DCE4E0;
+        border-radius: 16px;
+        box-shadow: 0 1px 2px rgba(20, 32, 26, .04), 0 10px 28px rgba(20, 32, 26, .06);
+    }
+
+    .hero-info {
+        padding: 25px;
+        background: linear-gradient( 145deg, #FCFEFD 0%, #F4F8F6 100% );
+    }
+
+    .article-code {
+        display: inline-flex;
+        padding: 5px 10px;
+        border-radius: 7px;
+        background: #E7F4ED;
+        color: #23785A;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .hero-info h1 {
+        margin: 12px 0 10px;
+        font-size: 27px;
+        line-height: 1.2;
+        font-weight: 900;
+        color: #26312B;
+    }
+
+    .hero-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        color: #717B76;
+        font-size: 13px;
+    }
+
+        .hero-meta strong {
+            color: #39443E;
+        }
+
+    .hero-status {
+        padding: 20px;
+        background: #17231D;
+        color: white;
+    }
+
+    .hero-status-label {
+        display: block;
+        margin-bottom: 10px;
+        color: #9CAB9F;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .7px;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        padding: 6px 11px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 900;
+    }
+
+    .status-action {
+        background: #65DA8A;
+        color: #12341F;
+    }
+
+    .status-regular {
+        background: #E9EFEB;
+        color: #39443E;
+    }
+
+    .current-action {
+        margin-top: 11px;
+        font-size: 17px;
+        font-weight: 900;
+    }
+
+    .price-info {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 15px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255,255,255,.12);
+        font-size: 12px;
+    }
+
+        .price-info strong {
+            font-size: 14px;
+        }
+
+    .detail-card {
+        margin-bottom: 20px;
+        padding: 22px;
+        border: 1px solid #DCE4E0;
+        border-radius: 16px;
+        background: #FFFFFF;
+        box-shadow: 0 1px 2px rgba(20, 32, 26, .03), 0 8px 24px rgba(20, 32, 26, .045);
+    }
+
+    .detail-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .detail-eyebrow {
+        margin-bottom: 3px;
+        color: #23785A;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .6px;
+    }
+
+    .detail-card-header h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 900;
+    }
+
+    .health-pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 900;
+    }
+
+    .health-danger {
+        color: #9F2F2A;
+        background: #FCEBE9;
+    }
+
+    .health-warning {
+        color: #A64A20;
+        background: #FFF1E6;
+    }
+
+    .health-good {
+        color: #197653;
+        background: #E9F6F0;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    .kpi {
+        min-height: 125px;
+        padding: 17px;
+        border: 1px solid #E1E7E4;
+        border-radius: 13px;
+        background: #F8FBF9;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .kpi-primary {
+        background: #17231D;
+        border-color: #17231D;
+        color: white;
+    }
+
+    .kpi-label {
+        color: #737D78;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+    }
+
+    .kpi-primary .kpi-label {
+        color: #A2AEA7;
+    }
+
+    .kpi strong {
+        font-size: 25px;
+        font-weight: 900;
+    }
+
+    .kpi small {
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .positive {
+        color: #197653 !important;
+    }
+
+    .negative {
+        color: #B33B35 !important;
+    }
+
+    .warning {
+        color: #A56B17 !important;
+    }
+
+    .neutral {
+        color: #737D78 !important;
+    }
+
+    .sales-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .sales-card {
+        padding: 19px;
+        border: 1px solid #E1E7E4;
+        border-radius: 14px;
+        background: #FAFCFB;
+    }
+
+        .sales-card.action {
+            background: #F0F8F4;
+            border-color: #CBE4D7;
+        }
+
+    .sales-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 18px;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .sales-share {
+        color: #737D78;
+        font-weight: 700;
+    }
+
+    .sales-values {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+        .sales-values span {
+            display: block;
+            margin-bottom: 4px;
+            color: #87908B;
+            font-size: 10px;
+        }
+
+        .sales-values strong {
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+    .campaign-grid {
+        display: grid;
+        grid-template-columns: repeat( auto-fit, minmax(280px, 1fr) );
+        gap: 12px;
+    }
+
+    .campaign-card {
+        padding: 17px;
+        border: 1px solid #E1E7E4;
+        border-radius: 14px;
+        background: #FCFDFD;
+    }
+
+        .campaign-card.cm {
+            box-shadow: inset 3px 0 0 #23785A;
+            border-color: #C4DDD2;
+        }
+
+    .campaign-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .campaign-name {
+        margin-top: 8px;
+        font-size: 15px;
+        font-weight: 900;
+    }
+
+    .badge-action,
+    .badge-cm,
+    .badge-special {
+        display: inline-flex;
+        margin-right: 4px;
+        padding: 4px 6px;
+        border-radius: 5px;
+        font-size: 8px;
+        font-weight: 900;
+    }
+
+    .badge-action {
+        color: #197653;
+        background: #E9F6F0;
+    }
+
+    .badge-cm {
+        color: #FFFFFF;
+        background: #17231D;
+    }
+
+    .badge-special {
+        color: #86620A;
+        background: #FFF4CF;
+    }
+
+    .campaign-ruc {
+        text-align: right;
+        font-size: 20px;
+        font-weight: 900;
+    }
+
+        .campaign-ruc span {
+            display: block;
+            color: #87908B;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+    .campaign-values {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 13px;
+        border-top: 1px solid #E8EDEB;
+    }
+
+        .campaign-values span {
+            display: block;
+            color: #87908B;
+            font-size: 9px;
+        }
+
+        .campaign-values strong {
+            display: block;
+            margin-top: 3px;
+            font-size: 12px;
+        }
+
+    .campaign-years {
+        display: flex;
+        gap: 5px;
+        margin-top: 13px;
+    }
+
+        .campaign-years span {
+            padding: 3px 6px;
+            border-radius: 5px;
+            background: #F0F4F2;
+            color: #66716B;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+    .table-container {
+        overflow-x: auto;
+        border: 1px solid #E1E7E4;
+        border-radius: 12px;
+    }
+
+    .detail-table {
+        width: 100%;
+        min-width: 1050px;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+        .detail-table th {
+            padding: 11px 12px;
+            background: #EDF3F0;
+            color: #53605A;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .detail-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E8EDEB;
+        }
+
+        .detail-table tbody tr:hover {
+            background: #F5F9F7;
+        }
+
+    .numeric {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .type-pill {
+        padding: 4px 6px;
+        border-radius: 5px;
+        font-size: 9px;
+        font-weight: 900;
+    }
+
+    .actual {
+        color: #197653;
+        background: #E9F6F0;
+    }
+
+    .plan {
+        color: #49629A;
+        background: #EDF0F8;
+    }
+
+    .effect-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    .effect-card {
+        padding: 17px;
+        border: 1px solid #E1E7E4;
+        border-radius: 13px;
+        background: #F8FBF9;
+    }
+
+        .effect-card span {
+            display: block;
+            margin-bottom: 8px;
+            color: #737D78;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .effect-card strong {
+            font-size: 22px;
+            font-weight: 900;
+        }
+
+        .effect-card small {
+            display: block;
+            margin-top: 6px;
+            color: #87908B;
+        }
+
+    .effect-total {
+        background: #17231D;
+        border-color: #17231D;
+        color: white;
+    }
+
+        .effect-total span,
+        .effect-total small {
+            color: #A2AEA7;
+        }
+
+    @@media(max-width:1100px) {
+        .detail-hero {
+            grid-template-columns: 1fr;
+        }
+
+        .kpi-grid,
+        .effect-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media(max-width:768px) {
+        .detail-topbar {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .year-form {
+            flex-wrap: wrap;
+        }
+
+        .sales-grid,
+        .kpi-grid,
+        .effect-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .sales-values,
+        .campaign-values {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="critical-detail-page">
+
+    <div class="detail-topbar">
+
+        <a asp-controller="Artikal"
+           asp-action="Kriticni"
+           class="detail-back">
+            <i class="bi bi-arrow-left"></i>
+            Nazad na kritične artikle
+        </a>
+
+        <form method="get"
+              asp-controller="Artikal"
+              asp-action="KriticniDetalji"
+              class="year-form">
+
+            <input type="hidden"
+                   name="sifra"
+                   value="@Model.Sifra" />
+
+            <span>Uporedi</span>
+
+            <select name="godinaOd">
+
+                @for (
+                    int y =
+                        DateTime.Today.Year - 5;
+                    y <= DateTime.Today.Year;
+                    y++
+                )
+                {
+                    if (y == godinaOd)
+                    {
+                        <option value="@y"
+                                selected>
+                            @y
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@y">
+                            @y
+                        </option>
+                    }
+                }
+
+            </select>
+
+            <span>sa</span>
+
+            <select name="godinaDo">
+
+                @for (
+                    int y =
+                        DateTime.Today.Year - 5;
+                    y <= DateTime.Today.Year;
+                    y++
+                )
+                {
+                    if (y == godinaDo)
+                    {
+                        <option value="@y"
+                                selected>
+                            @y
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@y">
+                            @y
+                        </option>
+                    }
+                }
+
+            </select>
+
+            <button type="submit">
+                Primeni
+            </button>
+
+        </form>
+
+    </div>
+
+    <div class="detail-hero">
+
+        <div class="hero-info">
+
+            <span class="article-code">
+                @Model.Sifra
+            </span>
+
+            <h1>
+                @Model.Naziv
+            </h1>
+
+            <div class="hero-meta">
+
+                <span>
+                    Dobavljač:
+                    <strong>
+                        @(Model.Dobavljac ?? "-")
+                    </strong>
+                </span>
+
+                <span>
+                    Artikal ID:
+                    <strong>
+                        @Model.ArtikalId
+                    </strong>
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="hero-status">
+
+            <span class="hero-status-label">
+                Trenutni status
+            </span>
+
+            @if (
+                Model.TrenutniStatus.Equals(
+                    "AKCIJSKA",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                <span class="
+                    status-pill
+                    status-action">
+                    AKCIJSKA
+                </span>
+
+                @if (
+                    !string.IsNullOrWhiteSpace(
+                        Model.TrenutniTipAkcije
+                    )
+                )
+                {
+                    <div class="current-action">
+                        @Model.TrenutniTipAkcije
+                    </div>
+                }
+            }
+            else
+            {
+                <span class="
+                    status-pill
+                    status-regular">
+                    REDOVNA
+                </span>
+            }
+
+            @if (Model.RedovnaCena.HasValue)
+            {
+                <div class="price-info">
+
+                    <span>
+                        Redovna cena
+                    </span>
+
+                    <strong>
+                        @Number(
+                            Model.RedovnaCena.Value
+                        ) RSD
+                    </strong>
+
+                </div>
+            }
+
+            @if (Model.AkcijskaCena.HasValue)
+            {
+                <div class="price-info">
+
+                    <span>
+                        Akcijska cena
+                    </span>
+
+                    <strong>
+                        @Number(
+                            Model.AkcijskaCena.Value
+                        ) RSD
+                    </strong>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+    <div class="detail-card">
+
+        <div class="detail-card-header">
+
+            <div>
+
+                <div class="detail-eyebrow">
+                    Glavne performanse
+                </div>
+
+                <h2>
+                    @godinaOd vs @godinaDo
+                </h2>
+
+            </div>
+
+            @if (actualPctDo < 0)
+            {
+                <span class="
+                    health-pill
+                    health-danger">
+                    Negativan RUC
+                </span>
+            }
+            else if (
+                planPromet > 0 &&
+                actualPctDo < planPct
+            )
+            {
+                <span class="
+                    health-pill
+                    health-warning">
+                    Ispod plana
+                </span>
+            }
+            else
+            {
+                <span class="
+                    health-pill
+                    health-good">
+                    Stabilno
+                </span>
+            }
+
+        </div>
+
+        <div class="kpi-grid">
+
+            <div class="kpi">
+
+                <span class="kpi-label">
+                    Promet @godinaDo
+                </span>
+
+                <strong>
+                    @Money(actualPrometDo)
+                </strong>
+
+                <small class="
+                    @DeltaClass(prometPromena)">
+                    @(
+                        prometPromena >= 0
+                            ? "+"
+                            : ""
+                    )
+                    @Percent(prometPromena)
+                    vs @godinaOd
+                </small>
+
+            </div>
+
+            <div class="kpi">
+
+                <span class="kpi-label">
+                    RUC12 @godinaDo
+                </span>
+
+                <strong class="
+                    @ValueClass(actualPctDo)">
+                    @Money(actualRucDo)
+                </strong>
+
+                <small class="
+                    @DeltaClass(rucPromena)">
+                    @(
+                        rucPromena >= 0
+                            ? "+"
+                            : ""
+                    )
+                    @Percent(rucPromena)
+                    vs @godinaOd
+                </small>
+
+            </div>
+
+            <div class="
+                kpi
+                kpi-primary">
+
+                <span class="kpi-label">
+                    RUC12 %
+                </span>
+
+                <strong class="
+                    @ValueClass(actualPctDo)">
+                    @Percent(actualPctDo)
+                </strong>
+
+                <small class="
+                    @DeltaClass(rucPp)">
+                    @rucPp.ToString(
+                        "+0.00;-0.00;0.00"
+                    ) p.p.
+                </small>
+
+            </div>
+
+            <div class="kpi">
+
+                <span class="kpi-label">
+                    Plan RUC %
+                </span>
+
+                <strong>
+                    @Percent(planPct)
+                </strong>
+
+                <small class="
+                    @DeltaClass(planPp)">
+                    @planPp.ToString(
+                        "+0.00;-0.00;0.00"
+                    ) p.p.
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="detail-card">
+
+        <div class="detail-card-header">
+
+            <div>
+
+                <div class="detail-eyebrow">
+                    Struktura prodaje
+                </div>
+
+                <h2>
+                    Redovna i akcijska prodaja
+                </h2>
+
+            </div>
+
+        </div>
+
+        <div class="sales-grid">
+
+            <div class="sales-card">
+
+                <div class="sales-title">
+
+                    <span>
+                        REDOVNA
+                    </span>
+
+                    <span class="sales-share">
+                        @Percent(
+                            actualPrometDo == 0
+                                ? 0
+                                : redovnaPromet /
+                                  actualPrometDo
+                        )
+                        prometa
+                    </span>
+
+                </div>
+
+                <div class="sales-values">
+
+                    <div>
+                        <span>Promet</span>
+                        <strong>
+                            @Money(redovnaPromet)
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>RUC12</span>
+                        <strong>
+                            @Money(redovnaRuc)
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>RUC12 %</span>
+                        <strong class="
+                            @ValueClass(redovnaPct)">
+                            @Percent(redovnaPct)
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="
+                sales-card
+                action">
+
+                <div class="sales-title">
+
+                    <span>
+                        AKCIJSKA
+                    </span>
+
+                    <span class="sales-share">
+                        @Percent(
+                            actualPrometDo == 0
+                                ? 0
+                                : akcijskaPromet /
+                                  actualPrometDo
+                        )
+                        prometa
+                    </span>
+
+                </div>
+
+                <div class="sales-values">
+
+                    <div>
+                        <span>Promet</span>
+                        <strong>
+                            @Money(akcijskaPromet)
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>RUC12</span>
+                        <strong>
+                            @Money(akcijskaRuc)
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>RUC12 %</span>
+                        <strong class="
+                            @ValueClass(akcijskaPct)">
+                            @Percent(akcijskaPct)
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="detail-card">
+
+        <div class="detail-card-header">
+
+            <div>
+
+                <div class="detail-eyebrow">
+                    Akcijska istorija
+                </div>
+
+                <h2>
+                    Sve akcije artikla
+                </h2>
+
+            </div>
+
+            <span class="neutral">
+                @sveAkcije.Count
+                tipova akcija
+            </span>
+
+        </div>
+
+        <div class="campaign-grid">
+
+            @foreach (var akcija in sveAkcije)
+            {
+                decimal pct =
+                    akcija.Promet == 0
+                        ? 0
+                        : akcija.Ruc /
+                          akcija.Promet;
+
+                <div class="
+                    campaign-card
+                    @(akcija.CmUtice
+                        ? "cm"
+                        : "")">
+
+                    <div class="campaign-head">
+
+                        <div>
+
+                            <span class="badge-action">
+                                AKCIJSKA
+                            </span>
+
+                            @if (akcija.CmUtice)
+                            {
+                                <span class="badge-cm">
+                                    CM UTIČE
+                                </span>
+                            }
+
+                            @if (
+                                akcija.Naziv.Contains(
+                                    "SPECIJAL",
+                                    StringComparison.OrdinalIgnoreCase
+                                )
+                            )
+                            {
+                                <span class="badge-special">
+                                    SPECIJAL
+                                </span>
+                            }
+
+                            <div class="campaign-name">
+                                @akcija.Naziv
+                            </div>
+
+                        </div>
+
+                        <div class="
+                            campaign-ruc
+                            @ValueClass(pct)">
+
+                            @Percent(pct)
+
+                            <span>
+                                RUC
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="campaign-values">
+
+                        <div>
+                            <span>Promet</span>
+                            <strong>
+                                @Money(
+                                    akcija.Promet
+                                )
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>RUC12</span>
+                            <strong>
+                                @Money(
+                                    akcija.Ruc
+                                )
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Količina</span>
+                            <strong>
+                                @Number(
+                                    akcija.Kolicina
+                                )
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="campaign-years">
+
+                        @foreach (
+                            var godina
+                            in akcija.Godine
+                        )
+                        {
+                            <span>
+                                @godina
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+    <div class="detail-card">
+
+        <div class="detail-card-header">
+
+            <div>
+
+                <div class="detail-eyebrow">
+                    Detaljna analiza
+                </div>
+
+                <h2>
+                    Pivot performanse
+                </h2>
+
+            </div>
+
+        </div>
+
+        <div class="table-container">
+
+            <table class="detail-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Godina
+                        </th>
+
+                        <th>
+                            Tip
+                        </th>
+
+                        <th>
+                            Prodaja
+                        </th>
+
+                        <th>
+                            Akcija
+                        </th>
+
+                        <th class="numeric">
+                            Količina
+                        </th>
+
+                        <th class="numeric">
+                            Promet
+                        </th>
+
+                        <th class="numeric">
+                            RUC12
+                        </th>
+
+                        <th class="numeric">
+                            RUC12 %
+                        </th>
+
+                        <th>
+                            CM
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @foreach (
+                        var row
+                        in Model.Performanse
+                            .OrderByDescending(
+                                x => x.Godina
+                            )
+                            .ThenBy(
+                                x =>
+                                    x.Tip ==
+                                    "ACTUAL"
+                                        ? 0
+                                        : 1
+                            )
+                            .ThenBy(
+                                x =>
+                                    x.VrstaProdaje ==
+                                    "AKCIJSKA"
+                                        ? 0
+                                        : 1
+                            )
+                    )
+                    {
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    @row.Godina
+                                </strong>
+                            </td>
+
+                            <td>
+
+                                <span class="
+                                    type-pill
+                                    @(row.Tip == "ACTUAL"
+                                        ? "actual"
+                                        : "plan")">
+
+                                    @row.Tip
+
+                                </span>
+
+                            </td>
+
+                            <td>
+                                @row.VrstaProdaje
+                            </td>
+
+                            <td>
+                                <strong>
+                                    @row.TipAkcije
+                                </strong>
+                            </td>
+
+                            <td class="numeric">
+                                @Number(
+                                    row.Kolicina
+                                )
+                            </td>
+
+                            <td class="numeric">
+                                @Money(
+                                    row.Promet
+                                )
+                            </td>
+
+                            <td class="
+                                numeric
+                                @(row.Ruc12 < 0
+                                    ? "negative"
+                                    : "")">
+
+                                @Money(
+                                    row.Ruc12
+                                )
+
+                            </td>
+
+                            <td class="
+                                numeric
+                                @ValueClass(
+                                    row.Ruc12Procenat
+                                )">
+
+                                @Percent(
+                                    row.Ruc12Procenat
+                                )
+
+                            </td>
+
+                            <td>
+
+                                @if (row.CmUtice)
+                                {
+                                    <strong class="positive">
+                                        DA
+                                    </strong>
+                                }
+                                else
+                                {
+                                    <span class="neutral">
+                                        NE
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="detail-card">
+
+        <div class="detail-card-header">
+
+            <div>
+
+                <div class="detail-eyebrow">
+                    Uzrok odstupanja
+                </div>
+
+                <h2>
+                    Efekti
+                </h2>
+
+            </div>
+
+        </div>
+
+        <div class="effect-grid">
+
+            <div class="effect-card">
+
+                <span>
+                    Margin effect
+                </span>
+
+                <strong class="
+                    @DeltaClass(
+                        Model.MarginEffect
+                    )">
+
+                    @Money(
+                        Model.MarginEffect
+                    )
+
+                </strong>
+
+                <small>
+                    Promena marže
+                </small>
+
+            </div>
+
+            <div class="effect-card">
+
+                <span>
+                    Volume effect
+                </span>
+
+                <strong class="
+                    @DeltaClass(
+                        Model.VolumeEffect
+                    )">
+
+                    @Money(
+                        Model.VolumeEffect
+                    )
+
+                </strong>
+
+                <small>
+                    Promena obima prodaje
+                </small>
+
+            </div>
+
+            <div class="effect-card">
+
+                <span>
+                    Mix effect
+                </span>
+
+                <strong class="
+                    @DeltaClass(
+                        Model.MixEffect
+                    )">
+
+                    @Money(
+                        Model.MixEffect
+                    )
+
+                </strong>
+
+                <small>
+                    Struktura prodaje
+                </small>
+
+            </div>
+
+            <div class="
+                effect-card
+                effect-total">
+
+                <span>
+                    Total diff
+                </span>
+
+                <strong class="
+                    @DeltaClass(
+                        Model.TotalDiff
+                    )">
+
+                    @Money(
+                        Model.TotalDiff
+                    )
+
+                </strong>
+
+                <small>
+                    Actual RUC - Plan RUC
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

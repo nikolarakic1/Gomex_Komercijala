@@ -228,7 +228,60 @@ namespace GomexPraksaMVC.GomexMVC.Controllers
 
             return View(model);
         }
+        public async Task<IActionResult> KriticniDetalji(
+    string sifra,
+    int godinaOd = 2025,
+    int godinaDo = 2026)
+        {
+            if (string.IsNullOrWhiteSpace(sifra))
+            {
+                return BadRequest();
+            }
 
+            var client =
+                _httpFactory.CreateClient(
+                    "GomexApi"
+                );
+
+            try
+            {
+                var url =
+                    $"api/artikli/" +
+                    $"{Uri.EscapeDataString(sifra)}/" +
+                    $"critical-details" +
+                    $"?godinaOd={godinaOd}" +
+                    $"&godinaDo={godinaDo}";
+
+                var model =
+                    await client.GetFromJsonAsync<
+                        CriticalArticleDetailsViewItem
+                    >(url);
+
+                if (model == null)
+                {
+                    return NotFound();
+                }
+
+                ViewData["GodinaOd"] =
+                    godinaOd;
+
+                ViewData["GodinaDo"] =
+                    godinaDo;
+
+                return View(
+                    "KriticniDetalji",
+                    model
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"GRESKA KRITICNI DETALJI: {ex.Message}"
+                );
+
+                return StatusCode(500);
+            }
+        }
         public async Task<IActionResult> Kriticni(
             DateTime? datumOd,
             DateTime? datumDo,

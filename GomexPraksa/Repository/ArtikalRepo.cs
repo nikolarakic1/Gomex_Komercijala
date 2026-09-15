@@ -429,6 +429,14 @@ namespace GomexPraksa.Repository
                 SUM(
                     CASE
                         WHEN kr.TipProdajeId = 6
+                        THEN COALESCE(kr.Kolicina, 0)
+                        ELSE 0
+                    END
+                ) AS ActualKolicina,
+
+                SUM(
+                    CASE
+                        WHEN kr.TipProdajeId = 6
                         THEN COALESCE(kr.RUC12, 0)
                         ELSE 0
                     END
@@ -477,6 +485,8 @@ namespace GomexPraksa.Repository
 
                 ActualPromet,
 
+                ActualKolicina,
+
                 ActualRuc,
 
                 PlanPromet,
@@ -505,6 +515,16 @@ namespace GomexPraksa.Repository
             ArtikalId,
 
             ActualPromet AS Promet,
+
+            CASE
+                WHEN ActualKolicina = 0
+                THEN NULL
+                ELSE CAST(
+                    ActualPromet
+                    / NULLIF(ActualKolicina, 0)
+                    AS decimal(18, 2)
+                )
+            END AS RedovnaCena,
 
             ActualRuc AS RUC12,
 
@@ -561,6 +581,9 @@ namespace GomexPraksa.Repository
                 artikal.Promet =
                     stat.Promet;
 
+                artikal.RedovnaCena =
+                    stat.RedovnaCena;
+
                 artikal.RUC12 =
                     stat.RUC12;
 
@@ -595,6 +618,8 @@ namespace GomexPraksa.Repository
             public int ArtikalId { get; set; }
 
             public decimal Promet { get; set; }
+
+            public decimal? RedovnaCena { get; set; }
 
             public decimal RUC12 { get; set; }
 
