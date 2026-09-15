@@ -11,7 +11,7 @@ namespace GomexPraksa.KomercijalaStaging
         private readonly IStagingRepo _stagingRepo;
         private readonly ILogger<StagingService> _logger;
 
-        private const int MaxRowsToImport = 5000;
+        private const int MaxRowsToImport = 30000;
 
         private static readonly string[] RequiredExcelColumns =
         {

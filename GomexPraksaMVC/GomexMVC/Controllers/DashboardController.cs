@@ -4,7 +4,11 @@ using System.Net.Http.Json;
 
 namespace GomexPraksaMVC.Controllers
 {
-    [TypeFilter(typeof(GomexPraksaMVC.Filters.RequireAuthFilter))]
+    [TypeFilter(
+        typeof(
+            GomexPraksaMVC.Filters.RequireAuthFilter
+        )
+    )]
     public class DashboardController : Controller
     {
         private readonly IHttpClientFactory _httpFactory;
@@ -12,7 +16,8 @@ namespace GomexPraksaMVC.Controllers
         public DashboardController(
             IHttpClientFactory httpFactory)
         {
-            _httpFactory = httpFactory;
+            _httpFactory =
+                httpFactory;
         }
 
         public async Task<IActionResult> Index(
@@ -24,24 +29,23 @@ namespace GomexPraksaMVC.Controllers
             int? tipProdajeId)
         {
             var client =
-                _httpFactory.CreateClient("GomexApi");
-
-            // =============================================
-            // DA LI SU FILTERI POSLATI IZ FORME / URL-A?
-            // =============================================
+                _httpFactory
+                    .CreateClient(
+                        "GomexApi"
+                    );
 
             bool imaParametre =
-                datumOd.HasValue ||
-                datumDo.HasValue ||
-                odeljenjeId.HasValue ||
-                kategorijaId.HasValue ||
-                dobavljacId.HasValue ||
+                datumOd.HasValue
+                ||
+                datumDo.HasValue
+                ||
+                odeljenjeId.HasValue
+                ||
+                kategorijaId.HasValue
+                ||
+                dobavljacId.HasValue
+                ||
                 tipProdajeId.HasValue;
-
-            // =============================================
-            // AKO NEMA PARAMETARA,
-            // POKUSAJ DA VRATIS POSLEDNJE FILTERE
-            // =============================================
 
             if (!imaParametre)
             {
@@ -76,14 +80,12 @@ namespace GomexPraksaMVC.Controllers
                     );
             }
 
-            // =============================================
-            // DATUMI
-            // =============================================
-
             DateOnly datumStart;
+
             DateOnly datumEnd;
 
-            if (!datumOd.HasValue &&
+            if (!datumOd.HasValue
+                &&
                 !datumDo.HasValue)
             {
                 datumEnd =
@@ -95,7 +97,8 @@ namespace GomexPraksaMVC.Controllers
                     datumEnd.AddDays(-29);
             }
             else if (
-                datumOd.HasValue &&
+                datumOd.HasValue
+                &&
                 !datumDo.HasValue)
             {
                 datumStart =
@@ -109,7 +112,8 @@ namespace GomexPraksaMVC.Controllers
                     );
             }
             else if (
-                !datumOd.HasValue &&
+                !datumOd.HasValue
+                &&
                 datumDo.HasValue)
             {
                 datumEnd =
@@ -133,10 +137,6 @@ namespace GomexPraksaMVC.Controllers
                     );
             }
 
-            // =============================================
-            // PROVERA DATUMA
-            // =============================================
-
             if (datumStart > datumEnd)
             {
                 ModelState.AddModelError(
@@ -153,18 +153,18 @@ namespace GomexPraksaMVC.Controllers
                     datumEnd.AddDays(-29);
             }
 
-            // =============================================
-            // SACUVAJ TRENUTNO STANJE FILTERA
-            // =============================================
-
             SacuvajTempData(
                 "DashboardDatumOd",
-                datumStart.ToString("yyyy-MM-dd")
+                datumStart.ToString(
+                    "yyyy-MM-dd"
+                )
             );
 
             SacuvajTempData(
                 "DashboardDatumDo",
-                datumEnd.ToString("yyyy-MM-dd")
+                datumEnd.ToString(
+                    "yyyy-MM-dd"
+                )
             );
 
             SacuvajTempData(
@@ -187,10 +187,6 @@ namespace GomexPraksaMVC.Controllers
                 tipProdajeId
             );
 
-            // =============================================
-            // MODEL
-            // =============================================
-
             var model =
                 new DashboardViewModel
                 {
@@ -210,49 +206,47 @@ namespace GomexPraksaMVC.Controllers
                         dobavljacId,
 
                     TipProdajeId =
-                        tipProdajeId
+                        tipProdajeId,
+
+                    CriticalTop5 =
+                        new List<
+                            CriticalProductViewItem>()
                 };
 
-            // =============================================
-            // QUERY ZA DASHBOARD
-            // =============================================
-
-            var dashboardQueryParts =
+            var analyticsQueryParts =
                 new List<string>
                 {
-                    $"datumOd={datumStart:yyyy-MM-dd}",
-                    $"datumDo={datumEnd:yyyy-MM-dd}"
+                    $"datumOd=" +
+                    $"{datumStart:yyyy-MM-dd}",
+
+                    $"datumDo=" +
+                    $"{datumEnd:yyyy-MM-dd}"
                 };
 
             DodajOpcioniFilter(
-                dashboardQueryParts,
+                analyticsQueryParts,
                 "odeljenjeId",
                 odeljenjeId
             );
 
             DodajOpcioniFilter(
-                dashboardQueryParts,
+                analyticsQueryParts,
                 "kategorijaId",
                 kategorijaId
             );
 
             DodajOpcioniFilter(
-                dashboardQueryParts,
+                analyticsQueryParts,
                 "dobavljacId",
                 dobavljacId
             );
 
-            DodajOpcioniFilter(
-                dashboardQueryParts,
-                "tipProdajeId",
-                tipProdajeId
-            );
-
-            string dashboardQuery =
-                "?" +
+            string analyticsQuery =
+                "?"
+                +
                 string.Join(
                     "&",
-                    dashboardQueryParts
+                    analyticsQueryParts
                 );
 
             Console.WriteLine(
@@ -261,20 +255,11 @@ namespace GomexPraksaMVC.Controllers
                 $"{datumEnd:yyyy-MM-dd}"
             );
 
-            // =============================================
-            // PARALELNO POKRETANJE API POZIVA
-            // =============================================
-
-            var summaryTask =
-                SafeGetAsync<DashboardViewModel>(
-                    client,
-                    $"api/dashboard/summary{dashboardQuery}",
-                    "DASHBOARD SUMMARY"
-                );
-
             var dobavljaciTask =
                 SafeGetAsync<
-                    PaginationResponse<DobavljacViewItem>
+                    PaginationResponse<
+                        DobavljacViewItem
+                    >
                 >(
                     client,
                     "api/dobavljaci",
@@ -283,7 +268,9 @@ namespace GomexPraksaMVC.Controllers
 
             var odeljenjaTask =
                 SafeGetAsync<
-                    List<OdeljenjeViewItem>
+                    List<
+                        OdeljenjeViewItem
+                    >
                 >(
                     client,
                     "api/odeljenja",
@@ -292,7 +279,9 @@ namespace GomexPraksaMVC.Controllers
 
             var kategorijeTask =
                 SafeGetAsync<
-                    List<KategorijaViewItem>
+                    List<
+                        KategorijaViewItem
+                    >
                 >(
                     client,
                     "api/kategorije",
@@ -301,49 +290,21 @@ namespace GomexPraksaMVC.Controllers
 
             var tipoviProdajeTask =
                 SafeGetAsync<
-                    List<TipProdajeViewItem>
+                    List<
+                        TipProdajeViewItem
+                    >
                 >(
                     client,
                     "api/tipprodaje",
                     "TIPOVI PRODAJE"
                 );
 
-            var criticalTopTask =
-                SafeGetAsync<
-                    List<CriticalProductViewItem>
-                >(
-                    client,
-                    $"api/artikli/criticalProductsTop{dashboardQuery}",
-                    "TOP 5 KRITIČNIH PROIZVODA"
-                );
-
-            var rucChangeTask =
-                SafeGetAsync<RucChangeViewItem>(
-                    client,
-                    $"api/RucChangeTracker{dashboardQuery}",
-                    "RUC CHANGE TRACKER"
-                );
-
-            // =============================================
-            // CEKAMO SVE
-            // =============================================
-
             await Task.WhenAll(
-                summaryTask,
                 dobavljaciTask,
                 odeljenjaTask,
                 kategorijeTask,
-                tipoviProdajeTask,
-                criticalTopTask,
-                rucChangeTask
+                tipoviProdajeTask
             );
-
-            // =============================================
-            // REZULTATI
-            // =============================================
-
-            var summary =
-                await summaryTask;
 
             var dobavljaci =
                 await dobavljaciTask;
@@ -357,15 +318,50 @@ namespace GomexPraksaMVC.Controllers
             var tipoviProdaje =
                 await tipoviProdajeTask;
 
+            Console.WriteLine(
+                "START DASHBOARD SUMMARY"
+            );
+
+            var summary =
+                await SafeGetAsync<
+                    DashboardViewModel
+                >(
+                    client,
+                    $"api/dashboard/summary" +
+                    $"{analyticsQuery}",
+                    "DASHBOARD SUMMARY"
+                );
+
+            Console.WriteLine(
+                "START TOP 5"
+            );
+
             var criticalTop =
-                await criticalTopTask;
+                await SafeGetAsync<
+                    List<
+                        CriticalProductViewItem
+                    >
+                >(
+                    client,
+                    $"api/artikli/" +
+                    $"criticalProductsTop" +
+                    $"{analyticsQuery}",
+                    "TOP 5 KRITIČNIH PROIZVODA"
+                );
+
+            Console.WriteLine(
+                "START RUC CHANGE"
+            );
 
             var rucChange =
-                await rucChangeTask;
-
-            // =============================================
-            // DASHBOARD SUMMARY
-            // =============================================
+                await SafeGetAsync<
+                    RucChangeViewItem
+                >(
+                    client,
+                    $"api/RucChangeTracker" +
+                    $"{analyticsQuery}",
+                    "RUC CHANGE TRACKER"
+                );
 
             if (summary != null)
             {
@@ -373,85 +369,98 @@ namespace GomexPraksaMVC.Controllers
                     summary.PrometBezPdv;
 
                 model.PrometPromenaProcenat =
-                    summary.PrometPromenaProcenat;
+                    summary
+                        .PrometPromenaProcenat;
 
                 model.Ruc12 =
                     summary.Ruc12;
 
                 model.Ruc12PromenaProcenat =
-                    summary.Ruc12PromenaProcenat;
+                    summary
+                        .Ruc12PromenaProcenat;
 
                 model.Ruc12Procenat =
                     summary.Ruc12Procenat;
 
-                model.Ruc12PromenaProcentniPoeni =
-                    summary.Ruc12PromenaProcentniPoeni;
+                model
+                    .Ruc12PromenaProcentniPoeni =
+                    summary
+                        .Ruc12PromenaProcentniPoeni;
 
                 model.KriticniArtikli =
                     summary.KriticniArtikli;
 
                 model.KriticniArtikliPromena =
-                    summary.KriticniArtikliPromena;
+                    summary
+                        .KriticniArtikliPromena;
 
                 model.NedostatakMarze =
                     summary.NedostatakMarze;
 
-                model.NedostatakMarzePromenaProcenat =
-                    summary.NedostatakMarzePromenaProcenat;
+                model
+                    .NedostatakMarzePromenaProcenat =
+                    summary
+                        .NedostatakMarzePromenaProcenat;
 
                 model.PodaciOsvezeni =
                     summary.PodaciOsvezeni;
             }
 
-            // =============================================
-            // LOOKUP PODACI
-            // =============================================
-
             model.Dobavljaci =
                 dobavljaci?.Items
-                ?? new List<DobavljacViewItem>();
+                ??
+                new List<
+                    DobavljacViewItem
+                >();
 
             model.Odeljenja =
                 odeljenja
-                ?? new List<OdeljenjeViewItem>();
+                ??
+                new List<
+                    OdeljenjeViewItem
+                >();
 
             model.Kategorije =
                 kategorije
-                ?? new List<KategorijaViewItem>();
+                ??
+                new List<
+                    KategorijaViewItem
+                >();
 
             model.TipoviProdaje =
                 tipoviProdaje
-                ?? new List<TipProdajeViewItem>();
-
-            // =============================================
-            // TOP 5
-            // =============================================
+                ??
+                new List<
+                    TipProdajeViewItem
+                >();
 
             model.CriticalTop5 =
                 criticalTop
-                ?? new List<CriticalProductViewItem>();
-
-            // =============================================
-            // RUC CHANGE
-            // =============================================
+                ??
+                new List<
+                    CriticalProductViewItem
+                >();
 
             model.RucChange =
                 rucChange;
 
-            return View(model);
+            return View(
+                model
+            );
         }
 
-        // =============================================
-        // TEMP DATA - DATUM
-        // =============================================
-
-        private DateTime? ProcitajDatumIzTempData(
-            string key)
+        private DateTime?
+            ProcitajDatumIzTempData(
+                string key)
         {
             var vrednost =
-                TempData.Peek(key)?.ToString();
+                TempData
+                    .Peek(key)?
+                    .ToString();
 
-            if (string.IsNullOrWhiteSpace(vrednost))
+            if (string.IsNullOrWhiteSpace(
+                vrednost
+            ))
             {
                 return null;
             }
@@ -466,17 +475,18 @@ namespace GomexPraksaMVC.Controllers
             return null;
         }
 
-        // =============================================
-        // TEMP DATA - INT FILTER
-        // =============================================
-
-        private int? ProcitajIntIzTempData(
-            string key)
+        private int?
+            ProcitajIntIzTempData(
+                string key)
         {
             var vrednost =
-                TempData.Peek(key)?.ToString();
+                TempData
+                    .Peek(key)?
+                    .ToString();
 
-            if (string.IsNullOrWhiteSpace(vrednost))
+            if (string.IsNullOrWhiteSpace(
+                vrednost
+            ))
             {
                 return null;
             }
@@ -491,34 +501,33 @@ namespace GomexPraksaMVC.Controllers
             return null;
         }
 
-        // =============================================
-        // TEMP DATA - CUVANJE
-        // =============================================
-
         private void SacuvajTempData(
             string key,
             object? vrednost)
         {
             if (vrednost == null)
             {
-                TempData.Remove(key);
+                TempData.Remove(
+                    key
+                );
+
                 return;
             }
 
             TempData[key] =
                 vrednost.ToString();
 
-            TempData.Keep(key);
+            TempData.Keep(
+                key
+            );
         }
 
-        // =============================================
-        // OPCIONI FILTER
-        // =============================================
-
-        private static void DodajOpcioniFilter(
-            ICollection<string> queryParts,
-            string naziv,
-            int? vrednost)
+        private static void
+            DodajOpcioniFilter(
+                ICollection<string>
+                    queryParts,
+                string naziv,
+                int? vrednost)
         {
             if (!vrednost.HasValue)
             {
@@ -526,33 +535,35 @@ namespace GomexPraksaMVC.Controllers
             }
 
             queryParts.Add(
-                $"{naziv}={vrednost.Value}"
+                $"{naziv}=" +
+                $"{vrednost.Value}"
             );
         }
 
-        // =============================================
-        // SAFE API GET
-        // =============================================
-
-        private static async Task<T?> SafeGetAsync<T>(
-            HttpClient client,
-            string url,
-            string nazivPoziva)
+        private static async Task<T?>
+            SafeGetAsync<T>(
+                HttpClient client,
+                string url,
+                string nazivPoziva)
             where T : class
         {
             var sw =
-                System.Diagnostics.Stopwatch.StartNew();
+                System.Diagnostics
+                    .Stopwatch
+                    .StartNew();
 
             try
             {
                 Console.WriteLine(
-                    $"START {nazivPoziva}: {url}"
+                    $"START {nazivPoziva}: " +
+                    $"{url}"
                 );
 
                 var result =
-                    await client.GetFromJsonAsync<T>(
-                        url
-                    );
+                    await client
+                        .GetFromJsonAsync<T>(
+                            url
+                        );
 
                 sw.Stop();
 

@@ -99,7 +99,7 @@ namespace GomexPraksa.KomercijalaStaging
                 bulkCopy.DestinationTableName =
                     "dbo.KomercijalaImportStaging";
 
-                bulkCopy.BatchSize = 10000;
+                bulkCopy.BatchSize = 30000;
                 bulkCopy.BulkCopyTimeout = 0;
 
                 bulkCopy.ColumnMappings.Add(

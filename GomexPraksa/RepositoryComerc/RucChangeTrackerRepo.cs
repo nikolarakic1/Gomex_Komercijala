@@ -36,8 +36,11 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             );
         }
 
-        var datumOd = filter.DatumOd.Value;
-        var datumDo = filter.DatumDo.Value;
+        var datumOd =
+            filter.DatumOd.Value;
+
+        var datumDo =
+            filter.DatumDo.Value;
 
         if (datumOd > datumDo)
         {
@@ -47,7 +50,9 @@ public class RucChangeTrackerRepo : IRucChangeTracker
         }
 
         if (datumDo >
-            DateOnly.FromDateTime(DateTime.Today))
+            DateOnly.FromDateTime(
+                DateTime.Today
+            ))
         {
             throw new ArgumentException(
                 "Datum završetka ne može biti u budućnosti."
@@ -63,7 +68,8 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             );
         }
 
-        var where = new StringBuilder();
+        var where =
+            new StringBuilder();
 
         where.AppendLine(
             """
@@ -71,6 +77,7 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                 kr.DatumRezultata >= @DatumOd
                 AND kr.DatumRezultata < DATEADD(DAY, 1, @DatumDo)
                 AND kr.TipProdajeId IN (6, 7)
+                AND kr.CMUtice = 1
                 AND a.Aktivan = 1
             """
         );
@@ -95,7 +102,9 @@ public class RucChangeTrackerRepo : IRucChangeTracker
         if (filter.OdeljenjeId.HasValue)
         {
             where.AppendLine(
-                "AND k.OdeljenjeId = @OdeljenjeId"
+                """
+                AND k.OdeljenjeId = @OdeljenjeId
+                """
             );
 
             parametri.Add(
@@ -107,7 +116,9 @@ public class RucChangeTrackerRepo : IRucChangeTracker
         if (filter.KategorijaId.HasValue)
         {
             where.AppendLine(
-                "AND k.KategorijaId = @KategorijaId"
+                """
+                AND k.KategorijaId = @KategorijaId
+                """
             );
 
             parametri.Add(
@@ -136,7 +147,9 @@ public class RucChangeTrackerRepo : IRucChangeTracker
         if (!canViewAllCategories)
         {
             where.AppendLine(
-                "AND k.KategorijaId IN @KategorijaIds"
+                """
+                AND k.KategorijaId IN @KategorijaIds
+                """
             );
 
             parametri.Add(
@@ -150,7 +163,6 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             WITH Podaci AS
             (
                 SELECT
-
                     COALESCE(
                         SUM(
                             CASE
@@ -201,10 +213,12 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                     ON a.ArtikalId = kr.ArtikalId
 
                 INNER JOIN dbo.RobnaGrupa rg
-                    ON rg.RobnaGrupaId = a.RobnaGrupaId
+                    ON rg.RobnaGrupaId =
+                       a.RobnaGrupaId
 
                 INNER JOIN dbo.Kategorija k
-                    ON k.KategorijaId = rg.KategorijaId
+                    ON k.KategorijaId =
+                       rg.KategorijaId
 
                 {where}
             ),
@@ -212,7 +226,6 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             Procenti AS
             (
                 SELECT
-
                     CAST(
                         ActualPromet
                         AS DECIMAL(38, 10)
@@ -235,7 +248,10 @@ public class RucChangeTrackerRepo : IRucChangeTracker
 
                     CASE
                         WHEN ActualPromet = 0
-                            THEN CAST(0 AS DECIMAL(38, 10))
+                            THEN CAST(
+                                0
+                                AS DECIMAL(38, 10)
+                            )
 
                         ELSE
                             CAST(
@@ -250,12 +266,14 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                                 ),
                                 0
                             )
-                    END
-                    AS ActualRucProcenat,
+                    END AS ActualRucProcenat,
 
                     CASE
                         WHEN PlanPromet = 0
-                            THEN CAST(0 AS DECIMAL(38, 10))
+                            THEN CAST(
+                                0
+                                AS DECIMAL(38, 10)
+                            )
 
                         ELSE
                             CAST(
@@ -270,8 +288,7 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                                 ),
                                 0
                             )
-                    END
-                    AS PlanRucProcenat
+                    END AS PlanRucProcenat
 
                 FROM Podaci
             ),
@@ -279,7 +296,6 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             Efekti AS
             (
                 SELECT
-
                     ActualPromet,
                     PlanPromet,
                     ActualRuc,
@@ -309,7 +325,6 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             FinalniPodaci AS
             (
                 SELECT
-
                     ActualPromet,
                     PlanPromet,
                     ActualRuc,
@@ -330,7 +345,6 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             )
 
             SELECT
-
                 CAST(
                     PlanRuc
                     AS DECIMAL(28, 6)
@@ -352,17 +366,24 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                 ) AS MixEffect,
 
                 CAST(
-                    ActualRuc - PlanRuc
+                    ActualRuc
+                    -
+                    PlanRuc
                     AS DECIMAL(28, 6)
                 ) AS UkupnaPromena,
 
                 CASE
                     WHEN PlanRuc = 0
-                        THEN CAST(0 AS DECIMAL(28, 10))
+                        THEN CAST(
+                            0
+                            AS DECIMAL(28, 10)
+                        )
 
                     ELSE
                         CAST(
-                            ActualRuc - PlanRuc
+                            ActualRuc
+                            -
+                            PlanRuc
                             AS DECIMAL(28, 10)
                         )
                         /
@@ -373,8 +394,7 @@ public class RucChangeTrackerRepo : IRucChangeTracker
                             ),
                             0
                         )
-                END
-                AS UkupnaPromenaProcenat,
+                END AS UkupnaPromenaProcenat,
 
                 CAST(
                     ActualRuc
@@ -424,11 +444,13 @@ public class RucChangeTrackerRepo : IRucChangeTracker
         total.Stop();
 
         Console.WriteLine(
-            $"RUC Query: {queryTimer.ElapsedMilliseconds} ms"
+            $"RUC Query: " +
+            $"{queryTimer.ElapsedMilliseconds} ms"
         );
 
         Console.WriteLine(
-            $"RUC TOTAL: {total.ElapsedMilliseconds} ms"
+            $"RUC TOTAL: " +
+            $"{total.ElapsedMilliseconds} ms"
         );
 
         Console.WriteLine(
@@ -437,8 +459,7 @@ public class RucChangeTrackerRepo : IRucChangeTracker
             $"MARGIN: {rezultat.MarginEffect:N2} | " +
             $"VOLUME: {rezultat.VolumeEffect:N2} | " +
             $"MIX: {rezultat.MixEffect:N2} | " +
-            $"ACTUAL: {rezultat.KonacniRuc:N2} | " 
-           
+            $"ACTUAL: {rezultat.KonacniRuc:N2} |"
         );
 
         return rezultat;
