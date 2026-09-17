@@ -275,10 +275,31 @@
 ===================================================== -->
 @if (Model.TotalPages > 1)
 {
-    <nav class="mt-4">
+    <style>
+        .supplier-page .pagination { gap: 4px; }
+        .supplier-page .page-link {
+            min-width: 34px;
+            border-radius: 8px !important;
+            border-color: #D8E1DC;
+            color: #4A5851;
+            font-size: 12px;
+            text-align: center;
+        }
+        .supplier-page .page-item.active .page-link {
+            background: #23785A;
+            border-color: #23785A;
+            color: white;
+        }
+        .supplier-page .page-item.disabled .page-link {
+            color: #A3AAA6;
+            background: #F4F6F5;
+        }
+    </style>
+
+    <nav class="mt-4 supplier-page">
 
         <ul class="pagination
-            justify-content-center">
+            justify-content-end">
 
             <!-- PRETHODNA -->
 
